@@ -23,25 +23,25 @@ class StockfishEngine(Engine):
     key = "stockfish"
     name = S.ENGINE_STOCKFISH
 
-    def __init__(self, settings):
-        super().__init__(settings)
+    def __init__(self, settings, app_dir=None):
+        super().__init__(settings, app_dir)
         self.client = None
         self._options = {}   # options last sent, so they are only sent when they change
 
     # --- Finding the exe --------------------------------------------------
 
-    @classmethod
-    def default_dir(cls, settings):
-        return cls.app_dir(settings) / "engines" / "stockfish"
+    @staticmethod
+    def default_dir(app_dir):
+        return Path(app_dir) / "engines" / "stockfish"
 
     @classmethod
-    def find_exe(cls, settings):
+    def find_exe(cls, settings, app_dir):
         """settings["engine_path"] if set, else stockfish.exe (or stockfish*.exe) in engines/stockfish/."""
         configured = settings["engine_path"]
         if configured:
             path = Path(configured)
             return path if path.is_file() else None
-        folder = cls.default_dir(settings)
+        folder = cls.default_dir(app_dir)
         exact = folder / "stockfish.exe"
         if exact.is_file():
             return exact
@@ -49,12 +49,12 @@ class StockfishEngine(Engine):
         return found[0] if found else None
 
     @classmethod
-    def available(cls, settings):
-        return cls.find_exe(settings) is not None
+    def available(cls, settings, app_dir):
+        return cls.find_exe(settings, app_dir) is not None
 
     @classmethod
-    def unavailable_reason(cls, settings):
-        return S.STOCKFISH_MISSING.format(folder=cls.default_dir(settings))
+    def unavailable_reason(cls, settings, app_dir):
+        return S.STOCKFISH_MISSING.format(folder=cls.default_dir(app_dir))
 
     # --- Engine -----------------------------------------------------------
 
@@ -62,9 +62,9 @@ class StockfishEngine(Engine):
         return LEVELS
 
     def start(self):
-        exe = self.find_exe(self.settings)
+        exe = self.find_exe(self.settings, self.app_dir)
         if exe is None:
-            raise EngineError(self.unavailable_reason(self.settings))
+            raise EngineError(self.unavailable_reason(self.settings, self.app_dir))
         self.client = UciClient([exe], cwd=exe.parent)
         self.client.start()
         for name, value in BASE_OPTIONS.items():

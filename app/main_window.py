@@ -9,15 +9,20 @@ import chess
 from . import fileio
 from . import strings as S
 from .board_view import BoardView
+from .commands import DELETE_LAST, EDIT_COMMENT, EDIT_TREE, NAVIGATE, OPEN, PASTE, TAKE_BACK
 from .dialogs import choose_game
 from .model import GameModel, event_for, visible_comment
-from .modes import MODES, ModeContext, mode_class
+from .modes import MODES, ModeContext, mode_class, mode_settings
 from .movelist_view import MoveListView
 from .pieces import PieceImages
 from .settings import Settings
 from .sounds import ILLEGAL, Sounds
-from .theme import (BACKGROUND, BUTTON_ACTIVE, BUTTON_BG, CLOCK_ACTIVE_BG, CLOCK_ACTIVE_FG, CLOCK_BG,
-                    CLOCK_FG, CLOCK_LOW_FG, ENTRY_BG, MUTED_FG, PANEL_BG, PANEL_FG)
+from .theme import (BACKGROUND, CLOCK_ACTIVE_BG, CLOCK_ACTIVE_FG, CLOCK_BG, CLOCK_FG, CLOCK_LOW_FG,
+                    ENTRY_BG, FONT, FONT_BOLD, FONT_CLOCK, FONT_LARGE_BOLD, FONT_MONO_SMALL, FONT_SMALL,
+                    FONT_SMALL_BOLD, FONT_STATUS, MUTED_FG, PANEL_BG, PANEL_FG)
+from .widgets import button
+
+AUTOSAVE_MS = 2000   # how often changed settings are written to settings.json
 
 
 class MainWindow:
@@ -31,7 +36,7 @@ class MainWindow:
     def __init__(self, root, app_dir):
         self.root = root
         self.app_dir = Path(app_dir)
-        self.settings = Settings(self.app_dir / "settings.json")
+        self.settings = Settings(self.app_dir / "settings.json", mode_settings())
         self.model = GameModel()
         self.pieces = PieceImages(self.app_dir / "assets" / "pieces", self.settings["piece_set"])
         self.sounds = Sounds(self.app_dir / "assets" / "sounds", self.settings["sound"])
@@ -39,10 +44,10 @@ class MainWindow:
         self._comment_node = None
         self._clocks = None   # {color: (text, active, low)} while a mode shows clocks
         self.ctx = ModeContext(
-            root=root, model=self.model, settings=self.settings, play_move=self.play_move,
-            new_game=self._set_position, refresh=self.refresh, set_flipped=self.set_flipped,
-            set_mode=self.set_mode, confirm_discard=self._confirm_discard, set_clocks=self.set_clocks,
-            play_sound=self.sounds.play, button=self._button, take_back=self.take_back)
+            root=root, model=self.model, settings=self.settings, app_dir=self.app_dir,
+            play_move=self.play_move, new_game=self._set_position, refresh=self.refresh,
+            set_flipped=self.set_flipped, set_mode=self.set_mode, set_clocks=self.set_clocks,
+            play_sound=self.sounds.play, take_back=self.take_back)
         self.mode = MODES[0](self.ctx)   # the program always starts in the first mode (Board)
 
         self.scale = root.winfo_fpixels("1i") / 96   # 1.25 on a 125 % display
@@ -61,17 +66,13 @@ class MainWindow:
         self.board.theme = self.settings["board_theme"]
         self._show_details()
         self.refresh(rebuild=True)
+        self.root.after(AUTOSAVE_MS, self._autosave)
 
     # --- Layout -----------------------------------------------------------
 
     def _px(self, pixels):
         """Scale a size designed for a 100 % display."""
         return round(pixels * self.scale)
-
-    def _button(self, parent, text, command, **kw):
-        return tk.Button(parent, text=text, command=command, bg=BUTTON_BG, fg=PANEL_FG,
-                         activebackground=BUTTON_ACTIVE, activeforeground=PANEL_FG, relief="flat",
-                         bd=0, padx=10, pady=6, font=("Segoe UI", 11, "bold"), takefocus=0, **kw)
 
     def _build_ui(self):
         root = self.root
@@ -80,19 +81,18 @@ class MainWindow:
 
         left = tk.Frame(root, bg=BACKGROUND)
         left.grid(row=0, column=0, sticky="nsew", padx=(12, 6), pady=8)
-        name_font = ("Segoe UI", 11, "bold")
         title_row = tk.Frame(left, bg=BACKGROUND)
         title_row.pack(side="top", fill="x")
-        self.mode_title = tk.Label(title_row, bg=BACKGROUND, fg=MUTED_FG, font=("Segoe UI", 10, "bold"), anchor="w")
+        self.mode_title = tk.Label(title_row, bg=BACKGROUND, fg=MUTED_FG, font=FONT_BOLD, anchor="w")
         self.mode_title.pack(side="left", fill="x", expand=True)
-        self.score = tk.Label(title_row, bg=BACKGROUND, fg=PANEL_FG, font=("Segoe UI", 10, "bold"), anchor="e")
+        self.score = tk.Label(title_row, bg=BACKGROUND, fg=PANEL_FG, font=FONT_BOLD, anchor="e")
         self.score.pack(side="right")
         rows = {}
         for side in ("top", "bottom"):
             row = tk.Frame(left, bg=BACKGROUND)
             row.pack(side=side, fill="x")
-            rows[side] = (tk.Label(row, bg=BACKGROUND, fg=PANEL_FG, font=name_font, anchor="w"),
-                          tk.Label(row, bg=CLOCK_BG, fg=CLOCK_FG, font=("Consolas", 15, "bold"), padx=10))
+            rows[side] = (tk.Label(row, bg=BACKGROUND, fg=PANEL_FG, font=FONT_LARGE_BOLD, anchor="w"),
+                          tk.Label(row, bg=CLOCK_BG, fg=CLOCK_FG, font=FONT_CLOCK, padx=10))
             rows[side][0].pack(side="left", fill="x", expand=True)
         (self.top_name, self.top_clock), (self.bottom_name, self.bottom_clock) = rows["top"], rows["bottom"]
         self.board = BoardView(left, self.model, self.pieces, self.user_move, self.illegal_move,
@@ -108,9 +108,9 @@ class MainWindow:
         # Shared toolbar: the same in every mode; the mode decides what a new game means
         toolbar = tk.Frame(right, bg=PANEL_BG)
         toolbar.grid(row=0, column=0, sticky="ew", padx=6, pady=(6, 0))
-        self._button(toolbar, S.BTN_NEW_GAME, self.new_game).pack(side="left", padx=2)
+        button(toolbar, S.BTN_NEW_GAME, self.new_game).pack(side="left", padx=2)
 
-        self.status = tk.Label(right, bg=PANEL_BG, fg=PANEL_FG, font=("Segoe UI", 12, "bold"),
+        self.status = tk.Label(right, bg=PANEL_BG, fg=PANEL_FG, font=FONT_STATUS,
                                anchor="w", justify="left", padx=10, pady=6)
         self.status.grid(row=1, column=0, sticky="ew")
         self.status.bind("<Configure>", lambda e: self.status.configure(wraplength=e.width - self._px(20)))
@@ -128,23 +128,23 @@ class MainWindow:
         for i, (text, command) in enumerate(((S.BTN_FIRST, self.go_start), (S.BTN_PREV, self.back),
                                              (S.BTN_NEXT, self.forward), (S.BTN_LAST, self.go_end))):
             nav.columnconfigure(i, weight=1, uniform="nav")
-            self._button(nav, text, command).grid(row=0, column=i, sticky="ew", padx=2)
+            button(nav, text, command).grid(row=0, column=i, sticky="ew", padx=2)
         nav.columnconfigure(4, weight=2)
-        self._button(nav, S.BTN_FLIP, self.flip).grid(row=0, column=4, sticky="ew", padx=2)
+        button(nav, S.BTN_FLIP, self.flip).grid(row=0, column=4, sticky="ew", padx=2)
 
         # Comment & FEN: collapsible; open or closed is remembered per mode
         self.details_toggle = tk.Button(right, command=self._toggle_details, bg=PANEL_BG, fg=MUTED_FG,
                                         activebackground=PANEL_BG, activeforeground=PANEL_FG, relief="flat",
-                                        bd=0, anchor="w", padx=10, font=("Segoe UI", 9, "bold"), takefocus=0)
+                                        bd=0, anchor="w", padx=10, font=FONT_SMALL_BOLD, takefocus=0)
         self.details_toggle.grid(row=5, column=0, sticky="ew", pady=(0, 4))
         self.details = tk.Frame(right, bg=PANEL_BG)
         self.details.grid(row=6, column=0, sticky="ew")
         self.details.columnconfigure(0, weight=1)
 
         tk.Label(self.details, text=S.LABEL_COMMENT, bg=PANEL_BG, fg=MUTED_FG, anchor="w",
-                 font=("Segoe UI", 9)).grid(row=0, column=0, sticky="ew", padx=10)
+                 font=FONT_SMALL).grid(row=0, column=0, sticky="ew", padx=10)
         self.comment = tk.Text(self.details, height=3, bg=ENTRY_BG, fg=PANEL_FG, insertbackground=PANEL_FG,
-                               relief="flat", font=("Segoe UI", 10), wrap="word", padx=6, pady=4)
+                               relief="flat", font=FONT, wrap="word", padx=6, pady=4)
         self.comment.grid(row=1, column=0, sticky="ew", padx=8)
         self.comment.bind("<FocusOut>", lambda e: self._save_comment(rebuild=True))
 
@@ -152,13 +152,13 @@ class MainWindow:
         fen_row.grid(row=2, column=0, sticky="ew", padx=8, pady=8)
         fen_row.columnconfigure(1, weight=1)
         tk.Label(fen_row, text=S.LABEL_FEN, bg=PANEL_BG, fg=MUTED_FG,
-                 font=("Segoe UI", 9)).grid(row=0, column=0, padx=(2, 6))
+                 font=FONT_SMALL).grid(row=0, column=0, padx=(2, 6))
         self.fen_var = tk.StringVar()
         self.fen_entry = tk.Entry(fen_row, textvariable=self.fen_var, bg=ENTRY_BG, fg=PANEL_FG,
-                                  insertbackground=PANEL_FG, relief="flat", font=("Consolas", 9))
+                                  insertbackground=PANEL_FG, relief="flat", font=FONT_MONO_SMALL)
         self.fen_entry.grid(row=0, column=1, sticky="ew", ipady=4)
         self.fen_entry.bind("<Return>", self._fen_entered)
-        self._button(fen_row, S.BTN_COPY, self.copy_fen, ).grid(row=0, column=2, padx=(6, 0))
+        button(fen_row, S.BTN_COPY, self.copy_fen).grid(row=0, column=2, padx=(6, 0))
 
     def _build_menu(self):
         menubar = tk.Menu(self.root)
@@ -170,14 +170,14 @@ class MainWindow:
 
         m = tk.Menu(menubar, tearoff=0, postcommand=self._update_menu_states)
         m.add_command(label=S.FILE_NEW, accelerator="Ctrl+N", command=self.new_game)
-        guarded(m, "open", label=S.FILE_OPEN, accelerator="Ctrl+O", command=self.open_file)
+        guarded(m, OPEN, label=S.FILE_OPEN, accelerator="Ctrl+O", command=self.open_file)
         m.add_command(label=S.FILE_SAVE, accelerator="Ctrl+S", command=self.save)
         m.add_command(label=S.FILE_SAVE_AS, command=self.save_as)
         m.add_command(label=S.FILE_SAVE_FEN, command=self.save_fen)
         m.add_separator()
         m.add_command(label=S.FILE_COPY_PGN, accelerator="Ctrl+C", command=self.copy_pgn)
         m.add_command(label=S.FILE_COPY_FEN, command=self.copy_fen)
-        guarded(m, "paste", label=S.FILE_PASTE, accelerator="Ctrl+V", command=self.paste)
+        guarded(m, PASTE, label=S.FILE_PASTE, accelerator="Ctrl+V", command=self.paste)
         m.add_separator()
         m.add_command(label=S.FILE_EXIT, command=self.exit)
         menubar.add_cascade(label=S.MENU_FILE, menu=m)
@@ -245,18 +245,11 @@ class MainWindow:
             self.mode_panel.grid()
         self._show_details()
 
-    def _details_states(self):
-        """settings["details_open"], e.g. "board,!vs_computer": open in Board, closed in
-        Play vs Computer. A mode that is not listed uses its show_details."""
-        return [item for item in self.settings["details_open"].split(",") if item]
-
     def _details_open(self):
-        states = self._details_states()
-        if self.mode.key in states:
-            return True
-        if "!" + self.mode.key in states:
-            return False
-        return self.mode.show_details
+        """settings["details_open"], e.g. {"board": True, "vs_computer": False}. A mode that
+        is not listed uses its show_details."""
+        is_open = self.settings["details_open"].get(self.mode.key)
+        return is_open if isinstance(is_open, bool) else self.mode.show_details
 
     def _show_details(self):
         is_open = self._details_open()
@@ -268,10 +261,7 @@ class MainWindow:
 
     def _toggle_details(self):
         self._save_comment(rebuild=True)
-        key = self.mode.key
-        states = [item for item in self._details_states() if item not in (key, "!" + key)]
-        states.append("!" + key if self._details_open() else key)
-        self.settings["details_open"] = ",".join(states)
+        self.settings["details_open"] = {**self.settings["details_open"], self.mode.key: not self._details_open()}
         self._show_details()
 
     def _bind_keys(self):
@@ -330,7 +320,7 @@ class MainWindow:
         self.mode_title.configure(text=self.mode.title())
         self.score.configure(text=self.mode.score_text() or "")
         self.fen_var.set(self.model.fen())
-        self.fen_entry.configure(state="normal" if self.mode.allows("paste") else "readonly")
+        self.fen_entry.configure(state="normal" if self.mode.allows(PASTE) else "readonly")
         self._load_comment()
         self._update_names()
         self._update_title()
@@ -371,12 +361,12 @@ class MainWindow:
         self.comment.configure(state="normal")
         self.comment.delete("1.0", "end")
         self.comment.insert("1.0", visible_comment(self.model.node.comment))
-        if not self.mode.allows("edit_comment"):
+        if not self.mode.allows(EDIT_COMMENT):
             self.comment.configure(state="disabled")
 
     def _save_comment(self, rebuild=False):
         node = self._comment_node
-        if node is None or not self.mode.allows("edit_comment"):
+        if node is None or not self.mode.allows(EDIT_COMMENT):
             return False
         changed = self.model.set_comment(node, self.comment.get("1.0", "end"))
         if changed and rebuild:
@@ -411,7 +401,7 @@ class MainWindow:
         self.sounds.play(ILLEGAL)
 
     def _navigate(self, action):
-        if not self.mode.allows("navigate"):
+        if not self.mode.allows(NAVIGATE):
             return
         changed = self._save_comment()
         moved = action()
@@ -439,7 +429,7 @@ class MainWindow:
         self._navigate(lambda: self.model.goto(node))
 
     def delete_last(self):
-        if not self.mode.allows("delete_last"):
+        if not self.mode.allows(DELETE_LAST):
             return
         self._save_comment()
         if self.model.delete_last():
@@ -447,7 +437,7 @@ class MainWindow:
 
     def take_back(self, color):
         """Remove the moves back to `color`'s previous turn (Take Back in a game mode)."""
-        if not self.mode.allows("take_back"):
+        if not self.mode.allows(TAKE_BACK):
             return False
         self._save_comment()
         if not self.model.take_back(color):
@@ -456,7 +446,7 @@ class MainWindow:
         return True
 
     def edit_tree(self, action, node):
-        if not self.mode.allows("edit_tree"):
+        if not self.mode.allows(EDIT_TREE):
             return
         self._save_comment()
         handler = {"promote": self.model.promote_to_main,
@@ -483,21 +473,40 @@ class MainWindow:
             self.set_mode(key)
 
     def set_mode(self, key):
-        """Switch to the mode with this key (or restart the current one). Returns True on success."""
+        """Switch to the mode with this key (or restart the current one). Returns True on success.
+
+        The order matters (see app/modes/base.py): the new mode's dialog first, then leaving
+        the old mode, and only after the old mode is closed does the new one start."""
         cls = mode_class(key)
-        if cls is None or not self.mode.confirm_leave():
+        if cls is None:
             return False
-        self._save_comment()
         new = cls(self.ctx)
-        if not new.activate():
+        config = new.choose()
+        if config is None or not self._leave_mode(keep_game=not new.replaces_game):
             return False
         old, self.mode = self.mode, new
         old.deactivate()
         self.settings["mode"] = key
         self.mode_var.set(key)
+        new.start(config)
         self._build_mode_panel()
         self.refresh(rebuild=True)
         return True
+
+    def _leave_mode(self, keep_game):
+        """Ask before leaving the active mode, then leave it (e.g. resign). keep_game=False:
+        the game will be replaced or the program closed, so offer to save it first.
+        False = the user cancelled, and nothing has changed."""
+        if not self.mode.confirm_leave():
+            return False
+        self._save_comment()
+        save = False
+        if not keep_game and self.model.modified:
+            save = messagebox.askyesnocancel(S.UNSAVED_TITLE, S.UNSAVED_PROMPT, parent=self.root)
+            if save is None:
+                return False
+        self.mode.leave()   # after the questions, so that Cancel never leaves a resigned game
+        return self.save() if save else True
 
     # --- View settings ----------------------------------------------------
 
@@ -554,7 +563,7 @@ class MainWindow:
             self._set_position(None)
 
     def open_file(self):
-        if not self.mode.allows("open") or not self._confirm_discard():
+        if not self.mode.allows(OPEN) or not self._confirm_discard():
             return
         name = filedialog.askopenfilename(
             parent=self.root, initialdir=self._initial_dir(),
@@ -643,7 +652,7 @@ class MainWindow:
         self._copy(self.model.fen())
 
     def paste(self):
-        if not self.mode.allows("paste"):
+        if not self.mode.allows(PASTE):
             return
         try:
             text = self.root.clipboard_get()
@@ -659,7 +668,7 @@ class MainWindow:
             self._load_games(data)
 
     def _fen_entered(self, event):
-        if not self.mode.allows("paste"):
+        if not self.mode.allows(PASTE):
             return "break"
         try:
             board = chess.Board(self.fen_var.get().strip())
@@ -673,11 +682,19 @@ class MainWindow:
 
     # --- Exit -------------------------------------------------------------
 
+    def _autosave(self):
+        """Settings are written soon after they change, so that a crash does not lose them."""
+        if self.settings.dirty:
+            self.settings.save()
+        self.root.after(AUTOSAVE_MS, self._autosave)
+
     def exit(self):
-        if not self.mode.confirm_leave() or not self._confirm_discard():
+        if not self._leave_mode(keep_game=False):
             return
         self.mode.deactivate()   # stops engine processes and timers
         if self.root.state() == "normal":
             self.settings["window_geometry"] = self.root.geometry()
-        self.settings.save()
+        if not self.settings.save():
+            messagebox.showwarning(S.ERROR_TITLE, S.ERROR_SETTINGS.format(path=self.settings.path),
+                                   parent=self.root)
         self.root.destroy()

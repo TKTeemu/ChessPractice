@@ -1,3 +1,5 @@
+Historiallinen muistiinpano: avausten raakalista, josta assets/openings/*.pgn tehtiin.
+
 Anderssenin avaus: 1.a3
 Waren avaus: 1.a4
 Durkinin avaus: 1.Ra3

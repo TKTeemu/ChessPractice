@@ -9,10 +9,10 @@ The program has three layers. Dependencies only point downwards.
 | Layer | Modules | May use tkinter? |
 | --- | --- | --- |
 | Controller | `main_window.py`, `modes/` | yes |
-| Views | `board_view.py`, `movelist_view.py`, `dialogs.py`, `pieces.py` | yes |
-| Logic and services | `model.py`, `computer_game.py`, `learning_game.py`, `openings.py`, `clock.py`, `engines/`, `fileio.py`, `settings.py`, `sounds.py`, `strings.py`, `theme.py` | no |
+| Views | `board_view.py`, `movelist_view.py`, `dialogs.py`, `pieces.py`, `widgets.py` | yes |
+| Logic and services | `model.py`, `engine_game.py`, `computer_game.py`, `learning_game.py`, `openings.py`, `clock.py`, `commands.py`, `engines/`, `fileio.py`, `settings.py`, `sounds.py`, `strings.py`, `theme.py` | no |
 
-The logic layer does not import tkinter and knows nothing about windows, so it can be tested with pytest without a display. `pieces.py` belongs to the views because it creates Tk images (`ImageTk.PhotoImage`), which need a Tk root window.
+The logic layer does not import tkinter and knows nothing about windows, so it can be tested with pytest without a display. `pieces.py` belongs to the views because it creates Tk images (`tk.PhotoImage`), which need a Tk root window.
 
 ## Modules
 
@@ -20,19 +20,22 @@ The logic layer does not import tkinter and knows nothing about windows, so it c
 | --- | --- |
 | `model.py` | `GameModel`: the game tree (a python-chess `Game`), the current node and its `board`, moves, navigation, editing variations, comments, the `modified` flag. Also helper functions such as classifying a move for sounds (`event_for`). |
 | `fileio.py` | Reading and writing PGN and FEN, interpreting pasted clipboard text. |
-| `settings.py` | `settings.json`. Only keys in `DEFAULTS` are accepted, and a value's type must match the default's type. |
+| `settings.py` | `settings.json`. Only keys in the defaults are accepted (`DEFAULTS` plus each mode's `SETTINGS`), and a value's type must match the default's type (`bool`, `int`, `str` or `dict`). `MainWindow` saves the file a few seconds after a change (`Settings.dirty`) and at exit; a failed save is logged to `error.log`. |
 | `sounds.py` | Playing WAV sounds asynchronously (`winsound`). |
 | `strings.py` | All user-visible text. |
-| `theme.py` | Colours and board themes shared by several views. |
-| `pieces.py` | Piece images: Cburnett SVGs via PyMuPDF or Unicode glyphs via Pillow, cached per square size. |
+| `theme.py` | Colours, fonts and board themes of all views. |
+| `commands.py` | The command names a mode can allow or block (`NAVIGATE`, `TAKE_BACK`, …) and `ALL_COMMANDS`. |
+| `pieces.py` | Piece images: Cburnett SVGs drawn by Tk itself (Tk 9 reads SVG) or Unicode glyphs via Pillow, cached per square size. |
+| `widgets.py` | `button`, `label` and `checkbox` in the style of the right-hand panel, for `MainWindow` and the modes' panels. |
 | `board_view.py` | `BoardCanvas` (geometry and square drawing) and `BoardView` (the game board: drag, click, promotion picker, arrows and square marks, and a separate layer of suggestion arrows set by the mode with `set_hints`). |
 | `movelist_view.py` | The move list with variations in a Text widget, one tag per move; right-click menu. |
-| `dialogs.py` | Choosing a game from a multi-game PGN, the Play vs Computer dialog and the Learn Openings dialog (`choose_opening`); both game dialogs share `_engine_level_pickers`. |
+| `dialogs.py` | Choosing a game from a multi-game PGN, the Play vs Computer dialog and the Learn Openings dialog (`choose_opening`); both game dialogs share `_engine_level_pickers`, which finds the chosen engine and level by position, not by label. |
 | `main_window.py` | `MainWindow`: creates the model and views; menus, keyboard shortcuts, file and clipboard commands, the New Game button and the collapsible Comment & FEN section; holds the active mode and asks it what is allowed. |
-| `modes/` | `Mode` interface and `MODES` registry; `BoardMode` (the free board), `EngineGameMode` (shared base of modes where the computer plays: engine worker, polling, delayed moves, request ids), `VsComputerMode` (play the computer: dialog, clocks, Resign) and `LearnOpeningsMode` (opening training: book replies, suggestion arrows, Take Back). |
-| `computer_game.py` | `ComputerGame`: rules of a game against an engine (turns, allowed commands, clock, result, PGN headers, stale engine replies). |
+| `modes/` | `Mode` interface and `MODES` registry; `BoardMode` (the free board), `EngineGameMode` (shared base of modes where the computer plays: engine choice, worker, polling, delayed moves, the questions answered from the game, Open in Board Mode), `VsComputerMode` (play the computer: dialog, clocks, Resign) and `LearnOpeningsMode` (opening training: book replies, suggestion arrows, Take Back). |
+| `engine_game.py` | `EngineGame`: the shared rules of a game against the computer (turns, allowed commands, status line, common PGN headers, result, stale computer replies via request ids). |
+| `computer_game.py` | `ComputerGame(EngineGame)`: clock, material score, time-control headers, result by time or resignation. |
 | `openings.py` | `OpeningBook` (loads `assets/openings/*.pgn`), `Opening`, `OpeningLine` (book moves looked up by position, so transpositions are found) and `BookMove`. |
-| `learning_game.py` | `LearningGame`: rules of an opening-training game (book or engine reply, deviations, theory count, the opening phase that limits suggestions, take-back). |
+| `learning_game.py` | `LearningGame(EngineGame)`: rules of an opening-training game (book or engine reply, deviations, theory count, the opening phase that limits suggestions, take-back). |
 | `clock.py` | `ChessClock` and `format_time`, driven by a time source that tests can replace. |
 | `engines/` | `Engine` interface and `ENGINES` registry; `StockfishEngine`, `RandomEngine`, the UCI client (`uci.py`) and `EngineWorker` (searches in a background thread). |
 
@@ -42,7 +45,7 @@ The logic layer does not import tkinter and knows nothing about windows, so it c
 2. **Every change is followed by `MainWindow.refresh()`.** It updates the board, move list, status line, FEN field, comment, player names and window title. Use `refresh(rebuild=True)` when the game tree changed (new move, deletion, comment); plain navigation does not need it.
 3. **The comment is saved before the node changes.** Commands call `_save_comment()` first, because the comment field belongs to the node that was current when the field was filled.
 4. **The rules live in python-chess.** The program does no move generation of its own; `GameModel` checks legality against `board.legal_moves`.
-5. **Text goes in `strings.py`, colours in `theme.py`, settings in `settings.DEFAULTS`.** That way language, appearance and settings can each be changed in one place.
+5. **Text goes in `strings.py`, colours and fonts in `theme.py`, settings in `settings.DEFAULTS` (or a mode's `SETTINGS`).** That way language, appearance and settings can each be changed in one place. Panels use the helpers in `widgets.py` instead of repeating style parameters.
 
 ## How a move flows
 
@@ -67,24 +70,24 @@ mouse → BoardView._press/_release
 | Unsaved changes | `GameModel.modified` |
 | Open file | `MainWindow.path` (`None` for a new game or one picked from a multi-game file) |
 | Selection, drag, arrows, marks | `BoardView`, cleared when the position changes |
-| Settings | `Settings`, saved only when the program exits |
+| Settings | `Settings`, saved a few seconds after a change and when the program exits |
 
 ## Right-hand panel
 
-From top to bottom: the shared toolbar (New Game, the same in every mode; it calls `MainWindow.new_game`, which lets the mode decide what a new game means), the status line, the mode's own panel (`Mode.build_panel`, hidden if None), the move list (gets the spare height), the navigation buttons, and the collapsible Comment & FEN section. Whether that section is open is remembered per mode in `settings["details_open"]` (e.g. `"board,!vs_computer"`); a mode not listed there uses `Mode.show_details`.
+From top to bottom: the shared toolbar (New Game, the same in every mode; it calls `MainWindow.new_game`, which lets the mode decide what a new game means), the status line, the mode's own panel (`Mode.build_panel`, hidden if None), the move list (gets the spare height), the navigation buttons, and the collapsible Comment & FEN section. Whether that section is open is remembered per mode in `settings["details_open"]` (e.g. `{"board": true, "vs_computer": false}`); a mode not listed there uses `Mode.show_details`.
 
 ## Modes and engines
 
-The program has modes (Board, the current free board; Play vs Computer, with a chess clock and no take-backs; Learn Openings, where the computer plays from an opening book) and chess engines (Stockfish over UCI). The opening-training plan is in [Avausteoria_suunnitelma.md](../Avausteoria_suunnitelma.md) (in Finnish). The plan, with the reasons for the choices, is in [Pelikone_suunnitelma.md](../Pelikone_suunnitelma.md) (in Finnish). The interfaces and step-by-step instructions for adding a mode, an engine or a level are in [EXTENDING.md](EXTENDING.md).
+The program has modes (Board, the current free board; Play vs Computer, with a chess clock and no take-backs; Learn Openings, where the computer plays from an opening book) and chess engines (Stockfish over UCI). The opening-training plan is in [Avausteoria_suunnitelma.md](plans/Avausteoria_suunnitelma.md) (in Finnish). The plan, with the reasons for the choices, is in [Pelikone_suunnitelma.md](plans/Pelikone_suunnitelma.md) (in Finnish); both are historical. The interfaces and step-by-step instructions for adding a mode, an engine or a level are in [EXTENDING.md](EXTENDING.md).
 
-In short: `app/modes/` (controller layer) decides what the user may do and what happens after a move; `app/engines/` (logic layer, no tkinter) chooses moves in a background thread. `MainWindow` asks the active mode (`can_move`, `allows`, `after_move`, `status_text`) instead of checking which mode is active, and engine moves go through `MainWindow.play_move` like user moves.
+In short: `app/modes/` (controller layer) decides what the user may do and what happens after a move, with the rules of a game in the logic layer (`engine_game.py` and its subclasses); `app/engines/` (logic layer, no tkinter) chooses moves in a background thread. `MainWindow` asks the active mode (`can_move`, `allows`, `after_move`, `status_text`) instead of checking which mode is active, and engine moves go through `MainWindow.play_move` like user moves.
 
 An engine move arrives like this:
 
 ```
-VsComputerMode.after_move → EngineWorker.request(board copy, level, request id)
+VsComputerMode.after_move → EngineGameMode.request_engine_move → EngineWorker.request(board copy, level, request id)
   worker thread: Engine.best_move → (request id, move) into a queue
-  main thread, root.after(50): VsComputerMode._poll → still the current request?
+  main thread, root.after(50): EngineGameMode._poll → still the current request?
       → MainWindow.play_move(move, from_end=True) → same path as a user move
 ```
 
@@ -96,4 +99,5 @@ Stockfish runs as a child process (`engines/stockfish/stockfish.exe`, started wi
 
 - The application lives in `C:\Users\Omistaja\.local\ChessBoard`, not in the plan's `C:\Users\Omistaja\Shakkilauta`.
 - Captured pieces and the material difference are not shown; only the player names appear above and below the board.
-- The repository includes a tool not in the plan: `tools/extract_pieces.py`.
+- The repository includes tools not in the plan: `tools/extract_pieces.py` and `tools/make_dist.py`.
+- The pieces are drawn with Tk's own SVG support instead of PyMuPDF (one package less to install).

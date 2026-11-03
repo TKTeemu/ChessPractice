@@ -1,8 +1,10 @@
 # Shakkilauta – avausteorian opettelu (suunnitelma)
 
+> **Historiallinen asiakirja.** Tämä suunnitelma on toteutettu, eikä sitä enää päivitetä. Ohjelman nykyinen rakenne on kuvattu tiedostoissa [ARCHITECTURE.md](../ARCHITECTURE.md) ja [EXTENDING.md](../EXTENDING.md).
+
 3.11.2026
 
-> Jatkoa suunnitelmille [Shakkilauta_suunnitelma.md](Shakkilauta_suunnitelma.md) ja [Pelikone_suunnitelma.md](Pelikone_suunnitelma.md). Nykyinen rakenne on kuvattu tiedostoissa [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) ja [docs/EXTENDING.md](docs/EXTENDING.md).
+> Jatkoa suunnitelmille [Shakkilauta_suunnitelma.md](Shakkilauta_suunnitelma.md) ja [Pelikone_suunnitelma.md](Pelikone_suunnitelma.md). Nykyinen rakenne on kuvattu tiedostoissa [docs/ARCHITECTURE.md](../ARCHITECTURE.md) ja [docs/EXTENDING.md](../EXTENDING.md).
 
 ## Tavoite ja rajaus
 

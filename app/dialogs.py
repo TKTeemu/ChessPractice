@@ -7,6 +7,7 @@ from tkinter import messagebox, ttk
 import chess
 
 from . import strings as S
+from .theme import DIALOG_MUTED_FG, DIALOG_WARNING_FG, FONT, FONT_LARGE_BOLD
 
 
 def _dialog(root, title):
@@ -34,7 +35,7 @@ def choose_game(root, games):
         fill="x", padx=10, pady=(10, 4))
     frame = tk.Frame(top)
     frame.pack(fill="both", expand=True, padx=10)
-    listbox = tk.Listbox(frame, width=80, height=min(20, len(games)), font=("Segoe UI", 10),
+    listbox = tk.Listbox(frame, width=80, height=min(20, len(games)), font=FONT,
                          activestyle="none", exportselection=False)
     scroll = tk.Scrollbar(frame, command=listbox.yview)
     listbox.configure(yscrollcommand=scroll.set)
@@ -68,30 +69,26 @@ def _engine_level_pickers(parent, engines, settings, prefix):
     """Engine and level comboboxes, preset from settings[prefix + "_engine" / "_level"].
 
     Returns (engine_box, level_box, chosen); the caller places the boxes, and chosen()
-    gives the (engine key, level key) selected.
+    gives the (engine key, level key) selected. The choices are found by their position
+    in the list, never by the text shown, so two entries with the same label cannot mix.
     """
-    levels = {cls.key: cls(settings).levels() for cls in engines}
-    names = {cls.name: cls.key for cls in engines}
+    levels = [cls(settings).levels() for cls in engines]
     saved = settings[f"{prefix}_engine"]
-    engine_key = saved if saved in levels else engines[0].key
-    engine_var = tk.StringVar(value=next(cls.name for cls in engines if cls.key == engine_key))
-    engine_box = ttk.Combobox(parent, textvariable=engine_var, values=list(names), state="readonly", width=24)
-    level_var = tk.StringVar()
-    level_box = ttk.Combobox(parent, textvariable=level_var, state="readonly", width=24)
+    engine_box = ttk.Combobox(parent, values=[cls.name for cls in engines], state="readonly", width=24)
+    engine_box.current(next((i for i, cls in enumerate(engines) if cls.key == saved), 0))
+    level_box = ttk.Combobox(parent, state="readonly", width=24)
 
     def engine_changed(event=None, wanted=None):
-        engine_levels = levels[names[engine_var.get()]]
+        engine_levels = levels[engine_box.current()]
         level_box.configure(values=[lv.label or S.LEVEL_NONE for lv in engine_levels])
-        level = next((lv for lv in engine_levels if lv.key == wanted), engine_levels[0])
-        level_var.set(level.label or S.LEVEL_NONE)
+        level_box.current(next((i for i, lv in enumerate(engine_levels) if lv.key == wanted), 0))
 
     engine_box.bind("<<ComboboxSelected>>", engine_changed)
     engine_changed(wanted=settings[f"{prefix}_level"])
 
     def chosen():
-        key = names[engine_var.get()]
-        level = next(lv for lv in levels[key] if (lv.label or S.LEVEL_NONE) == level_var.get())
-        return key, level.key
+        index = engine_box.current()
+        return engines[index].key, levels[index][max(level_box.current(), 0)].key
 
     return engine_box, level_box, chosen
 
@@ -130,10 +127,10 @@ def new_computer_game(root, engines, notes, settings, current_finished):
 
     row = 4
     tk.Label(top, text=S.VS_CLOCK_NOTE.format(minutes=settings["vs_minutes"]), anchor="w",
-             fg="#555555").grid(row=row, column=0, columnspan=2, sticky="w", padx=12, pady=(8, 0))
+             fg=DIALOG_MUTED_FG).grid(row=row, column=0, columnspan=2, sticky="w", padx=12, pady=(8, 0))
     for note in notes:
         row += 1
-        tk.Label(top, text=note, anchor="w", justify="left", fg="#A03020").grid(
+        tk.Label(top, text=note, anchor="w", justify="left", fg=DIALOG_WARNING_FG).grid(
             row=row, column=0, columnspan=2, sticky="w", padx=12, pady=(8, 0))
 
     def ok(event=None):
@@ -192,9 +189,9 @@ def choose_opening(root, book, engines, notes, settings):
     tree.pack(side="left", fill="both", expand=True)
     scroll.pack(side="left", fill="y")
     preview = tk.Text(lists, width=30, height=16, wrap="word", relief="flat", bg=top["bg"],
-                      font=("Segoe UI", 10), padx=8, takefocus=0)
-    preview.tag_configure("title", font=("Segoe UI", 11, "bold"))
-    preview.tag_configure("muted", foreground="#555555")
+                      font=FONT, padx=8, takefocus=0)
+    preview.tag_configure("title", font=FONT_LARGE_BOLD)
+    preview.tag_configure("muted", foreground=DIALOG_MUTED_FG)
     preview.pack(side="left", fill="both", padx=(8, 0))
 
     def fill_tree(*_):
@@ -266,7 +263,7 @@ def choose_opening(root, book, engines, notes, settings):
     row = 4
     for note in notes:
         row += 1
-        tk.Label(top, text=note, anchor="w", justify="left", fg="#A03020").grid(
+        tk.Label(top, text=note, anchor="w", justify="left", fg=DIALOG_WARNING_FG).grid(
             row=row, column=0, columnspan=2, sticky="w", padx=12, pady=(8, 0))
 
     def ok(event=None):

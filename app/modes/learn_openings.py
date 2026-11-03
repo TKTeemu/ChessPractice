@@ -7,31 +7,39 @@ EngineGameMode), suggestion arrows and the panel with Take Back and Open in Boar
 
 import random
 import tkinter as tk
-from pathlib import Path
 from tkinter import messagebox
 
 import chess
 
 from .. import strings as S
+from .. import widgets
 from ..dialogs import choose_opening
-from ..engines import ENGINES
 from ..learning_game import LearningGame
 from ..openings import OpeningBook, OpeningLine
-from ..theme import ENTRY_BG, MUTED_FG, PANEL_FG
 from .base import MenuItem
 from .engine_mode import EngineGameMode
 
 BOOK_DELAY_MS = 400   # a book reply waits a moment, so that it is seen as a separate move
 SUGGEST_MOVES_RANGE = (10, 15)
+CHOICES = ("opening", "role", "engine", "level", "vary")   # dialog choices, stored as learn_<choice>
 
 
 class LearnOpeningsMode(EngineGameMode):
     key = "learn_openings"
     label = S.MODE_LEARN_OPENINGS
-    show_details = False
+    SETTINGS = {
+        "learn_opening": "reti",
+        "learn_role": "opening",
+        "learn_engine": "stockfish",
+        "learn_level": "1320",
+        "learn_vary": True,
+        "learn_suggest": True,
+        "learn_suggest_moves": 12,
+    }
 
     def __init__(self, ctx):
         super().__init__(ctx)
+        self._book = None
         self._labels = {}
         self._buttons = {}
         self._suggest_var = None
@@ -40,34 +48,39 @@ class LearnOpeningsMode(EngineGameMode):
     # --- Life cycle -------------------------------------------------------
 
     def book_folder(self):
-        return Path(self.ctx.settings.path).parent / "assets" / "openings"
+        return self.ctx.app_dir / "assets" / "openings"
 
-    def activate(self):
+    def _load_book(self):
+        if self._book is None:
+            self._book = OpeningBook.load(self.book_folder())
+        return self._book
+
+    def choose(self):
         ctx = self.ctx
-        settings = ctx.settings
-        book = OpeningBook.load(self.book_folder())
+        book = self._load_book()
         if not book.openings:
             messagebox.showerror(S.LEARN_TITLE, S.LEARN_NO_BOOK.format(folder=self.book_folder()),
                                  parent=ctx.root)
-            return False
-        available = [cls for cls in ENGINES if cls.available(settings)]
-        notes = [cls.unavailable_reason(settings) for cls in ENGINES if not cls.available(settings)]
+            return None
+        available, notes = self.engine_choices()
         if book.errors:
             notes.append(S.LEARN_BOOK_ERRORS.format(
                 errors="\n".join(f"{name}: {error}" for name, error in book.errors[:5])))
-        choice = choose_opening(ctx.root, book, available, notes, settings)
-        if choice is None or not ctx.confirm_discard():
-            return False
-        for key in ("opening", "role", "engine", "level", "vary"):
-            settings[f"learn_{key}"] = choice[key]
+        return choose_opening(ctx.root, book, available, notes, ctx.settings)
 
-        opening = book.opening(choice["opening"])
-        engine = next(cls for cls in available if cls.key == choice["engine"])(settings)
-        level = engine.level(choice["level"])
-        user_color = opening.side if choice["role"] == "opening" else not opening.side
+    def start(self, config):
+        ctx = self.ctx
+        settings = ctx.settings
+        for key in CHOICES:
+            settings[f"learn_{key}"] = config[key]
+
+        opening = self._load_book().opening(config["opening"])
+        engine = self.make_engine(config["engine"])
+        level = engine.level(config["level"])
+        user_color = opening.side if config["role"] == "opening" else not opening.side
         low, high = SUGGEST_MOVES_RANGE
         self.game = LearningGame(OpeningLine(opening), user_color, f"{engine.name} {level.label}".strip(),
-                                 vary=choice["vary"], rng=random.Random(),
+                                 vary=config["vary"], rng=random.Random(),
                                  suggest_moves=min(high, max(low, settings["learn_suggest_moves"])))
 
         ctx.new_game(None)
@@ -75,30 +88,15 @@ class LearnOpeningsMode(EngineGameMode):
         ctx.set_flipped(user_color == chess.BLACK)
         self.start_engine(engine, level)
         self._next_turn()
-        return True
-
-    def new_game(self):
-        self.ctx.set_mode(self.key)   # the dialog again, with the previous choices
-        return True
 
     # --- Questions --------------------------------------------------------
 
     def _suggest(self):
         return self.ctx.settings["learn_suggest"]
 
-    def can_move(self, color):
-        model = self.ctx.model
-        return self.game is not None and self.game.can_move(model.board, color, model.at_end())
-
-    def allows(self, command):
-        return self.game is None or self.game.allows(command)
-
     def title(self):
         title = super().title()
         return f"{title} · {self.game.opening.name}" if self.game else title
-
-    def status_text(self):
-        return self.game.status_text(self._tip()) if self.game else None
 
     def hint_arrows(self):
         if self.game is None or not self._suggest() or not self.ctx.model.at_end():
@@ -138,45 +136,33 @@ class LearnOpeningsMode(EngineGameMode):
         self.cancel_computer_move()
         if self.ctx.take_back(self.game.user_color):
             self.game.took_back(self._tip())
-            self.ctx.model.headers["Result"] = "*"
+            headers = self.ctx.model.headers
+            headers["Result"] = "*"
+            headers.pop("Termination", None)   # e.g. after an engine error
             self._next_turn()
             self.ctx.refresh()
-
-    def _game_over(self):
-        self.game.write_result(self.ctx.model.headers)
-        super()._game_over()
-
-    def open_in_board_mode(self):
-        self.ctx.set_mode("board")
 
     # --- UI ---------------------------------------------------------------
 
     def build_panel(self, parent):
-        bg = parent["bg"]
-        frame = tk.Frame(parent, bg=bg)
+        frame = tk.Frame(parent, bg=parent["bg"])
         frame.columnconfigure((0, 1), weight=1)
-
-        def label(row, bold=False):
-            widget = tk.Label(frame, bg=bg, fg=PANEL_FG if bold else MUTED_FG, anchor="w", justify="left",
-                              font=("Segoe UI", 10, "bold") if bold else ("Segoe UI", 9))
-            widget.grid(row=row, column=0, columnspan=2, sticky="ew", padx=4)
-            widget.bind("<Configure>", lambda e: widget.configure(wraplength=e.width))
-            return widget
-
-        self._labels = {"name": label(0, bold=True), "line": label(1), "theory": label(2)}
-        check_row = tk.Frame(frame, bg=bg)
+        self._labels = {"name": widgets.label(frame, bold=True, wrap=True),
+                        "line": widgets.label(frame, wrap=True),
+                        "theory": widgets.label(frame, wrap=True)}
+        for row, name in enumerate(("name", "line", "theory")):
+            self._labels[name].grid(row=row, column=0, columnspan=2, sticky="ew", padx=4)
+        check_row = tk.Frame(frame, bg=frame["bg"])
         check_row.grid(row=3, column=0, columnspan=2, sticky="ew", pady=(2, 4))
         self._suggest_var = tk.BooleanVar(value=self._suggest())
-        self._suggest_check = tk.Checkbutton(
-            check_row, text=S.LEARN_SUGGEST, variable=self._suggest_var, command=self._suggest_changed,
-            bg=bg, fg=PANEL_FG, selectcolor=ENTRY_BG, activebackground=bg, activeforeground=PANEL_FG,
-            disabledforeground=MUTED_FG, font=("Segoe UI", 10), bd=0, highlightthickness=0, takefocus=0)
+        self._suggest_check = widgets.checkbox(check_row, S.LEARN_SUGGEST, self._suggest_var,
+                                               self._suggest_changed)
         self._suggest_check.pack(side="left")
-        self._labels["phase"] = tk.Label(check_row, bg=bg, fg=MUTED_FG, font=("Segoe UI", 9))
+        self._labels["phase"] = widgets.label(check_row)
         self._labels["phase"].pack(side="left", padx=(4, 0))
         self._buttons = {
-            "take_back": self.ctx.button(frame, S.MODE_TAKE_BACK, self.take_back),
-            "open": self.ctx.button(frame, S.MODE_OPEN_IN_BOARD, self.open_in_board_mode),
+            "take_back": widgets.button(frame, S.MODE_TAKE_BACK, self.take_back),
+            "open": widgets.button(frame, S.MODE_OPEN_IN_BOARD, self.open_in_board_mode),
         }
         self._buttons["take_back"].grid(row=4, column=0, sticky="ew", padx=2)
         self._buttons["open"].grid(row=4, column=1, sticky="ew", padx=2)

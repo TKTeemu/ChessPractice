@@ -1,8 +1,10 @@
 # Shakkilauta – analyysisovelluksen suunnitelma
 
+> **Historiallinen asiakirja.** Tämä suunnitelma on toteutettu, eikä sitä enää päivitetä. Ohjelman nykyinen rakenne on kuvattu tiedostoissa [ARCHITECTURE.md](../ARCHITECTURE.md) ja [EXTENDING.md](../EXTENDING.md).
+
 2.11.2026
 
-> Tämä on alkuperäinen suunnitelma. Toteutuksen nykyinen rakenne, poikkeamat suunnitelmasta ja ohje pelikoneen lisäämiseen ovat tiedostossa [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), käyttöohje tiedostossa [README.md](README.md).
+> Tämä on alkuperäinen suunnitelma. Toteutuksen nykyinen rakenne, poikkeamat suunnitelmasta ja ohje pelikoneen lisäämiseen ovat tiedostossa [docs/ARCHITECTURE.md](../ARCHITECTURE.md), käyttöohje tiedostossa [README.md](../../README.md).
 
 ## Tavoite ja rajaus
 

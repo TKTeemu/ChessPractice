@@ -1,67 +1,35 @@
 """ComputerGame: the rules of one game against an engine. Knows nothing about the user interface.
 
-Whose turn it is, what the user may do, the chess clock, the result and which engine
-replies are still wanted (request ids). VsComputerMode drives it.
+On top of EngineGame: the chess clock, the score text, the time control headers and the
+result by time or resignation. VsComputerMode drives it.
 """
 
-import datetime
 import time
 
 import chess
 
 from . import strings as S
 from .clock import ChessClock
+from .commands import EDIT_COMMENT
+from .engine_game import EngineGame
 from .model import material_balance, outcome_text
 
-# Commands (see Mode.allows) that stay available in a game against the computer.
-# Never "navigate": browsing earlier moves would look like taking moves back. Only Board mode
-# allows it; a finished game is reviewed there (Open in Board Mode).
-ALLOWED_DURING_GAME = set()
-ALLOWED_AFTER_GAME = {"edit_comment"}
 
+class ComputerGame(EngineGame):
+    EVENT = S.VS_EVENT
+    # Never NAVIGATE: browsing earlier moves would look like taking moves back. Only Board mode
+    # allows it; a finished game is reviewed there (Open in Board Mode).
+    ALLOWED_DURING_GAME = frozenset()
+    ALLOWED_AFTER_GAME = frozenset({EDIT_COMMENT})
 
-class ComputerGame:
     def __init__(self, user_color, engine_name, level, minutes=30, now=time.monotonic):
-        self.user_color = user_color
-        self.engine_color = not user_color
-        self.engine_label = f"{engine_name} {level.label}".strip()
+        super().__init__(user_color, f"{engine_name} {level.label}".strip())
         self.level = level
         self.seconds = round(minutes * 60)
         self.clock = ChessClock(self.seconds, self.seconds, now)
         self.started = False     # the clock starts with the first move
-        self.result = None       # "1-0", "0-1", "1/2-1/2" or "*" once the game is over
-        self.termination = None  # PGN Termination header
-        self.end_text = None     # status line text once the game is over
-        self.request_id = 0
 
     # --- Queries ----------------------------------------------------------
-
-    @property
-    def over(self):
-        return self.result is not None
-
-    def player_name(self, color):
-        return S.VS_YOU if color == self.user_color else self.engine_label
-
-    def is_engine_turn(self, board):
-        return not self.over and board.turn == self.engine_color
-
-    def can_move(self, board, color, at_end):
-        """The user may move only their own pieces, on their turn, from the last position."""
-        return not self.over and at_end and color == self.user_color == board.turn
-
-    def allows(self, command):
-        return command in (ALLOWED_AFTER_GAME if self.over else ALLOWED_DURING_GAME)
-
-    def status_text(self, board):
-        if self.over:
-            return self.end_text
-        if board.turn == self.user_color:
-            text = S.VS_YOUR_MOVE
-            if board.is_check():
-                text += " · " + S.STATUS_CHECK
-            return text
-        return S.VS_THINKING
 
     def score_text(self, board):
         """Material from the user's point of view: "Material: you +3", "… −2" or "… even"."""
@@ -75,20 +43,10 @@ class ComputerGame:
     # --- Headers ----------------------------------------------------------
 
     def write_headers(self, headers):
-        headers["Event"] = S.VS_EVENT
-        headers["Site"] = S.UNKNOWN
-        headers["Date"] = datetime.date.today().strftime("%Y.%m.%d")
-        headers["Round"] = S.UNKNOWN
-        headers["White"] = self.player_name(chess.WHITE)
-        headers["Black"] = self.player_name(chess.BLACK)
-        headers["Result"] = "*"
+        super().write_headers(headers)
         headers["TimeControl"] = str(self.seconds)
         if self.level.elo is not None:
-            headers["WhiteElo" if self.engine_color == chess.WHITE else "BlackElo"] = str(self.level.elo)
-
-    def write_result(self, headers):
-        headers["Result"] = self.result
-        headers["Termination"] = self.termination
+            headers["WhiteElo" if self.computer_color == chess.WHITE else "BlackElo"] = str(self.level.elo)
 
     # --- Events -----------------------------------------------------------
 
@@ -104,7 +62,7 @@ class ComputerGame:
             self.clock.start(board.turn)
         outcome = board.outcome(claim_draw=True)
         if outcome is not None:
-            self._finish(outcome.result(), "normal", outcome_text(outcome))
+            self._finish(outcome.result(), outcome_text(outcome), "normal")
         return left
 
     def check_time(self, board):
@@ -116,33 +74,19 @@ class ComputerGame:
             return False
         winner = not loser
         if board.has_insufficient_material(winner):
-            self._finish("1/2-1/2", "time forfeit", S.VS_TIMEOUT_DRAW)
+            self._finish("1/2-1/2", S.VS_TIMEOUT_DRAW, "time forfeit")
         else:
             text = S.VS_TIMEOUT_YOU_WIN if winner == self.user_color else S.VS_TIMEOUT_YOU_LOSE
-            self._finish(_win(winner), "time forfeit", text.format(engine=self.engine_label))
+            self._finish(_win(winner), text.format(engine=self.engine_label), "time forfeit")
         return True
 
     def resign(self):
         if not self.over:
-            self._finish(_win(self.engine_color), "normal", S.VS_RESIGNED.format(engine=self.engine_label))
+            self._finish(_win(self.computer_color), S.VS_RESIGNED.format(engine=self.engine_label), "normal")
 
-    def engine_failed(self, error):
-        if not self.over:
-            self._finish("*", "abandoned", S.VS_ENGINE_ERROR.format(error=error))
-
-    def _finish(self, result, termination, text):
+    def _finish(self, result, text, termination=None):
         self.clock.stop()
-        self.result, self.termination, self.end_text = result, termination, text
-        self.request_id += 1   # any engine reply still on its way is no longer wanted
-
-    # --- Engine requests --------------------------------------------------
-
-    def new_request(self):
-        self.request_id += 1
-        return self.request_id
-
-    def is_current(self, request_id):
-        return not self.over and request_id == self.request_id
+        super()._finish(result, text, termination)
 
 
 def _win(color):

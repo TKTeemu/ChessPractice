@@ -6,13 +6,9 @@ import chess
 
 from . import strings as S
 from .model import visible_comment
-from .theme import MUTED_FG as VARIATION_FG, PANEL_BG as BG, PANEL_FG as FG
+from .theme import (FONT as VARIATION_FONT, FONT_ITALIC, FONT_LARGE, MOVE_COMMENT_FG, MOVE_CURRENT_BG,
+                    MOVE_CURRENT_FG, MOVE_NUMBER_FG, MUTED_FG as VARIATION_FG, PANEL_BG as BG, PANEL_FG as FG)
 
-NUMBER_FG = "#8B8987"
-COMMENT_FG = "#7FA650"
-CURRENT_BG = "#4B4847"
-FONT = ("Segoe UI", 11)
-VARIATION_FONT = ("Segoe UI", 10)
 INDENT_POINTS = 13
 
 
@@ -25,7 +21,7 @@ class MoveListView(tk.Frame):
         self.nodes = {}               # tag name -> node
         self.tags = {}                # id(node) -> tag name
 
-        self.text = tk.Text(self, bg=BG, fg=FG, font=FONT, wrap="word", relief="flat", bd=0,
+        self.text = tk.Text(self, bg=BG, fg=FG, font=FONT_LARGE, wrap="word", relief="flat", bd=0,
                             padx=10, pady=8, cursor="arrow", insertwidth=0, takefocus=0,
                             tabs=("33p", "98p"), highlightthickness=0)
         scroll = tk.Scrollbar(self, command=self.text.yview)
@@ -33,9 +29,9 @@ class MoveListView(tk.Frame):
         scroll.pack(side="right", fill="y")
         self.text.pack(side="left", fill="both", expand=True)
 
-        self.text.tag_configure("number", foreground=NUMBER_FG)
-        self.text.tag_configure("comment", foreground=COMMENT_FG, font=("Segoe UI", 10, "italic"))
-        self.text.tag_configure("current", background=CURRENT_BG, foreground="#FFFFFF")
+        self.text.tag_configure("number", foreground=MOVE_NUMBER_FG)
+        self.text.tag_configure("comment", foreground=MOVE_COMMENT_FG, font=FONT_ITALIC)
+        self.text.tag_configure("current", background=MOVE_CURRENT_BG, foreground=MOVE_CURRENT_FG)
         self.text.tag_raise("current")
 
         self.menu = tk.Menu(self, tearoff=0)

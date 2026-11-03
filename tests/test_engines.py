@@ -12,6 +12,7 @@ from app.engines.uci import UciClient, parse_option
 from app.engines.worker import EngineWorker
 from app.settings import Settings
 
+ROOT = Path(__file__).resolve().parent.parent
 FAKE_UCI = Path(__file__).with_name("fake_uci.py")
 MATE_IN_ONE = "6k1/5ppp/8/8/8/8/5PPP/3R2K1 w - - 0 1"   # Rd8#
 QUICK = Level("quick", "Quick", None, 0.0)
@@ -53,8 +54,8 @@ def test_unknown_level_key_falls_back_to_first(settings):
 
 def test_stockfish_missing(settings, tmp_path):
     settings["engine_path"] = str(tmp_path / "missing.exe")
-    assert not StockfishEngine.available(settings)
-    assert "stockfish.exe" in StockfishEngine.unavailable_reason(settings)
+    assert not StockfishEngine.available(settings, tmp_path)
+    assert "stockfish.exe" in StockfishEngine.unavailable_reason(settings, tmp_path)
 
 
 def test_parse_option():
@@ -106,7 +107,7 @@ def test_uci_close_ends_process_and_can_be_repeated(client):
 
 def test_stockfish_engine_with_fake_exe_clamps_elo(settings, monkeypatch):
     engine = StockfishEngine(settings)
-    monkeypatch.setattr(StockfishEngine, "find_exe", classmethod(lambda cls, s: FAKE_UCI))
+    monkeypatch.setattr(StockfishEngine, "find_exe", classmethod(lambda cls, s, d: FAKE_UCI))
     monkeypatch.setattr("app.engines.stockfish.UciClient",
                         lambda command, cwd: UciClient([sys.executable, *command], cwd=cwd))
     engine.start()
@@ -176,10 +177,9 @@ def test_worker_skips_requests_cancelled_before_they_start():
 
 @pytest.fixture
 def stockfish(settings):
-    app_settings = Settings(Path(__file__).resolve().parent.parent / "settings.json")
-    if not StockfishEngine.available(app_settings):
+    if not StockfishEngine.available(settings, ROOT):
         pytest.skip("Stockfish not installed in engines/stockfish/")
-    engine = StockfishEngine(app_settings)
+    engine = StockfishEngine(settings, ROOT)
     engine.start()
     engine.new_game()
     yield engine

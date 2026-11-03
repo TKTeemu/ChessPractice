@@ -7,15 +7,9 @@ import tkinter as tk
 import chess
 from PIL import Image, ImageDraw, ImageTk
 
-from .theme import BACKGROUND, BOARD_THEMES as THEMES, DEFAULT_BOARD_THEME
+from .theme import (ARROW_RGBA, BACKGROUND, BOARD_THEMES as THEMES, CHECK_RGB, DEFAULT_BOARD_THEME, DIM_RGBA,
+                    FONT_FAMILY, HIGHLIGHT, HINT_STYLES, MARK, PROMOTION_BG, PROMOTION_OUTLINE, TARGET_RGBA)
 
-HIGHLIGHT = "#F7EC5A"      # last move and selected square (blended 50 %)
-MARK = "#EB6150"           # right-click square marks (blended 80 %)
-ARROW_RGBA = (255, 170, 0, 205)
-# Suggestion arrows set by the mode: (colour, width factor) per style
-HINT_STYLES = {"main": ((40, 140, 230, 215), 1.0), "alt": ((40, 140, 230, 110), 0.6)}
-HINT_RGBA = (0, 0, 0, 40)
-CHECK_RGB = (230, 30, 30)
 PROMOTION_PIECES = (chess.QUEEN, chess.ROOK, chess.BISHOP, chess.KNIGHT)
 DRAG_THRESHOLD = 4         # pixels the mouse must move before a click becomes a drag
 SUPERSAMPLE = 3
@@ -96,7 +90,7 @@ class BoardCanvas(tk.Canvas):
     def _draw_coords(self):
         light, dark = THEMES[self.theme]
         s = self.size
-        font = ("Segoe UI", max(7, s // 7), "bold")
+        font = (FONT_FAMILY, max(7, s // 7), "bold")
         pad = max(2, s // 20)
         for i in range(8):
             # Rank numbers in the left column, file letters in the bottom row
@@ -243,7 +237,7 @@ class BoardView(BoardCanvas):
         self.create_image(self.ox, self.oy, anchor="nw", image=self._dim_photo())
         for (col, row), piece_type in options:
             x, y = self.ox + col * s, self.oy + row * s
-            self.create_rectangle(x, y, x + s, y + s, fill="#FFFFFF", outline="#C0C0C0")
+            self.create_rectangle(x, y, x + s, y + s, fill=PROMOTION_BG, outline=PROMOTION_OUTLINE)
             symbol = chess.Piece(piece_type, color).symbol()
             self.create_image(x + s / 2, y + s / 2, image=self.pieces.photo(symbol, s))
 
@@ -261,7 +255,10 @@ class BoardView(BoardCanvas):
             kingside = before.is_kingside_castling(move)
             king_to = chess.square(6 if kingside else 2, rank)
             rook_to = chess.square(5 if kingside else 3, rank)
-            rook_from = move.to_square if before.piece_type_at(move.to_square) == chess.ROOK else                 chess.square(7 if kingside else 0, rank)
+            if before.piece_type_at(move.to_square) == chess.ROOK:
+                rook_from = move.to_square
+            else:
+                rook_from = chess.square(7 if kingside else 0, rank)
             pieces = [(piece.symbol(), move.from_square, king_to),
                       (before.piece_at(rook_from).symbol(), rook_from, rook_to)]
         elif before.piece_at(move.to_square) is not None:
@@ -308,9 +305,9 @@ class BoardView(BoardCanvas):
             draw = ImageDraw.Draw(img)
             if kind == "dot":
                 r = big * 0.17
-                draw.ellipse((big / 2 - r, big / 2 - r, big / 2 + r, big / 2 + r), fill=HINT_RGBA)
+                draw.ellipse((big / 2 - r, big / 2 - r, big / 2 + r, big / 2 + r), fill=TARGET_RGBA)
             else:
-                draw.ellipse((0, 0, big - 1, big - 1), outline=HINT_RGBA, width=int(big * 0.09))
+                draw.ellipse((0, 0, big - 1, big - 1), outline=TARGET_RGBA, width=int(big * 0.09))
             return img.resize((s, s), Image.LANCZOS)
         return self._cached((kind, s), make)
 
@@ -329,7 +326,7 @@ class BoardView(BoardCanvas):
 
     def _dim_photo(self):
         size = self.size * 8
-        return self._cached(("dim", size), lambda: Image.new("RGBA", (size, size), (0, 0, 0, 90)))
+        return self._cached(("dim", size), lambda: Image.new("RGBA", (size, size), DIM_RGBA))
 
     def _hint_items(self):
         # weaker arrows first, so that the main suggestion is drawn on top

@@ -1,7 +1,6 @@
 """The Engine interface and the Level record. Logic layer: no tkinter."""
 
 from dataclasses import dataclass, field
-from pathlib import Path
 
 
 class EngineError(Exception):
@@ -24,20 +23,17 @@ class Engine:
     key = ""
     name = ""
 
-    def __init__(self, settings):
+    def __init__(self, settings, app_dir=None):
         self.settings = settings
-
-    @staticmethod
-    def app_dir(settings):
-        return Path(settings.path).parent
+        self.app_dir = app_dir   # the program folder (engines/ is under it)
 
     @classmethod
-    def available(cls, settings):
+    def available(cls, settings, app_dir):
         """True if the engine can be started. Must be fast and start nothing."""
         return True
 
     @classmethod
-    def unavailable_reason(cls, settings):
+    def unavailable_reason(cls, settings, app_dir):
         """Text for the dialog when available() is False, or None."""
         return None
 

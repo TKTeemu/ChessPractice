@@ -12,8 +12,8 @@ class RandomEngine(Engine):
     key = "random"
     name = S.ENGINE_RANDOM
 
-    def __init__(self, settings=None, seed=None):
-        super().__init__(settings)
+    def __init__(self, settings=None, app_dir=None, seed=None):
+        super().__init__(settings, app_dir)
         self.random = random.Random(seed)
 
     def levels(self):

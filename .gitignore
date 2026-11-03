@@ -12,6 +12,10 @@ __pycache__/
 settings.json
 error.log
 Games/
+settings.json.tmp
+
+# Jakelupaketit (tools/make_dist.py)
+dist/
 
 # Editorit ja kayttojarjestelma
 .vscode/

@@ -1,8 +1,10 @@
 # Shakkilauta – pelimoodit ja tietokonevastustaja (suunnitelma)
 
+> **Historiallinen asiakirja.** Tämä suunnitelma on toteutettu, eikä sitä enää päivitetä. Ohjelman nykyinen rakenne on kuvattu tiedostoissa [ARCHITECTURE.md](../ARCHITECTURE.md) ja [EXTENDING.md](../EXTENDING.md).
+
 2.11.2026
 
-> Jatkoa alkuperäiselle suunnitelmalle [Shakkilauta_suunnitelma.md](Shakkilauta_suunnitelma.md). Kehittäjän ohje moodien ja pelikoneiden lisäämiseen on tiedostossa [docs/EXTENDING.md](docs/EXTENDING.md).
+> Jatkoa alkuperäiselle suunnitelmalle [Shakkilauta_suunnitelma.md](Shakkilauta_suunnitelma.md). Kehittäjän ohje moodien ja pelikoneiden lisäämiseen on tiedostossa [docs/EXTENDING.md](../EXTENDING.md).
 
 ## Tavoite ja rajaus
 
@@ -75,7 +77,7 @@ Jos python-chessistä tulee myöhemmin 3.16-yhteensopiva versio, `UciEngine` voi
 
 ## Arkkitehtuuri
 
-Nykyiset kerrokset säilyvät (ks. [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)). Lisätään kaksi pakettia:
+Nykyiset kerrokset säilyvät (ks. [docs/ARCHITECTURE.md](../ARCHITECTURE.md)). Lisätään kaksi pakettia:
 
 ```
 app\

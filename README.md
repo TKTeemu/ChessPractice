@@ -2,40 +2,27 @@
 
 An offline chessboard for analysing games (legal moves only, variations, comments, PGN and FEN files), for playing against the computer (Stockfish, with a chess clock) and for learning openings. Written in Python with tkinter; the user interface is in English.
 
-## Running
+Copyright (C) 2026 Teemu. Licensed under the GNU General Public License v3.0 or later; see [LICENSE](LICENSE) and [Licences and sharing](#licences-and-sharing).
 
-Double-click `Shakkilauta.bat`. It runs `pythonw shakkilauta.pyw`, so no console window opens.
-
-For troubleshooting, run it from a console so errors are shown directly:
-
-```
-python shakkilauta.pyw
-```
-
-Unhandled exceptions are also written to `error.log`.
+The first part of this file is for **using** the program; the second part, from [For developers](#for-developers), is for changing it.
 
 ## Requirements
 
-| Dependency | Source | Used for |
+| What | Where from | Notes |
 | --- | --- | --- |
-| Python 3.15 with Tcl/Tk | python.org | `python -m tkinter` opens a test window if Tk is installed |
-| python-chess 1.11.2 | `vendor/` folder | rules, PGN, FEN |
-| Pillow | installed in Python | image handling |
-| PyMuPDF | installed in Python | rendering the SVG pieces |
-| pytest | installed in Python | tests |
-| Stockfish (optional) | `engines/stockfish/stockfish.exe` | Play vs Computer; see below |
+| **Python 3.15** (64-bit) with Tcl/Tk | python.org | Exactly 3.15: Python 3.16 does not work yet (see [Python version](#python-version)). `python -m tkinter` opens a test window if Tk is installed. |
+| Pillow | `Asenna.bat` | image handling; the only package installed into Python |
+| python-chess 1.11.2 | `vendor/` folder | rules, PGN, FEN; comes with the program folder |
+| Stockfish (optional) | `engines/stockfish/stockfish.exe` | Play vs Computer and Learn Openings at real strength; see [Stockfish](#stockfish) |
 
-The exact versions are in `requirements-global.txt` and `requirements-vendor.txt`:
+## Running
 
-```
-python -m pip install -r requirements-global.txt
-python -m pip install --target vendor -r requirements-vendor.txt
-```
+Double-click `Shakkilauta.bat`. It starts the program with the Python launcher (`pyw -3.15`) if it is installed, otherwise with `pythonw` from PATH, so no console window opens.
 
-python-chess is installed into the application folder instead of a venv, so that no new exe files are created on disk (F-Secure). The reasons are given in the plan:
+If something the program needs is missing (Tk, Pillow, python-chess), a message box says what and how to fix it. Other errors are written to `error.log` in the program folder. To see errors directly, run it from a console:
 
 ```
-python -m pip install --target vendor chess
+py -3.15 shakkilauta.pyw
 ```
 
 ## Modes
@@ -43,56 +30,112 @@ python -m pip install --target vendor chess
 | Mode | Use |
 | --- | --- |
 | **Board** | The free board: move both sides, variations, comments. The program always starts in this mode. |
-| **Play vs Computer** | Mode > Play vs Computer… asks for the engine, level, your colour and the start position. 30 minutes each on the clock (setting `vs_minutes`), no take-backs. Resign ends the game; Open in Board Mode (after the game) lets you analyse it. Clock times are saved in the PGN as `[%clk]` comments. |
+| **Play vs Computer** | Game > Play vs Computer… asks for the engine, level, your colour and the start position. 30 minutes each on the clock (setting `vs_minutes`), no take-backs. Resign ends the game; Open in Board Mode (after the game) lets you analyse it. Clock times are saved in the PGN as `[%clk]` comments. |
 | **Learn Openings** | Game > Learn Openings… asks for an opening (21 openings in three groups, with search), whether you play the opening or the reply, and the engine level. The computer answers from the opening book while the position is in it, then the engine takes over. *Suggest next move* shows the book moves as blue arrows during the opening phase (until move 12, setting `learn_suggest_moves`, 10–15). Take Back removes your last move and the reply. |
 
 The **New Game** button at the top of the right-hand panel starts a new game in any mode (in the game modes it opens the mode's dialog again). The Comment & FEN section at the bottom can be folded away; it is open in Board mode by default.
 
+Settings are kept in `settings.json` in the program folder and saved a few seconds after each change.
+
 ## Stockfish
 
-The program runs without Stockfish (the dialog then offers only *Random moves*). To play Stockfish, download it once:
+The program runs without Stockfish (the dialogs then offer only *Random moves*). To play Stockfish, download it once:
 
-1. From [stockfishchess.org/download](https://stockfishchess.org/download/) (GitHub release), take the Windows build `stockfish-windows-x86-64-universal.zip`. Since Stockfish 19 this one build picks the right code for the CPU itself (older releases had separate `avx2` and `sse41-popcnt` builds).
+1. From [stockfishchess.org/download](https://stockfishchess.org/download/) (GitHub release), take the Windows build `stockfish-windows-x86-64-universal.zip`. Since Stockfish 19 this one build picks the right code for the CPU itself.
 2. Unpack it into a new, empty folder and compare `Get-FileHash <zip>` with the checksum on the release page.
 3. Copy the exe to `engines\stockfish\stockfish.exe`, and `Copying.txt` (the GPL licence) next to it. Run `Unblock-File engines\stockfish\stockfish.exe`.
-4. Run `python -m pytest`: the Stockfish tests now run instead of being skipped.
-5. Start one game and check the F-Secure event log. If an exception is needed, add only `stockfish.exe`.
 
 Another location can be set in `settings.json` with `"engine_path"`. Stockfish never uses the network; the program talks to it only through pipes, and closes it when you leave the mode or exit.
+
+## Licences and sharing
+
+The program is free software under the **GNU GPL v3.0 or later** ([LICENSE](LICENSE)). It has to be: it is distributed together with python-chess, which is GPL-3.0. The parts made by others and their licences are listed in [NOTICE](NOTICE):
+
+| Part | Author | Licence |
+| --- | --- | --- |
+| python-chess (`vendor/chess`) | Niklas Fiekas | GPL-3.0 |
+| Cburnett pieces (`assets/pieces/cburnett`) | Colin M.L. Burnett | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) |
+| Stockfish (`engines/stockfish`, downloaded separately) | the Stockfish developers | GPL-3.0 |
+| Pillow (installed into Python) | Jeffrey A. Clark and contributors | MIT-CMU |
+
+What this means in practice:
+
+- **Copying to your own other computer:** no obligations; licences only concern giving the program to others.
+- **Giving a copy to someone else:** keep `LICENSE` and `NOTICE` in the folder (the zip from `tools/make_dist.py` includes them). The program is Python source code, so the GPL's source-code requirement is met by the copy itself.
+- **Stockfish to someone else:** leave `stockfish.exe` out and let them download it (the zip does this), or include the source code zip of the same Stockfish release. `Copying.txt` must be next to the exe in either case.
+- **GitHub:** a private repository needs nothing. A public one should have `LICENSE` in it (it does), otherwise others may look at the code but not use it.
+- **Selling:** the GPL does not allow forbidding others to sell copies. That has no practical effect for a free program that is not published.
+
+The licence costs nothing: it is just the text file; nothing is registered or bought.
+
+---
+
+# For developers
+
+## Installing for development
+
+```
+py -3.15 -m pip install -r requirements-global.txt
+py -3.15 -m pip install -r requirements-dev.txt
+py -3.15 -m pip install --target vendor -r requirements-vendor.txt
+```
+
+| File | Installed into | Contents |
+| --- | --- | --- |
+| `requirements-global.txt` | the system Python | what the program needs to run (Pillow) |
+| `requirements-dev.txt` | the system Python | tests (pytest) |
+| `requirements-vendor.txt` | `vendor/` | python-chess |
+
+python-chess is installed into the program folder instead of a venv, so that no new exe files are created on disk (F-Secure); the reasons are in [docs/plans/Pelikone_suunnitelma.md](docs/plans/Pelikone_suunnitelma.md). `vendor/` and `engines/stockfish/` are not in git (`.gitignore`), so a fresh clone needs the commands above and the network.
+
+The Cburnett pieces are drawn with Tk's own SVG support (Tk 9), so no SVG library is needed.
+
+## Copying the program to another computer
+
+```
+py -3.15 tools\make_dist.py
+```
+
+writes `dist\Chessboard-<date>.zip`: the program, `vendor/`, the Pillow wheel for this Python version (`wheels/`), `Asenna.bat`, `Shakkilauta.bat`, `LICENSE` and `NOTICE`. Left out: `settings.json` (your own paths), `error.log`, `Games/`, `engines/` (Stockfish), tests, tools and `.git`. On the other computer: install Python 3.15 (same bitness), unpack the zip, run `Asenna.bat` once (installs Pillow from `wheels/`, no network needed), then `Shakkilauta.bat`. `--no-wheels` makes a smaller zip; `Asenna.bat` then downloads Pillow.
+
+## Python version
+
+Python 3.16 removes `asyncio.DefaultEventLoopPolicy`. The program's own UCI client (`app/engines/uci.py`) does not use it, but the vendored python-chess 1.11.2 does in `chess.engine`, and `chess.pgn` imports `chess.engine`; on 3.16 the program would stop at `import chess.pgn`. `tests/test_python_version.py` watches for this: it is reported as *xfailed* until python-chess is fixed, and fails (XPASS) once an updated python-chess no longer warns. Then update `requirements-vendor.txt`, remove the xfail marker, and relax the 3.15 requirement here and in `shakkilauta.pyw` / `Shakkilauta.bat`.
+
+## F-Secure
+
+The program creates no exe files: no venv, and packages are run as `python -m <module>`. Stockfish is the only exe; after installing it, start one game and check the F-Secure event log. If an exception is needed, add only `stockfish.exe`. The checklist is in [docs/EXTENDING.md](docs/EXTENDING.md#f-secure-checklist-for-an-engine-exe).
 
 ## Tests
 
 ```
-python -m pytest
+py -3.15 -m pytest
 ```
 
-The tests cover the model (rules, variations, navigation, take-back), files (PGN and FEN round trips), settings, modes, the chess clock, the rules of a game against the computer, the opening book and the rules of opening training, and the engines (the UCI client against a small fake engine in `tests/fake_uci.py`). The Stockfish tests are skipped when `engines/stockfish/` has no exe. The user interface has no automated tests.
+The tests cover the model (rules, variations, navigation, take-back), files (PGN and FEN round trips), settings, modes (including games started with `start(config)` against a fake window), the chess clock, the rules of a game against the computer, the opening book and the rules of opening training, and the engines (the UCI client against a small fake engine in `tests/fake_uci.py`). The Stockfish tests are skipped when `engines/stockfish/` has no exe. The windows themselves have no automated tests.
 
 ## Folders
 
 | Path | Contents |
 | --- | --- |
-| `shakkilauta.pyw` | entry point: paths, error log, DPI awareness, main window |
+| `shakkilauta.pyw` | entry point: paths, requirement check, error log, DPI awareness, main window |
+| `Shakkilauta.bat`, `Asenna.bat` | start the program; install Pillow |
 | `app/` | application code, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
 | `assets/pieces/cburnett/` | 12 SVG pieces |
 | `assets/sounds/` | event sounds (WAV) |
 | `assets/openings/` | the opening book: one PGN game per opening; see [docs/EXTENDING.md](docs/EXTENDING.md) |
+| `tools/make_dist.py` | builds the zip for another computer |
 | `tools/make_sounds.py` | regenerates the sounds: `python tools\make_sounds.py` |
 | `tools/extract_pieces.py` | writes the SVG pieces from the data bundled with python-chess |
-| `engines/stockfish/` | `stockfish.exe` (Stockfish 19, downloaded separately, not part of the code) and its licence `Copying.txt` |
+| `engines/stockfish/` | `stockfish.exe` (downloaded separately, not part of the code) and its licence `Copying.txt` |
 | `tests/` | pytest tests |
 | `vendor/` | python-chess (do not edit) |
+| `docs/` | developer documentation; `docs/plans/` holds the original plans (in Finnish, historical) |
 | `Games/` | default folder for saved games |
-| `settings.json` | settings, written when the program exits |
+| `settings.json` | settings |
 
 ## Documentation
 
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): structure, data flow and where new code belongs.
-- [Shakkilauta_suunnitelma.md](Shakkilauta_suunnitelma.md): the original plan (in Finnish) and the reasons for the technology choices.
-- [docs/EXTENDING.md](docs/EXTENDING.md): how to add a mode, a chess engine or an engine level.
-- [Pelikone_suunnitelma.md](Pelikone_suunnitelma.md): the plan (in Finnish) for modes and playing against the computer (Stockfish), and where Python libraries are installed.
-- [Avausteoria_suunnitelma.md](Avausteoria_suunnitelma.md): the plan (in Finnish) for Learn Openings, the New Game button and the compact panel.
-
-## Licences
-
-python-chess: GPL-3.0 (Niklas Fiekas). Stockfish: GPL-3.0 (the Stockfish developers); it is a separate program run as a child process. Cburnett pieces: CC BY-SA 3.0 (Colin M.L. Burnett). All are credited in the program's About window.
+- [docs/EXTENDING.md](docs/EXTENDING.md): how to add a mode, a chess engine, an opening or an engine level.
+- [docs/plans/](docs/plans/): the original plans (in Finnish), kept for the reasons behind the choices: [Shakkilauta_suunnitelma.md](docs/plans/Shakkilauta_suunnitelma.md) (technology choices), [Pelikone_suunnitelma.md](docs/plans/Pelikone_suunnitelma.md) (modes, Stockfish, where libraries are installed), [Avausteoria_suunnitelma.md](docs/plans/Avausteoria_suunnitelma.md) (Learn Openings).

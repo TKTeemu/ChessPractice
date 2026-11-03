@@ -1,4 +1,3 @@
-# Installed into the system Python: python -m pip install -r requirements-global.txt
+# Needed to run the program; installed into the system Python:
+#   python -m pip install -r requirements-global.txt   (or Asenna.bat)
 pillow==12.3.0
-pymupdf==1.28.2
-pytest==9.2.0

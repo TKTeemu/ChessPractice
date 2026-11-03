@@ -10,3 +10,11 @@ MODES = [BoardMode, VsComputerMode, LearnOpeningsMode]
 
 def mode_class(key):
     return next((cls for cls in MODES if cls.key == key), None)
+
+
+def mode_settings():
+    """The SETTINGS of every mode in one dict, for Settings(path, extra_defaults)."""
+    merged = {}
+    for cls in MODES:
+        merged.update(cls.SETTINGS)
+    return merged

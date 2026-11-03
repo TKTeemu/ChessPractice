@@ -96,6 +96,7 @@ ERROR_SAVE = "Could not save file:\n{error}"
 ERROR_NO_GAMES = "No games found in the file."
 ERROR_PASTE = "The clipboard does not contain a valid PGN or FEN."
 ERROR_FEN = "Invalid FEN:\n{error}"
+ERROR_SETTINGS = "Could not save the settings to\n{path}\nThe details are in error.log."
 
 SHORTCUTS_TITLE = "Keyboard Shortcuts"
 SHORTCUTS_TEXT = """\
@@ -115,6 +116,8 @@ ABOUT_TEXT = """\
 Chessboard – Analysis
 
 An offline chessboard for analysing games.
+Copyright (C) 2026 Teemu. Free software under the GNU GPL v3 or later;
+see the files LICENSE and NOTICE in the program folder.
 
 Chess rules: python-chess by Niklas Fiekas (GPL-3.0).
 Computer opponent: Stockfish by the Stockfish developers (GPL-3.0),

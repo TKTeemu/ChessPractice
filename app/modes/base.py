@@ -2,9 +2,15 @@
 
 MainWindow asks the active mode questions instead of checking which mode is active.
 The defaults behave like the free board: everything allowed, nothing extra.
+
+Switching modes (MainWindow.set_mode) runs in this order:
+    new.choose() -> old.confirm_leave() -> (save prompt) -> old.leave() -> old.deactivate()
+    -> new.start(config)
+so nothing of the new mode happens before the old one has been closed.
 """
 
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Callable
 
 
@@ -14,15 +20,14 @@ class ModeContext:
     root: object                  # tk.Tk
     model: object                 # GameModel: read freely; change through the callables below
     settings: object              # Settings
+    app_dir: Path                 # the program folder (assets/, engines/)
     play_move: Callable           # play_move(move, from_end=False)
     new_game: Callable            # new_game(board=None): replace the game, then refresh
     refresh: Callable             # refresh(rebuild=False)
     set_flipped: Callable         # set_flipped(bool)
     set_mode: Callable            # set_mode(key) -> bool
-    confirm_discard: Callable     # () -> bool: asks to save unsaved changes
     set_clocks: Callable          # set_clocks({color: (text, active, low)} or None)
     play_sound: Callable          # play_sound(kind)
-    button: Callable              # button(parent, text, command): a button in the panel style
     take_back: Callable           # take_back(color) -> bool: remove moves back to color's last turn, then refresh
 
 
@@ -36,28 +41,38 @@ class MenuItem:
 class Mode:
     key = ""        # unique, stored in settings.json
     label = ""      # menu text, from strings.py
-    show_details = True   # the Comment & FEN section is open until the user closes it
+    show_details = True    # the Comment & FEN section is open until the user closes it
+    replaces_game = False  # start() replaces the game: MainWindow asks to save the old one first
+    SETTINGS = {}   # the mode's own settings and their defaults, keys prefixed with the mode key
 
     def __init__(self, ctx):
         self.ctx = ctx
 
     # Life cycle
-    def activate(self):
-        """Called when the user picks this mode. False = stay in the previous mode."""
+    def choose(self):
+        """Show the mode's dialog, if any, and return what the user chose (a dict), or None
+        to stay in the previous mode. No side effects: the previous mode is still active."""
+        return {}
+
+    def start(self, config):
+        """Begin, with what choose() returned. The previous mode has been closed."""
+
+    def confirm_leave(self):
+        """Before the mode is left, a new game starts or the program exits. Only asks; False = cancel."""
         return True
+
+    def leave(self):
+        """The user confirmed leaving (and the save prompt was answered), e.g. resign the game."""
 
     def deactivate(self):
         """Release engines, timers and threads."""
-
-    def confirm_leave(self):
-        """Before the mode is left, a new game starts or the program exits. False = cancel."""
-        return True
 
     # Questions MainWindow asks
     def can_move(self, color):
         return True
 
     def allows(self, command):
+        """command: one of the names in app/commands.py."""
         return True
 
     def title(self):
@@ -86,7 +101,7 @@ class Mode:
 
     # Optional UI
     def build_panel(self, parent):
-        """Widgets for the right-hand panel, or None."""
+        """Widgets for the right-hand panel (use app/widgets.py), or None."""
         return None
 
     def menu_items(self):

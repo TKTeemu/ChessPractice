@@ -24,10 +24,10 @@ def new_game(color=chess.WHITE, minutes=30):
 def test_turns_and_moving_rights():
     game, _ = new_game(chess.BLACK)
     board = chess.Board()
-    assert game.is_engine_turn(board)
+    assert game.is_computer_turn(board)
     assert not game.can_move(board, chess.WHITE, at_end=True)
     board.push_san("e4")
-    assert not game.is_engine_turn(board)
+    assert not game.is_computer_turn(board)
     assert game.can_move(board, chess.BLACK, at_end=True)
     assert not game.can_move(board, chess.BLACK, at_end=False)   # browsing earlier moves
     assert not game.can_move(board, chess.WHITE, at_end=True)

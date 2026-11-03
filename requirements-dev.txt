@@ -1,0 +1,3 @@
+# For development only (tests); installed into the system Python:
+#   python -m pip install -r requirements-dev.txt
+pytest==9.2.0

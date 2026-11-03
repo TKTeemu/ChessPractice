@@ -1,34 +1,34 @@
 """LearningGame: the rules of one opening-training game. Knows nothing about the user interface.
 
 The computer answers from the opening book while the position is in it and leaves the
-rest to the engine. The game keeps count of the user's book moves, notices when the user
-leaves the theory, and decides how long next-move suggestions are shown (the opening
-phase). LearnOpeningsMode drives it.
+rest to the engine. On top of EngineGame, the game keeps count of the user's book moves,
+notices when the user leaves the theory, and decides how long next-move suggestions are
+shown (the opening phase). LearnOpeningsMode drives it.
 """
 
-import datetime
 import random
 
-import chess
-
 from . import strings as S
+from .commands import EDIT_COMMENT, NAVIGATE, TAKE_BACK
+from .engine_game import EngineGame
 from .model import outcome_text
 
-ALLOWED = {"navigate", "edit_comment", "take_back"}
+ALLOWED = frozenset({NAVIGATE, EDIT_COMMENT, TAKE_BACK})
 OUT_OF_BOOK_USER_MOVES = 2   # the opening phase ends after this many user moves outside the book
 MAX_ALT_HINTS = 3
 
 
-class LearningGame:
+class LearningGame(EngineGame):
+    EVENT = S.LEARN_EVENT
+    ALLOWED_DURING_GAME = ALLOWED
+    ALLOWED_AFTER_GAME = ALLOWED
+
     def __init__(self, line, user_color, engine_label, vary=True, rng=None, suggest_moves=12):
+        super().__init__(user_color, engine_label)
         self.line = line
-        self.user_color = user_color
-        self.computer_color = not user_color
-        self.engine_label = engine_label
         self.vary = vary
         self.rng = rng or random.Random()
         self.suggest_moves = suggest_moves
-        self.request_id = 0
         self._reset()
 
     def _reset(self):
@@ -43,6 +43,7 @@ class LearningGame:
         self.last_comment = ""          # explanation of the book move just played
         self.result = None
         self.end_text = None
+        self.termination = None
         self._out_moves = None          # user moves since the game left the book, None while in it
         self._announced = False         # "End of theory" / "Out of theory" has been shown
 
@@ -52,32 +53,11 @@ class LearningGame:
     def opening(self):
         return self.line.opening
 
-    @property
-    def over(self):
-        return self.result is not None
-
-    def player_name(self, color):
-        return S.VS_YOU if color == self.user_color else self.engine_label
-
-    def is_computer_turn(self, board):
-        return not self.over and board.turn == self.computer_color
-
-    def can_move(self, board, color, at_end):
-        return not self.over and at_end and color == self.user_color == board.turn
-
-    def allows(self, command):
-        return command in ALLOWED
-
     def status_text(self, board):
-        if self.over:
-            return self.end_text
-        if board.turn == self.user_color:
-            text = S.VS_YOUR_MOVE
-            if board.is_check():
-                text += " · " + S.STATUS_CHECK
-        else:
-            text = S.VS_THINKING
-        return f"{self.notice}\n{text}" if self.notice else text
+        text = super().status_text(board)
+        if self.over or not self.notice:
+            return text
+        return f"{self.notice}\n{text}"
 
     def theory_text(self):
         return S.LEARN_THEORY.format(hits=self.user_book_hits, total=self.user_book_chances)
@@ -160,36 +140,10 @@ class LearningGame:
         self.deviation = None
         self.request_id += 1
 
-    def engine_failed(self, error):
-        if not self.over:
-            self._finish("*", S.VS_ENGINE_ERROR.format(error=error))
-
-    def _finish(self, result, text):
-        self.result, self.end_text = result, text
-        self.request_id += 1
-
     # --- Headers ----------------------------------------------------------
 
     def write_headers(self, headers):
-        headers["Event"] = S.LEARN_EVENT
-        headers["Site"] = S.UNKNOWN
-        headers["Date"] = datetime.date.today().strftime("%Y.%m.%d")
-        headers["Round"] = S.UNKNOWN
-        headers["White"] = self.player_name(chess.WHITE)
-        headers["Black"] = self.player_name(chess.BLACK)
-        headers["Result"] = "*"
+        super().write_headers(headers)
         headers["Opening"] = self.opening.name
         if self.opening.eco:
             headers["ECO"] = self.opening.eco
-
-    def write_result(self, headers):
-        headers["Result"] = self.result or "*"
-
-    # --- Computer moves ---------------------------------------------------
-
-    def new_request(self):
-        self.request_id += 1
-        return self.request_id
-
-    def is_current(self, request_id):
-        return not self.over and request_id == self.request_id
