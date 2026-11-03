@@ -1,0 +1,396 @@
+[Event "Saavedra Position"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "saavedra"]
+[Difficulty "5"]
+[DifficultyName "Studies"]
+[Goal "win"]
+[Composer "Fernando Saavedra (after Georges Barbier)"]
+[Source "Glasgow Weekly Citizen"]
+[Year "1895"]
+[SetUp "1"]
+[FEN "8/8/1KP5/3r4/8/8/8/k7 w - - 0 1"]
+
+{ White's pawn is one step from queening, but the rook keeps checking – and has a stalemate trick ready. }
+1. c7 Rd6+ 2. Kb5 Rd5+ 3. Kb4 Rd4+ 4. Kb3 Rd3+ 5. Kc2 Rd4
+{ Black sets a trap: if White queens, Rc4+ forces stalemate. } 6. c8=R $1
+{ A rook is enough, and it cannot be stalemated in this way. It threatens Ra8 mate. } ( 6. c8=Q $2
+{ Rc4+ 7. Qxc4 is stalemate. } 6... Rc4+ 7. Qxc4 ) 6... Ra4 7. Kb3
+{ The rook is attacked and Rc1 mate is threatened: White wins. } *
+
+[Event "Réti Study"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "reti"]
+[Difficulty "5"]
+[Goal "draw"]
+[Composer "Richard Réti"]
+[Year "1921"]
+[SetUp "1"]
+[FEN "7K/8/k1P5/7p/8/8/8/8 w - - 0 1"]
+
+{ The white king seems hopelessly far from the black pawn. It walks two roads at once. } 1. Kg7 $1
+{ The king heads for the pawn and towards its own pawn at the same time. } 1... h4 ( 1... Kb6 2.
+Kf6 h4 3. Ke5 ) 2. Kf6 Kb6 ( 2... h3 3. Ke7 h2 4. c7 Kb7 5. Kd7 h1=Q 6. c8=Q+
+{ Both sides queen: a draw. } ) 3. Ke5 $1 Kxc6 ( 3... h3 4. Kd6 h2 5. c7 Kb7 6. Kd7 h1=Q 7. c8=Q+ )
+4. Kf4 { Now the king is inside the square of the pawn. } 4... h3 5. Kg3 h2 6. Kxh2 *
+
+[Event "Pawn ending I"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "l5_pawns_1"]
+[Difficulty "5"]
+[Goal "draw"]
+[SetUp "1"]
+[FEN "8/6K1/8/1p5P/8/8/3k4/8 b - - 0 1"]
+
+{ Only one move holds the draw – and the moves after it have to be just as exact. } 1... b4 2. h6
+b3 3. h7 b2 4. h8=Q b1=Q 5. Qh2+ Kc1 6. Qf4+ Kd1 7. Qf1+ Kc2 8. Qf5+ Kc1 9. Qxb1+ *
+
+[Event "Pawn ending II"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "l5_pawns_2"]
+[Difficulty "5"]
+[Goal "draw"]
+[SetUp "1"]
+[FEN "2K2k2/8/1P6/8/5p2/8/8/8 b - - 0 1"]
+
+{ Only one move holds the draw – and the moves after it have to be just as exact. } 1... f3 2. b7
+f2 3. b8=Q f1=Q 4. Kb7+ Kg7 5. Qe5+ Kf8 6. Kc7 Qf7+ 7. Kb6 Qf3 8. Qd6+ Kf7 9. Qc5 *
+
+[Event "Pawn ending III"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "l5_pawns_3"]
+[Difficulty "5"]
+[Goal "draw"]
+[SetUp "1"]
+[FEN "8/8/8/4p3/1P1p3K/6P1/6P1/4k3 w - - 0 1"]
+
+{ Only one move holds the draw – and the moves after it have to be just as exact. } 1. b5 d3 2. b6
+d2 3. b7 d1=Q 4. b8=Q Qd4+ 5. g4 e4 6. Kg3 e3 7. Qb1+ Ke2 8. Qa2+ Qd2 *
+
+[Event "Knight ending I"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "l5_knights_1"]
+[Difficulty "5"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "4K3/8/5P2/N1n5/8/1P1p4/k7/8 w - - 0 1"]
+
+{ Only one move wins – and the moves after it have to be just as exact. } 1. f7 Ne6 2. Nc4 Kxb3 3.
+Nd2+ Kc3 4. Nf3 Kc4 5. Ne5+ Kc5 6. Nxd3+ Kc6 7. Ke7 Kd5 8. Nc5 Nf4 *
+
+[Event "Pawn ending IV"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "l5_pawns_4"]
+[Difficulty "5"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "8/8/1p6/7k/3PK3/8/8/8 w - - 0 1"]
+
+{ Only one move wins – and the moves after it have to be just as exact. } 1. Kd5 b5 2. Kc5 b4 3.
+Kxb4 Kg4 4. d5 Kf5 5. Kb5 Kf6 6. d6 Ke6 7. Kc6 Kf7 8. d7 Ke7 *
+
+[Event "Knight against pawns I"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "l5_n_pp_1"]
+[Difficulty "5"]
+[Goal "draw"]
+[SetUp "1"]
+[FEN "8/k3P3/4n1P1/8/8/6K1/8/8 b - - 0 1"]
+
+{ Only one move holds the draw – and the moves after it have to be just as exact. } 1... Ng7 2. Kf4
+Kb7 3. e8=Q Nxe8 4. Ke5 Kc6 5. g7 Nxg7 *
+
+[Event "Pawn ending V"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "l5_pawns_5"]
+[Difficulty "5"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "8/8/8/pk4P1/3P2p1/8/8/5K2 w - - 0 1"]
+
+{ Only one move wins – and the moves after it have to be just as exact. } 1. g6 g3 2. g7 Kc4 3.
+g8=Q+ Kb5 4. Kg2 a4 5. Qd5+ Kb6 6. Kxg3 a3 7. Kf4 a2 8. Qxa2 Kc7 *
+
+[Event "Pawn ending VI"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "l5_pawns_6"]
+[Difficulty "5"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "8/8/2P5/8/8/7k/2p1K3/8 w - - 0 1"]
+
+{ Only one move wins – and the moves after it have to be just as exact. } 1. Kd2 c1=Q+ 2. Kxc1 Kg4
+3. c7 Kf4 4. c8=Q Ke5 5. Qd7 Kf6 6. Kd2 Kg5 7. Qe6 Kf4 8. Ke2 Kg3 *
+
+[Event "Knight against pawns II"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "l5_n_pp_2"]
+[Difficulty "5"]
+[Goal "draw"]
+[SetUp "1"]
+[FEN "2K5/8/2k5/8/8/1N2pp2/8/8 w - - 0 1"]
+
+{ Only one move holds the draw – and the moves after it have to be just as exact. } 1. Nd4+ Kd6 2.
+Nxf3 e2 3. Kd8 Kc5 4. Kd7 Kc4 5. Ke6 Kd3 6. Ne1+ Ke3 7. Kd5 Kd2 8. Ng2 Kc2 *
+
+[Event "Pawn ending VII"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "l5_pawns_7"]
+[Difficulty "5"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "4k3/2p5/3P4/3PK3/3p4/8/8/8 b - - 0 1"]
+
+{ Only one move wins – and the moves after it have to be just as exact. } 1... d3 2. dxc7 Kd7 3. d6
+d2 4. Kf4 d1=Q 5. Ke3 Qxd6 6. c8=Q+ Kxc8 7. Ke4 Kd7 8. Kf3 Ke6 9. Ke2 *
+
+[Event "Rook and pawn against rook I"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "l5_rp_r_1"]
+[Difficulty "5"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "7r/8/3k4/4p3/8/8/1R6/4K3 b - - 0 1"]
+
+{ Only one move wins – and the moves after it have to be just as exact. } 1... Rh1+ 2. Kd2 Rh2+ 3.
+Kc1 Rxb2 4. Kxb2 Kd5 5. Kb3 Kd4 6. Kc2 Ke3 7. Kc3 e4 8. Kc2 Kf2 9. Kb2 *
+
+[Event "Pawn ending VIII"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "l5_pawns_8"]
+[Difficulty "5"]
+[Goal "draw"]
+[SetUp "1"]
+[FEN "5K2/8/1k6/3P4/8/pP6/8/8 w - - 0 1"]
+
+{ Only one move holds the draw – and the moves after it have to be just as exact. } 1. d6 Kc6 2.
+Ke7 a2 3. d7 a1=Q 4. d8=Q Qe5+ 5. Kf7 Qd5+ 6. Qxd5+ Kxd5 7. b4 Kc6 8. b5+ Kxb5 *
+
+[Event "Pawns against rook I"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "l5_pp_r_1"]
+[Difficulty "5"]
+[Goal "draw"]
+[SetUp "1"]
+[FEN "K7/4k3/P7/7P/8/1r6/8/8 w - - 0 1"]
+
+{ Only one move holds the draw – and the moves after it have to be just as exact. } 1. h6 Kd6 2. h7
+Rh3 3. Kb8 Rxh7 4. a7 Rxa7 5. Kxa7 *
+
+[Event "Pawn ending IX"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "l5_pawns_9"]
+[Difficulty "5"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "8/3K4/pk2P3/8/8/6p1/8/8 b - - 0 1"]
+
+{ Only one move wins – and the moves after it have to be just as exact. } 1... g2 2. e7 g1=Q 3.
+e8=Q Qd1+ 4. Kc8 Qc2+ 5. Kd7 Qa4+ 6. Kd8 Qxe8+ 7. Kxe8 a5 8. Kd7 a4 9. Ke8 *
+
+[Event "Pawn ending X"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "l5_pawns_10"]
+[Difficulty "5"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "8/1k6/2p3P1/5K2/p7/P3p3/8/8 b - - 0 1"]
+
+{ Only one move wins – and the moves after it have to be just as exact. } 1... e2 2. g7 e1=Q 3.
+g8=Q Qb1+ 4. Kf4 Qc1+ 5. Kf5 Qc5+ 6. Kf6 Qc3+ 7. Kf5 Qf3+ 8. Ke5 Qxa3 9. Qh7+ *
+
+[Event "Pawn ending XI"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "l5_pawns_11"]
+[Difficulty "5"]
+[Goal "draw"]
+[SetUp "1"]
+[FEN "K7/p7/1p4P1/8/3p1k2/1P6/8/8 b - - 0 1"]
+
+{ Only one move holds the draw – and the moves after it have to be just as exact. } 1... d3 2. g7
+d2 3. g8=Q d1=Q 4. Qf7+ Ke5 5. Kxa7 Qd3 6. Kxb6 Qd6+ 7. Kb5 Qb8+ 8. Kc4 Qc8+ 9. Kb4 *
+
+[Event "Rook against bishop and pawn I"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "l5_r_bp_1"]
+[Difficulty "5"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "2k5/8/R7/8/7K/p7/8/2b5 w - - 0 1"]
+
+{ Only one move wins – and the moves after it have to be just as exact. } 1. Rc6+ Kb7 2. Rxc1 a2 3.
+Ra1 Ka6 4. Rxa2+ Kb7 5. Rh2 Ka6 6. Rf2 Ka5 7. Kg4 Ka4 8. Kh4 Ka3 *
+
+[Event "Pawns against rook II"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "l5_pp_r_2"]
+[Difficulty "5"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "8/8/p6R/k7/8/p7/8/6K1 b - - 0 1"]
+
+{ Only one move wins – and the moves after it have to be just as exact. } 1... a2 2. Rh5+ Ka4 3.
+Rh4+ Kb3 4. Rh3+ Kb2 5. Rh2+ Kb1 6. Kg2 a1=Q 7. Rh4 Qg7+ 8. Kh1 Qe5 9. Rb4+ *
+
+[Event "Pawns against knight I"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "l5_pp_n_1"]
+[Difficulty "5"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "8/8/p4N2/8/8/5p2/2k4K/8 b - - 0 1"]
+
+{ Only one move wins – and the moves after it have to be just as exact. } 1... a5 2. Kg3 a4 3. Nd5
+a3 4. Kxf3 Kb3 5. Ke4 a2 6. Ne3 a1=Q 7. Nf5 Qf6 8. Ne3 Qd6 9. Nd5 *
+
+[Event "Rook against pawns I"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "l5_r_pp_1"]
+[Difficulty "5"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "K7/8/8/P7/5P2/8/5r2/3k4 b - - 0 1"]
+
+{ Only one move wins – and the moves after it have to be just as exact. } 1... Ra2 2. Ka7 Rxa5+ 3.
+Kb8 Kd2 4. Kb7 Ke3 5. Kb6 Rf5 6. Kc7 Rf6 7. f5 Ke4 8. Kd8 Kd5 9. Kd7 *
+
+[Event "Rook and pawn against rook II"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "l5_rp_r_2"]
+[Difficulty "5"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "8/8/8/7R/1r2k3/8/6P1/5K2 w - - 0 1"]
+
+{ Only one move wins – and the moves after it have to be just as exact. } 1. Rh4+ Kd5 2. Rxb4 Kc5
+3. Rb2 Kd6 4. Kf2 Kc7 5. g4 Kc8 6. g5 Kd7 7. g6 Ke7 8. g7 Kf7 *
+
+[Event "Pawns against rook III"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "l5_pp_r_3"]
+[Difficulty "5"]
+[Goal "draw"]
+[SetUp "1"]
+[FEN "8/8/1p1K4/4p3/1p6/1R6/8/2k5 b - - 0 1"]
+
+{ Only one move holds the draw – and the moves after it have to be just as exact. } 1... e4 2. Kd5
+Kc2 3. Kc4 b5+ 4. Kxb4 Kd2 5. Kc5 e3 6. Kd4 e2 7. Rb2+ Kd1 8. Kd3 e1=N+ 9. Kd4 *

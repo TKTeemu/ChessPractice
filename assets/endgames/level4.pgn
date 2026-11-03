@@ -1,0 +1,403 @@
+[Event "Lasker–Reichhelm Position"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "lasker_reichhelm"]
+[Difficulty "4"]
+[DifficultyName "Practical endgames"]
+[Goal "win"]
+[Composer "Emanuel Lasker and Gustavus Reichhelm"]
+[Year "1901"]
+[SetUp "1"]
+[FEN "8/k7/3p4/p2P1p2/P2P1P2/8/8/K7 w - - 0 1"]
+
+{ All pawns are blocked. The white king must break in through b5 – with exactly the right timing. }
+1. Kb1 Kb7 2. Kc1 Kc7 3. Kd1 Kd7 4. Kc2 Kc8 5. Kd2 Kd7 6. Kc3 Kc7 7. Kd3 Kb6 8. Ke2 Kc7 9. Kf2 Kd8
+10. Kg3 Ke7 11. Kh4 Kf6 12. Kh5 Kf7 13. Kg5 Kg7 14. Kxf5 Kf7 15. Kg5 Kg7 *
+
+[Event "Pawn ending I"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "l4_pawns_1"]
+[Difficulty "4"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "8/8/8/p2P4/K7/6p1/8/5k2 b - - 0 1"]
+
+{ Only one move wins here. Look for it before you play. } 1... g2 2. Kxa5 g1=Q 3. Kb5 Ke2 4. Kc6
+Qh1 5. Kc5 Kd3 6. Kd6 Kd4 7. Ke6 *
+
+[Event "Knight ending I"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "l4_knights_1"]
+[Difficulty "4"]
+[Goal "draw"]
+[SetUp "1"]
+[FEN "8/2N5/7p/5P2/5K1p/7k/8/n7 b - - 0 1"]
+
+{ Only one move holds the draw here. Look for it before you play. } 1... Nb3 2. Ne6 Kg2 3. Kg4 h3
+4. Nf4+ Kf1 5. Nxh3 Nc5 6. Kh5 Kg2 7. f6 *
+
+[Event "Bishop ending I"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "l4_bishops_1"]
+[Difficulty "4"]
+[Goal "draw"]
+[SetUp "1"]
+[FEN "8/8/8/1K1P2B1/3k4/6Pp/1b6/8 w - - 0 1"]
+
+{ Only one move holds the draw here. Look for it before you play. } 1. d6 h2 2. d7 h1=Q 3. d8=Q+
+Qd5+ 4. Qxd5+ Kxd5 5. g4 Be5 6. Bd2 Bf6 *
+
+[Event "Rook ending I"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "l4_rooks_1"]
+[Difficulty "4"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "4R3/6K1/1P6/8/7P/1rk5/1p6/8 w - - 0 1"]
+
+{ Only one move wins here. Look for it before you play. } 1. Re3+ Kc2 2. Rxb3 Kxb3 3. b7 Ka2 4.
+b8=R Ka1 5. Kg6 Kb1 6. h5 Ka1 *
+
+[Event "Pawns against rook I"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "l4_pp_r_1"]
+[Difficulty "4"]
+[Goal "draw"]
+[SetUp "1"]
+[FEN "8/8/8/3pK3/6p1/1R6/7k/8 b - - 0 1"]
+
+{ Only one move holds the draw here. Look for it before you play. } 1... g3 2. Rb7 g2 3. Rh7+ Kg3
+4. Kxd5 Kf2 5. Rg7 g1=Q 6. Rxg1 Kxg1 *
+
+[Event "Rook against pawns I"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "l4_r_pp_1"]
+[Difficulty "4"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "1R6/5pk1/8/K7/8/8/5p2/8 w - - 0 1"]
+
+{ Only one move wins here. Look for it before you play. } 1. Rb1 f6 2. Rf1 f5 3. Kb5 f4 4. Kc4 f3
+5. Rxf2 Kf6 6. Kd5 Ke7 *
+
+[Event "Rook and two pawns against rook and pawn I"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "l4_rpp_rp_1"]
+[Difficulty "4"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "3KR3/8/7P/8/3k4/1p5P/6r1/8 w - - 0 1"]
+
+{ Only one move wins here. Look for it before you play. } 1. h7 Kd3 2. h8=Q Ra2 3. Qh7+ Kd2 4. Qe4
+Kc1 5. Qe1+ Kc2 6. Re2+ Kd3 *
+
+[Event "Pawns against rook II"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "l4_pp_r_2"]
+[Difficulty "4"]
+[Goal "draw"]
+[SetUp "1"]
+[FEN "8/3K4/6r1/6Pk/1P6/8/4P3/8 w - - 0 1"]
+
+{ Only one move holds the draw here. Look for it before you play. } 1. Kc7 Rxg5 2. Kc6 Rg1 3. b5
+Rc1+ 4. Kd7 Rb1 5. Kc6 Kg6 6. b6 Kf5 *
+
+[Event "Rook against bishop and pawn I"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "l4_r_bp_1"]
+[Difficulty "4"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "8/8/8/8/5Pk1/2r5/8/B5K1 b - - 0 1"]
+
+{ Only one move wins here. Look for it before you play. } 1... Rc1+ 2. Kf2 Rxa1 3. Ke3 Ra4 4. f5
+Kxf5 5. Kd3 Kf4 6. Kd2 Ke4 7. Kc2 *
+
+[Event "Knight against pawns I"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "l4_n_pp_1"]
+[Difficulty "4"]
+[Goal "draw"]
+[SetUp "1"]
+[FEN "1k6/8/7P/1n6/6P1/8/8/3K4 b - - 0 1"]
+
+{ Only one move holds the draw here. Look for it before you play. } 1... Nd6 2. g5 Nf7 3. Kd2 Kc7
+4. g6 Nxh6 5. g7 Kd6 6. g8=Q Nxg8 *
+
+[Event "Pawn ending II"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "l4_pawns_2"]
+[Difficulty "4"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "8/8/2P1p3/8/8/P4k1p/2K5/8 w - - 0 1"]
+
+{ Only one move wins here. Look for it before you play. } 1. c7 h2 2. c8=Q e5 3. Qh3+ Kf4 4. Qxh2+
+Ke4 5. a4 Kf5 6. a5 e4 *
+
+[Event "Pawns against rook III"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "l4_pp_r_3"]
+[Difficulty "4"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "8/6k1/8/7p/8/2R5/5p2/2K5 b - - 0 1"]
+
+{ Only one move wins here. Look for it before you play. } 1... f1=Q+ 2. Kd2 h4 3. Rc7+ Kf6 4. Rc6+
+Ke5 5. Rc5+ Kd4 6. Rc8 Qf4+ 7. Ke1 *
+
+[Event "Pawn ending III"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "l4_pawns_3"]
+[Difficulty "4"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "7k/3K4/8/P1p5/8/2p5/7P/8 b - - 0 1"]
+
+{ Only one move wins here. Look for it before you play. } 1... c2 2. h3 c1=Q 3. a6 c4 4. Kc7 Qh1 5.
+Kb8 Qc6 6. h4 c3 7. a7 *
+
+[Event "Pawn ending IV"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "l4_pawns_4"]
+[Difficulty "4"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "8/8/1P6/8/8/1pk4P/8/5K2 w - - 0 1"]
+
+{ Only one move wins here. Look for it before you play. } 1. b7 b2 2. b8=Q Kc2 3. Qc8+ Kd1 4. Qg4+
+Kd2 5. Qe4 Kc1 6. Qc4+ Kd2 *
+
+[Event "Rook and pawn against rook I"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "l4_rp_r_1"]
+[Difficulty "4"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "R3K3/8/6r1/8/8/p4k2/8/8 b - - 0 1"]
+
+{ Only one move wins here. Look for it before you play. } 1... Rg8+ 2. Kd7 Rxa8 3. Kc6 a2 4. Kb5
+a1=Q 5. Kc6 Qa7 6. Kb5 Rc8 7. Kb4 *
+
+[Event "Pawns against knight I"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "l4_pp_n_1"]
+[Difficulty "4"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "8/3p3N/7p/8/8/5k2/8/K7 b - - 0 1"]
+
+{ Only one move wins here. Look for it before you play. } 1... h5 2. Ng5+ Kg4 3. Ne4 h4 4. Kb2 d5
+5. Nd2 Kg3 6. Kc3 Kf2 7. Kd4 *
+
+[Event "Pawns against bishop I"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "l4_pp_b_1"]
+[Difficulty "4"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "7b/8/4P3/7k/7P/6K1/8/8 w - - 0 1"]
+
+{ Only one move wins here. Look for it before you play. } 1. e7 Be5+ 2. Kf3 Kg6 3. e8=Q+ Kf5 4.
+Qd7+ Kf6 5. Ke4 Ba1 6. h5 Bb2 *
+
+[Event "Pawn ending V"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "l4_pawns_5"]
+[Difficulty "4"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "8/5K2/8/7k/P5p1/8/8/8 b - - 0 1"]
+
+{ Only one move wins here. Look for it before you play. } 1... g3 2. Ke7 g2 3. Kd7 Kg4 4. a5 g1=Q
+5. a6 Kf4 6. Kc7 Qa7+ 7. Kc6 *
+
+[Event "Rook and pawn against rook II"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "l4_rp_r_2"]
+[Difficulty "4"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "8/6k1/8/P4r2/8/8/2R5/4K3 w - - 0 1"]
+
+{ Only one move wins here. Look for it before you play. } 1. Rg2+ Kh6 2. Ra2 Rh5 3. Kd1 Rh1+ 4. Kc2
+Rh2+ 5. Kb3 Rh3+ 6. Kc4 Rh4+ *
+
+[Event "Bishop against pawns I"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "l4_b_pp_1"]
+[Difficulty "4"]
+[Goal "draw"]
+[SetUp "1"]
+[FEN "b3k3/8/1P1K4/8/8/P7/8/8 b - - 0 1"]
+
+{ Only one move holds the draw here. Look for it before you play. } 1... Kd8 2. a4 Kc8 3. a5 Kb7 4.
+a6+ Kxa6 5. b7 Kxb7 *
+
+[Event "Pawn ending VI"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "l4_pawns_6"]
+[Difficulty "4"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "8/8/1P6/8/K7/3k3p/8/8 b - - 0 1"]
+
+{ Only one move wins here. Look for it before you play. } 1... h2 2. b7 h1=Q 3. b8=Q Qa1+ 4. Kb5
+Qb1+ 5. Kc6 Qxb8 6. Kd7 Qb6 7. Ke8 *
+
+[Event "Knight and pawn against bishop I"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "l4_np_b_1"]
+[Difficulty "4"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "3B4/8/7K/3p2n1/8/4k3/8/8 b - - 0 1"]
+
+{ Only one move wins here. Look for it before you play. } 1... Nf7+ 2. Kh7 Nxd8 3. Kg6 d4 4. Kf6 d3
+5. Ke7 d2 6. Kxd8 d1=Q+ 7. Kc7 *
+
+[Event "Pawn ending VII"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "l4_pawns_7"]
+[Difficulty "4"]
+[Goal "draw"]
+[SetUp "1"]
+[FEN "8/8/5P2/1p4k1/6P1/p3K3/8/8 w - - 0 1"]
+
+{ Only one move holds the draw here. Look for it before you play. } 1. f7 a2 2. f8=Q a1=Q 3. Qe7+
+Kxg4 4. Qd7+ Kh5 5. Qe8+ Kh6 6. Qxb5 Qe1+ *
+
+[Event "Pawns against rook IV"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "l4_pp_r_4"]
+[Difficulty "4"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "8/2k4P/8/3K4/1P6/8/8/5r2 w - - 0 1"]
+
+{ Only one move wins here. Look for it before you play. } 1. h8=Q Rf5+ 2. Kc4 Kd6 3. Qe8 Re5 4.
+Qg6+ Re6 5. Qg3+ Ke7 6. b5 Kf7 *

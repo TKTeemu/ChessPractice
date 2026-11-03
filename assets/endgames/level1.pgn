@@ -1,0 +1,338 @@
+[Event "Queen Mate from the Centre"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "kq_centre"]
+[Difficulty "1"]
+[DifficultyName "Basic mates"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "8/8/8/4k3/8/8/8/3QK3 w - - 0 1"]
+
+{ Drive the king to the edge with the queen a knight's move away, then bring your own king up for the mate. }
+1. Qd7 Kf6 2. Kf2 Ke5 3. Kf3 Kf6 4. Kf4 Kg6 5. Qe7 Kh6 6. Kf5 Kh5 7. Qh7# *
+
+[Event "Queen Mate from the Corner"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "kq_corner"]
+[Difficulty "1"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "8/8/8/8/3k4/8/8/K6Q w - - 0 1"]
+
+{ Drive the king to the edge with the queen a knight's move away, then bring your own king up for the mate. }
+1. Qh5 Ke4 2. Qg5 Kd3 3. Qf4 Kc2 4. Qd4 Kc1 5. Ka2 Kc2 6. Ka3 Kc1 7. Kb3 Kb1 8. Qb2# *
+
+[Event "Queen Mate, Kings Apart"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "kq_kings_apart"]
+[Difficulty "1"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "8/8/8/8/8/1k6/8/1K5Q w - - 0 1"]
+
+{ Drive the king to the edge with the queen a knight's move away, then bring your own king up for the mate. }
+1. Qd5+ Ka3 2. Qb7 Ka4 3. Kb2 Ka5 4. Kc3 Ka4 5. Qa6# *
+
+[Event "Queen Mate with Black"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "kq_black"]
+[Difficulty "1"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "q7/8/8/8/8/3K4/8/7k b - - 0 1"]
+
+{ Drive the king to the edge with the queen a knight's move away, then bring your own king up for the mate. }
+1... Qa4 2. Ke3 Kg2 3. Kd2 Qc4 4. Ke3 Kg3 5. Kd2 Kf2 6. Kd1 Ke3 7. Ke1 Qc1# *
+
+[Event "Queen Mate: Mind the Stalemate"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "kq_stalemate_a8"]
+[Difficulty "1"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "k7/8/2K5/8/8/8/8/1Q6 w - - 0 1"]
+
+{ The king has almost no squares left. Mate it – but a careless queen move leaves it with no move at all. }
+1. Qb7# ( 1. Qb6 $2 { Stalemate: Black is not in check and has no legal move. } ) *
+
+[Event "Queen Mate: Mind the Stalemate II"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "kq_stalemate_h8"]
+[Difficulty "1"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "7k/8/5K2/8/8/8/8/6Q1 w - - 0 1"]
+
+{ One move mates, a similar-looking one draws by stalemate. } 1. Qg7# ( 1. Qg6 $2
+{ Stalemate: the king has no square and is not in check. } ) *
+
+[Event "Rook Mate from the Centre"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "kr_centre"]
+[Difficulty "1"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "8/8/8/4k3/8/8/8/R3K3 w - - 0 1"]
+
+{ Use the rook to cut the king off, bring your king up, and push the enemy king back one rank at a time. }
+1. Kd2 Kd4 2. Ra8 Ke4 3. Ke1 Kd4 4. Ra5 Kc3 5. Kf2 Kb2 6. Ke3 Kc3 7. Kf2 Kd3 8. Ra3+ Kd4 9. Ra1 Kc3
+*
+
+[Event "Rook Mate from the Side"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "kr_side"]
+[Difficulty "1"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "8/8/3k4/8/8/8/8/4K2R w - - 0 1"]
+
+{ Use the rook to cut the king off, bring your king up, and push the enemy king back one rank at a time. }
+1. Kd2 Kc5 2. Rc1+ Kd5 3. Ke3 Ke6 4. Rc5 Kf7 5. Rc1 Ke6 6. Re1 Kd5 7. Kf4 Kc4 8. Ke4 Kc5 9. Rf1 Kb4
+10. Rf4 Kc4 11. Rf8 Kc3 12. Re8 Kc2 13. Re5 Kc3 14. Rc5+ Kb4 15. Kd4 Kb3 16. Kd3 Kb4 17. Re5 Kb3
+18. Rb5+ Ka4 19. Kc4 Ka3 20. Rb6 Ka2 *
+
+[Event "Rook Mate with Black"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "kr_black"]
+[Difficulty "1"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "8/8/8/8/2K5/8/5k2/r7 b - - 0 1"]
+
+{ Use the rook to cut the king off, bring your king up, and push the enemy king back one rank at a time. }
+1... Ra2 2. Kb3 Re2 3. Kc4 Ke3 4. Kb5 Ke4 5. Kc4 Rc2+ 6. Kb3 Rc7 7. Kb4 Rc2 8. Ka3 Kd3 9. Kb4 Kd4
+10. Kb5 Rc8 11. Kb6 Kd5 12. Kb5 Rb8+ 13. Ka5 Kc5 14. Ka4 Rb6 15. Ka3 Kc4 16. Ka2 Kc3 17. Ka1 Kc2
+18. Ka2 Ra6# *
+
+[Event "Rook Mate: the Finish"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "kr_finish"]
+[Difficulty "1"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "3k4/8/4K3/8/8/8/8/7R w - - 0 1"]
+
+{ The king is on the edge. A quiet rook move first, so that the mate comes next move. } 1. Rc1 Ke8
+2. Rc8# *
+
+[Event "Ladder Mate"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "ladder_centre"]
+[Difficulty "1"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "8/8/8/3k4/8/8/8/R3K2R w - - 0 1"]
+
+{ Two rooks mate alone: one rook checks, the other cuts off the next rank, and they take turns. }
+1. Rh5+ Kc4 2. Ra4+ Kb3 3. Kd2 Kxa4 4. Kc3 Ka3 5. Ra5# *
+
+[Event "Ladder Mate II"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "ladder_side"]
+[Difficulty "1"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "8/8/8/8/8/2k5/8/RR4K1 w - - 0 1"]
+
+{ Two rooks mate alone: one rook checks, the other cuts off the next rank, and they take turns. }
+1. Kf2 Kd4 2. Ra5 Kd3 3. Rc1 Kd2 4. Rcc5 Kd3 5. Ra4 Kd2 6. Rd4# *
+
+[Event "Ladder Mate with Black"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "ladder_black"]
+[Difficulty "1"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "4K3/8/8/8/8/8/1k6/r6r b - - 0 1"]
+
+{ The white king is already on the edge. Two rook moves are enough. } 1... Ra7 2. Kf8 Rh8# *
+
+[Event "Back Rank Mate"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "back_rank"]
+[Difficulty "1"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "6k1/5ppp/8/8/8/8/8/3R2K1 w - - 0 1"]
+
+{ The black king is walled in by its own pawns. } 1. Rd8# *
+
+[Event "King in Front of the Pawn"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "kp_king_in_front"]
+[Difficulty "1"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "4k3/8/4K3/4P3/8/8/8/8 w - - 0 1"]
+
+{ With your king on the sixth rank in front of the pawn the win is easy: gain the key squares, then push. }
+1. Kf6 Kd7 2. e6+ Kc6 3. e7 Kd7 4. Kf7 Kc6 5. e8=Q+ Kc5 6. Qa4 Kb6 7. Kf6 Kc7 8. Ke6 Kb6 9. Kd6 Kb7
+10. Qb4+ Ka6 11. Kc6 Ka7 12. Qb7# *
+
+[Event "Hold the Opposition"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "kp_hold_opposition"]
+[Difficulty "1"]
+[Goal "draw"]
+[SetUp "1"]
+[FEN "8/8/8/8/3k4/8/3PK3/8 b - - 0 1"]
+
+{ Stay in front of the pawn and take the opposition at the right moment. } 1... Ke4 2. Ke1 Kd3 3.
+Kd1 Ke4 4. Ke2 Kd4 5. Kf1 Ke5 6. d3 Kd5 7. Ke2 *
+
+[Event "The Spare Tempo"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "kp_spare_tempo"]
+[Difficulty "1"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "8/8/4k3/8/4K3/8/4P3/8 w - - 0 1"]
+
+{ The kings face each other. A pawn move that wastes a tempo gives White the opposition. } 1. e3
+Kf6 2. Kd5 Ke7 3. Ke5 Kf7 4. Kd6 Kf6 5. e4 Kf7 6. e5 Ke8 7. Ke6 Kd8 8. Kf7 Kc7 9. e6 Kb6 10. e7 Kc5
+*
+
+[Event "Queen and King Together"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "kq_mate_in_two"]
+[Difficulty "1"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "6k1/8/6K1/8/8/8/8/3Q4 w - - 0 1"]
+
+{ The kings stand in opposition. Find the quickest mate. } 1. Qd8# *
+
+[Event "Rook and King Together"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "kr_mate_in_two"]
+[Difficulty "1"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "4k3/8/5K2/8/8/8/8/7R w - - 0 1"]
+
+{ The rook is already on the first rank. Use the king to take squares away. } 1. Rd1 Kf8 2. Rd8# *
+
+[Event "Rook Mate with Black II"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "kr_black_finish"]
+[Difficulty "1"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "8/8/8/8/8/2k5/7r/K7 b - - 0 1"]
+
+{ The white king is in the corner. Take away its last squares. } 1... Kb3 2. Kb1 Rh1# *
+
+[Event "The Pawn Runs"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "kp_square_simple"]
+[Difficulty "1"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "8/8/8/8/P7/8/8/5k1K w - - 0 1"]
+
+{ Count: can the black king catch the pawn? If not, just run. } 1. a5 Ke2 2. a6 Kd3 3. a7 Kc4 4.
+Kg2 Kd5 *

@@ -1,0 +1,277 @@
+[Event "Rule of the Square"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "square_catch"]
+[Difficulty "2"]
+[DifficultyName "Elementary endings"]
+[Goal "draw"]
+[SetUp "1"]
+[FEN "8/8/8/p7/8/8/8/4K2k w - - 0 1"]
+
+{ Step into the square of the pawn and it can be caught. } 1. Kd2 a4 2. Kc1 a3 3. Kb1 a2+ 4. Kxa2 *
+
+[Event "Rule of the Square II"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "square_diagonal"]
+[Difficulty "2"]
+[Goal "draw"]
+[SetUp "1"]
+[FEN "8/8/8/8/1p6/8/8/5K1k w - - 0 1"]
+
+{ The pawn is close to queening. Only a diagonal step keeps the king in the square. } 1. Ke2 Kg2 2.
+Kd3 Kf3 3. Kc4 Ke3 4. Kxb4 *
+
+[Event "Opposition and Key Squares"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "opposition_ke5"]
+[Difficulty "2"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "4k3/8/8/4K3/4P3/8/8/8 w - - 0 1"]
+
+{ Reach a key square in front of the pawn before pushing it. } 1. Ke6 Kf8 2. e5 Kg8 3. Kd6 Kf7 4.
+e6+ Kg8 5. e7 Kf7 6. Kd7 Kf6 7. e8=Q Kf5 8. Qe3 Kf6 9. Qf4+ Kg7 10. Ke6 Kg6 *
+
+[Event "Key Squares"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "key_squares_c"]
+[Difficulty "2"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "8/8/2k5/8/2K5/8/2P5/8 w - - 0 1"]
+
+{ The white king already stands on a key square of the pawn. Keep the opposition and the pawn will follow. }
+1. c3 Kb6 2. Kd5 Kc7 3. Kc5 Kd7 4. Kb6 Ke8 5. Kc7 Kf8 6. c4 Ke7 7. c5 Kf8 8. c6 Ke7 9. Kb7 Kd6 10.
+c7 Kc5 *
+
+[Event "Defending with the Opposition"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "opposition_defend"]
+[Difficulty "2"]
+[Goal "draw"]
+[SetUp "1"]
+[FEN "8/8/8/4k3/8/8/4PK2/8 b - - 0 1"]
+
+{ Black must not let the white king get in front of its pawn. } 1... Kf4 2. e3+ Ke5 3. Kf3 Kf5 4.
+e4+ Kf6 5. Kf4 Ke6 6. e5 Kd7 7. Kf5 Ke7 8. e6 *
+
+[Event "Outside Passed Pawn"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "outside_passer"]
+[Difficulty "2"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "8/5k2/6p1/8/P5P1/7K/8/8 w - - 0 1"]
+
+{ The a-pawn lures the black king away; then the white king eats the g-pawn. } 1. a5 g5 2. a6 Ke6
+3. a7 Kd5 4. a8=Q+ Ke6 5. Qc6+ Ke5 6. Kg3 Kd4 7. Kg2 Ke5 8. Kf3 Kd4 9. Qb5 Kc3 10. Ke3 Kc2 *
+
+[Event "Protected Passed Pawn"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "protected_passer"]
+[Difficulty "2"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "8/8/2k5/7p/1PP5/2K5/8/8 w - - 0 1"]
+
+{ Two connected pawns protect each other; the black pawn is too far behind. } 1. Kd4 Kd7 2. Ke4 h4
+3. Kf3 h3 4. Kg3 h2 5. Kxh2 Kc6 6. b5+ Kd7 7. Kg2 Kc7 8. c5 Kd8 *
+
+[Event "Mate with Two Bishops"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "two_bishops"]
+[Difficulty "2"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "8/8/8/4k3/8/8/8/2B1KB2 w - - 0 1"]
+
+{ The bishops side by side form a wall the king cannot cross. Drive it to a corner. } 1. Ke2 Ke4 2.
+Ba3 Kf5 3. Kf3 Ke5 4. Bb2+ Ke6 5. Ke4 Ke7 6. Ba3+ Ke8 7. Bd6 Kd7 8. Kd5 Ke8 9. Ke6 Kd8 10. Ba6 Ke8
+11. Bc5 Kd8 12. Bb6+ Ke8 *
+
+[Event "Queen against Pawn"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "q_vs_knight_pawn"]
+[Difficulty "2"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "7K/6Q1/8/8/8/8/1pk5/8 w - - 0 1"]
+
+{ Check the king in front of its pawn, then bring your king one step closer. Repeat. } 1. Qg2+ Kc1
+2. Qf1+ Kc2 3. Qc4+ Kd2 4. Qb3 Kc1 5. Qc3+ Kb1 6. Kg7 Ka2 7. Qc4+ Ka1 8. Qa6+ Kb1 9. Kf6 Kc2 10.
+Qc4+ Kd2 11. Qb3 Kc1 12. Qc3+ Kb1 *
+
+[Event "Queen against Rook Pawn"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "q_vs_rook_pawn_draw"]
+[Difficulty "2"]
+[Goal "draw"]
+[SetUp "1"]
+[FEN "7K/8/8/8/8/8/pk6/4Q3 b - - 0 1"]
+
+{ With the white king far away, a rook pawn on the seventh draws: the king hides in the corner. }
+1... a1=Q 2. Qxa1+ Kxa1 *
+
+[Event "Queen against Bishop Pawn"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "q_vs_bishop_pawn_draw"]
+[Difficulty "2"]
+[Goal "draw"]
+[SetUp "1"]
+[FEN "7K/8/8/8/8/8/2pk3Q/8 b - - 0 1"]
+
+{ A bishop pawn on the seventh draws if the queen's king is far: if the queen takes, it is stalemate. }
+1... Kc1 2. Qd6 Kb1 3. Qb4+ Ka1 4. Qc3+ Kb1 5. Qb4+ Ka1 6. Qf4 Kb1 *
+
+[Event "Philidor Position"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "philidor"]
+[Difficulty "2"]
+[Goal "draw"]
+[Composer "François-André Danican Philidor"]
+[Source "L'analyse des échecs"]
+[Year "1777"]
+[SetUp "1"]
+[FEN "4k3/R7/7r/3KP3/8/8/8/8 b - - 0 1"]
+
+{ Keep the rook on the sixth rank until the pawn advances; then check from behind. } 1... Kd8 2.
+Rb7 Ke8 3. Ra7 Kf8 4. Rb7 Rh1 5. Ke6 Ra1 6. Rb8+ Kg7 7. Rd8 Ra6+ 8. Ke7 *
+
+[Event "Philidor Position: Checks from Behind"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "philidor_checks"]
+[Difficulty "2"]
+[Goal "draw"]
+[SetUp "1"]
+[FEN "4k3/R7/4P3/3K4/8/8/8/6r1 b - - 0 1"]
+
+{ The pawn has reached the sixth rank, so the white king has no shelter. Check it from behind. }
+1... Rd1+ 2. Ke5 Re1+ 3. Kd5 Rd1+ 4. Ke5 Re1+ 5. Kf6 Rf1+ 6. Kg5 Rg1+ 7. Kf4 Re1 8. Kf5 *
+
+[Event "The Wrong Bishop"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "wrong_bishop"]
+[Difficulty "2"]
+[Goal "draw"]
+[SetUp "1"]
+[FEN "8/2k5/8/8/P7/8/8/1KB5 b - - 0 1"]
+
+{ The bishop cannot cover the queening square. Run to the corner. } 1... Kb7 2. Ka2 Kb6 3. Ka3 Kb7
+4. Kb4 Ka6 5. Be3 Kb7 6. Kb5 Kc7 7. Ka6 *
+
+[Event "The Right Bishop"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "right_bishop"]
+[Difficulty "2"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "8/8/2k5/8/P7/8/8/1K3B2 w - - 0 1"]
+
+{ This bishop controls the queening square, so the a-pawn wins. } 1. Bb5+ Kb6 2. Kb2 Kc7 3. Bf1 Kb6
+4. Bh3 Kc5 5. Kb3 Kd6 6. a5 Kd5 7. Kb4 Kc6 8. Bg2+ Kd7 9. Kc5 Ke8 10. a6 Kd7 *
+
+[Event "Rook against Pawn: Hold On"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "rook_vs_pawn_draw"]
+[Difficulty "2"]
+[Goal "draw"]
+[SetUp "1"]
+[FEN "K7/8/8/8/8/4k3/3p4/7R b - - 0 1"]
+
+{ The white king is far away. Support the pawn with your king. } 1... Kd3 2. Kb7 Kc3 3. Ra1 Kc2 4.
+Kc6 d1=Q 5. Rxd1 Kxd1 *
+
+[Event "Rook against Pawn: Cut Off"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "rook_vs_pawn_win"]
+[Difficulty "2"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "8/8/8/1k6/8/1p6/4K3/7R w - - 0 1"]
+
+{ Cut the black king off along a file and the white king catches the pawn. } 1. Kd2 b2 2. Kc2 b1=Q+
+3. Kxb1 Kc6 4. Re1 Kb5 5. Rf1 Ka4 6. Kb2 Kb5 7. Rc1 Ka4 *
