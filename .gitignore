@@ -1,0 +1,20 @@
+﻿# Verkosta ladattavat kirjastot ja ohjelmat (asennetaan requirements-tiedostoista / ladataan erikseen)
+vendor/
+engines/stockfish/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+
+# Paikalliset asetukset, lokit ja pelatut pelit
+settings.json
+error.log
+Games/
+
+# Editorit ja kayttojarjestelma
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini

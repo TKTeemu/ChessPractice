@@ -1,0 +1,143 @@
+[Event "Anderssen's Opening"]
+[Key "anderssen"]
+[Group "Irregular openings"]
+[GroupOrder "1"]
+[ECO "A00"]
+[Side "white"]
+
+1. a3 {A waiting move: White plays a reversed opening with the useful extra move a3.}
+1... e5 (1... d5 2. d4 Nf6 3. Nf3 e6 4. Bf4 c5) (1... g6 2. c4 Bg7 3. Nc3 c5)
+2. c4 {A Sicilian with colours reversed; a3 stops ...Bb4.} 2... Nf6 3. Nc3 d5
+4. cxd5 Nxd5 5. e3 Nxc3 (5... Nb6 6. Nf3 Nc6) 6. bxc3 Bd6 *
+
+[Event "Ware Opening"]
+[Key "ware"]
+[Group "Irregular openings"]
+[ECO "A00"]
+[Side "white"]
+
+1. a4 {Rarely played: the pawn move does little for the centre.}
+1... e5 (1... d5 2. d4 Nf6 3. Nf3 c5 4. e3 Nc6) (1... e6 2. e4 d5 3. exd5 exd5)
+2. e4 Nf6 3. Nc3 Bc5 4. Nf3 d6 5. Bc4 Nc6 *
+
+[Event "Durkin Opening"]
+[Key "durkin"]
+[Group "Irregular openings"]
+[ECO "A00"]
+[Side "white"]
+
+1. Na3 {The knight heads for c4 or c2, away from the centre.}
+1... e5 (1... d5 2. c4 d4 (2... c6 3. cxd5 cxd5 4. d4) 3. Nc2 c5)
+2. Nc4 Nc6 3. e4 Nf6 4. Nf3 Bc5 5. d3 d6 *
+
+[Event "Dunst Opening"]
+[Key "dunst"]
+[Group "Irregular openings"]
+[ECO "A00"]
+[Side "white"]
+
+1. Nc3 {Develops and controls e4 and d5, keeping the choice of pawn moves open.}
+1... d5 (1... e5 2. Nf3 Nc6 3. d4 exd4 4. Nxd4 Nf6) (1... c5 2. e4 Nc6 3. Nf3)
+2. e4 d4 (2... dxe4 3. Nxe4 Nf6 4. Nxf6+ exf6) 3. Nce2 e5 4. Ng3 Be6 5. c3 c5 *
+
+[Event "Sokolsky Opening"]
+[Key "sokolsky"]
+[Group "Irregular openings"]
+[ECO "A00"]
+[Side "white"]
+
+1. b4 {Line: Polish Opening; The pawn gains space and prepares Bb2 against the long diagonal.}
+1... e5 (1... d5 2. Bb2 Nf6 3. e3 e6 4. a3 c5) (1... e6 2. Bb2 Nf6 3. b5 d5)
+2. Bb2 Bxb4 (2... d6 3. c4 Nf6 4. Nc3) 3. Bxe5 Nf6 4. c4 O-O 5. Nf3 Nc6 6. Bb2 d5 *
+
+[Event "Saragossa Opening"]
+[Key "saragossa"]
+[Group "Irregular openings"]
+[ECO "A00"]
+[Side "white"]
+
+1. c3 {A modest move that prepares d4 and can lead to a London-type set-up.}
+1... d5 (1... e5 2. d4 exd4 3. cxd4 d5) (1... Nf6 2. d4 g6 3. Bg5)
+2. d4 Nf6 3. Bf4 c5 (3... e6 4. e3 c5) 4. e3 Nc6 5. Nd2 e6 6. Ngf3 Bd6 *
+
+[Event "Mieses Opening"]
+[Key "mieses"]
+[Group "Irregular openings"]
+[ECO "A00"]
+[Side "white"]
+
+1. d3 {A quiet move; White often aims for a King's Indian Attack.}
+1... e5 (1... d5 2. Nf3 Nf6 3. g3 c5 4. Bg2 Nc6) (1... g6 2. e4 Bg7 3. Nf3)
+2. Nf3 Nc6 3. e4 Nf6 4. c3 d5 5. Nbd2 Bc5 *
+
+[Event "Van't Kruijs Opening"]
+[Key "vant_kruijs"]
+[Group "Irregular openings"]
+[ECO "A00"]
+[Side "white"]
+
+1. e3 {Opens lines for the queen and the f1 bishop, but claims less centre than 1.e4.}
+1... e5 (1... d5 2. d4 Nf6 3. Nf3 e6 4. Bd3 c5 5. c3) (1... Nf6 2. Nf3 g6 3. b3)
+2. c4 Nf6 3. Nc3 d5 4. cxd5 Nxd5 5. Nf3 Nc6 6. Bb5 Nxc3 7. bxc3 Bd6 *
+
+[Event "Barnes Opening"]
+[Key "barnes"]
+[Group "Irregular openings"]
+[ECO "A00"]
+[Side "white"]
+
+1. f3 {Weakens the king and takes f3 from the knight; Black should simply take the centre.}
+1... e5 (1... d5 2. e4 e5 (2... dxe4 3. fxe4 e5))
+2. e4 Nf6 3. Nc3 Bc5 4. Nge2 d5 5. exd5 Nxd5 *
+
+[Event "Grob's Attack"]
+[Key "grob"]
+[Group "Irregular openings"]
+[ECO "A00"]
+[Side "white"]
+
+1. g4 {An aggressive flank move: the bishop goes to g2 and the pawn may be offered.}
+1... d5 (1... e5 2. Bg2 d5 3. d3 Nc6 4. c4)
+2. Bg2 c6 (2... Bxg4 {Line: Grob Gambit Accepted} 3. c4 c6 4. cxd5 cxd5 5. Qb3)
+(2... e5 3. d3 Nc6 4. c4) 3. g5 e5 (3... Bf5 4. d3 e6) 4. d4 e4 5. c4 *
+
+[Event "Clemenz Opening"]
+[Key "clemenz"]
+[Group "Irregular openings"]
+[ECO "A00"]
+[Side "white"]
+
+1. h3 {A waiting move that controls g4.}
+1... e5 (1... d5 2. d4 Nf6 3. Nf3 c5) (1... Nf6 2. Nf3 g6 3. c4)
+2. c4 Nf6 3. Nc3 d5 4. cxd5 Nxd5 5. e3 Nc6 6. Nf3 *
+
+[Event "Desprez Opening"]
+[Key "desprez"]
+[Group "Irregular openings"]
+[ECO "A00"]
+[Side "white"]
+
+1. h4 {Gains space on the edge but does not help development.}
+1... d5 (1... e5 2. e4 Nf6 3. Nc3 Bc5) (1... c5 2. e4 Nc6 3. Nf3)
+2. d4 c5 3. e3 Nc6 4. c3 Nf6 5. Nf3 Bg4 *
+
+[Event "Amar Opening"]
+[Key "amar"]
+[Group "Irregular openings"]
+[ECO "A00"]
+[Side "white"]
+
+1. Nh3 {The knight goes to the edge; White may follow with g3 and f4.}
+1... d5 (1... e5 2. g3 d5 3. Bg2 Nf6 4. O-O) (1... Nf6 2. g3 d5 3. Bg2)
+2. g3 e5 3. f4 {Line: Paris Gambit; White offers the f-pawn for quick castling.}
+(3. Bg2 Nf6 4. d3 Be7 5. O-O O-O) 3... Bxh3 4. Bxh3 exf4 5. O-O fxg3 6. hxg3 *
+
+[Event "Benko's Opening"]
+[Key "benko"]
+[Group "Irregular openings"]
+[ECO "A00"]
+[Side "white"]
+
+1. g3 {Prepares Bg2; White keeps the choice between many set-ups.}
+1... d5 (1... e5 2. Bg2 d5 3. d3 Nf6 4. Nf3 Nc6 5. O-O) (1... Nf6 2. Bg2 g6 3. c4 Bg7 4. Nc3)
+2. Bg2 Nf6 3. Nf3 c6 (3... e6 4. O-O Be7 5. d3) 4. O-O Bg4 5. d3 Nbd7 *

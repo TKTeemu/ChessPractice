@@ -1,0 +1,64 @@
+[Event "Larsen's Opening"]
+[Key "larsen"]
+[Group "Flank openings"]
+[GroupOrder "2"]
+[ECO "A01"]
+[Side "white"]
+
+1. b3 {The bishop goes to b2 and aims at e5 and the long diagonal.}
+1... e5 {Line: Modern Variation} (1... d5 {Line: Classical Variation} 2. Bb2 Nf6 3. e3 e6 4. Nf3 c5 5. c4)
+(1... Nf6 {Line: Indian Variation} 2. Bb2 g6 3. e4 d6 4. d4)
+2. Bb2 Nc6 3. e3 d5 (3... Nf6 4. Bb5 d6) 4. Bb5 Bd6 5. f4 Qh4+ 6. g3 Qe7 7. Nf3 f6 *
+
+[Event "Bird's Opening"]
+[Key "bird"]
+[Group "Flank openings"]
+[ECO "A02-A03"]
+[Side "white"]
+
+1. f4 {Controls e5, a Dutch Defence with colours reversed.}
+1... d5 {Line: Dutch Variation} (1... e5 {Line: From's Gambit; Black gives a pawn for quick development.}
+2. fxe5 d6 3. exd6 Bxd6 4. Nf3 g5 (4... Nf6 5. d4)) (1... Nf6 2. Nf3 g6 3. g3 Bg7 4. Bg2 O-O 5. O-O d6)
+2. Nf3 Nf6 3. e3 g6 (3... c5 4. b3 Nc6 5. Bb2) 4. b3 Bg7 5. Bb2 O-O 6. Be2 c5 7. O-O Nc6 *
+
+[Event "Réti Opening"]
+[Key "reti"]
+[Group "Flank openings"]
+[ECO "A04-A09"]
+[Side "white"]
+
+1. Nf3 {A flexible move: White does not yet commit to a pawn structure.}
+1... d5 (1... Nf6 2. c4 g6 3. g3 Bg7 4. Bg2 O-O 5. O-O d6) (1... c5 2. g3 Nc6 3. Bg2 g6 4. O-O Bg7)
+2. g3 {Line: King's Indian Attack} (2. c4 {Line: Réti Gambit; The classical Réti: White attacks d5 from the side.}
+d4 (2... e6 3. g3 Nf6 4. Bg2 Be7 5. O-O O-O) (2... dxc4 {Line: Réti Gambit Accepted} 3. e3 Nf6 4. Bxc4 e6)
+3. e3 Nc6 4. exd4 Nxd4)
+2... Nf6 3. Bg2 c6 (3... e6 4. O-O Be7 5. d3 O-O) (3... g6 4. O-O Bg7 5. d3 O-O)
+4. O-O Bg4 5. d3 Nbd7 6. Nbd2 e5 7. e4 *
+
+[Event "English Opening"]
+[Key "english"]
+[Group "Flank openings"]
+[ECO "A10-A39"]
+[Side "white"]
+
+1. c4 {White controls d5 from the flank and often fianchettoes the king's bishop.}
+1... e5 {Line: Reversed Sicilian} (1... c5 {Line: Symmetrical Variation} 2. Nc3 Nc6 3. g3 g6 4. Bg2 Bg7 5. Nf3 Nf6 (5... e6))
+(1... Nf6 {Line: Anglo-Indian Defence} 2. Nc3 e6 (2... g6 3. e4 d6 4. d4) 3. Nf3 d5 4. d4)
+(1... e6 2. Nc3 d5 3. d4 Nf6)
+2. Nc3 Nf6 (2... Nc6 {Line: Closed Variation} 3. g3 g6 4. Bg2 Bg7 5. d3 d6)
+3. Nf3 Nc6 {Line: Four Knights Variation} 4. g3 d5 (4... Bb4 5. Bg2 O-O 6. O-O e4)
+5. cxd5 Nxd5 6. Bg2 Nb6 7. O-O Be7 *
+
+[Event "English Defence"]
+[Key "english_defence"]
+[Group "Flank openings"]
+[ECO "A40"]
+[Side "black"]
+[Plies "4"]
+
+1. c4 e6 (1... b6 2. d4 e6) 2. d4 b6 {Black fianchettoes the queen's bishop against White's broad centre.}
+3. e4 (3. Nc3 Bb7 4. e4 Bb4 5. Bd3 f5) (3. a3 Bb7 4. Nc3 f5 5. d5 Nf6)
+(3. Nf3 Bb7 4. g3 Bb4+ 5. Bd2 Be7 6. Bg2 Nf6 7. O-O O-O)
+3... Bb7 4. Bd3 (4. Nc3 Bb4 5. Bd3 f5 6. Qh5+ g6 7. Qe2 Nf6) (4. f3 f5 5. exf5 Nh6)
+4... f5 {Black attacks e4 at once; the g2 pawn is the target.} (4... Nc6 5. Ne2 Ne5)
+5. exf5 Bxg2 6. Qh5+ g6 7. fxg6 Bg7 8. gxh7+ Kf8 *

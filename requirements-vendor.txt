@@ -1,0 +1,2 @@
+# Installed into the program folder: python -m pip install --target vendor -r requirements-vendor.txt
+chess==1.11.2
