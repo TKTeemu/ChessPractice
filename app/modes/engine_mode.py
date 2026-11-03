@@ -114,7 +114,11 @@ class EngineGameMode(Mode):
             if isinstance(result, EngineError):
                 self.engine_failed(result)
             else:
-                self.ctx.play_move(result, from_end=True)
+                self.engine_result(result)
+
+    def engine_result(self, result):
+        """A current result of the worker: a chess.Move, or an Analysis if one was asked for."""
+        self.ctx.play_move(result, from_end=True)
 
     def engine_failed(self, error):
         self.game.engine_failed(error)

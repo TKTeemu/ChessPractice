@@ -13,7 +13,7 @@ The first part of this file is for **using** the program; the second part, from 
 | **Python 3.15** (64-bit) with Tcl/Tk | python.org | Exactly 3.15: Python 3.16 does not work yet (see [Python version](#python-version)). `python -m tkinter` opens a test window if Tk is installed. |
 | Pillow | `Asenna.bat` | image handling; the only package installed into Python |
 | python-chess 1.11.2 | `vendor/` folder | rules, PGN, FEN; comes with the program folder |
-| Stockfish (optional) | `engines/stockfish/stockfish.exe` | Play vs Computer and Learn Openings at real strength; see [Stockfish](#stockfish) |
+| Stockfish (optional) | `engines/stockfish/stockfish.exe` | Play vs Computer, Learn Openings and Endgame Practice at real strength; see [Stockfish](#stockfish) |
 
 ## Running
 
@@ -32,6 +32,7 @@ py -3.15 shakkilauta.pyw
 | **Board** | The free board: move both sides, variations, comments. The program always starts in this mode. |
 | **Play vs Computer** | Game > Play vs Computer… asks for the engine, level, your colour and the start position. 30 minutes each on the clock (setting `vs_minutes`), no take-backs. Resign ends the game; Open in Board Mode (after the game) lets you analyse it. Clock times are saved in the PGN as `[%clk]` comments. |
 | **Learn Openings** | Game > Learn Openings… asks for an opening (21 openings in three groups, with search), whether you play the opening or the reply, and the engine level. The computer answers from the opening book while the position is in it, then the engine takes over. *Suggest next move* shows the book moves as blue arrows during the opening phase (until move 12, setting `learn_suggest_moves`, 10–15). Take Back removes your last move and the reply. |
+| **Endgame Practice** | Game > Endgame Practice… asks only for a difficulty level (1 Basic mates … 5 Studies) and the clock (15 minutes, setting `end_minutes`). The program draws a position of that level that you have not played since the program was started, and you play the side to move against Stockfish at full strength: the computer first defends as stored in the position's solution, then with the engine. The light above the board turns green when you solve the position (play the solution out, or reach the goal) and red when you miss it (a known wrong try, a move the engine judges to give the goal away, or the wrong result); the game goes on either way. *Suggest next move* shows the solution's moves (or the engine's best move) as arrows. Take Back works also after mate or stalemate, but the clock is not wound back. Without Stockfish the computer plays the stored defence and then random moves, and moves off the solution are not judged. |
 
 The **New Game** button at the top of the right-hand panel starts a new game in any mode (in the game modes it opens the mode's dialog again). The Comment & FEN section at the bottom can be folded away; it is open in Board mode by default.
 
@@ -44,6 +45,8 @@ The program runs without Stockfish (the dialogs then offer only *Random moves*).
 1. From [stockfishchess.org/download](https://stockfishchess.org/download/) (GitHub release), take the Windows build `stockfish-windows-x86-64-universal.zip`. Since Stockfish 19 this one build picks the right code for the CPU itself.
 2. Unpack it into a new, empty folder and compare `Get-FileHash <zip>` with the checksum on the release page.
 3. Copy the exe to `engines\stockfish\stockfish.exe`, and `Copying.txt` (the GPL licence) next to it. Run `Unblock-File engines\stockfish\stockfish.exe`.
+
+Optional: Syzygy endgame tablebases (3–5 pieces, the `*.rtbw` and `*.rtbz` files) in `engines\syzygy\` make Stockfish's judgement of small endgames exact in Endgame Practice. The program works without them.
 
 Another location can be set in `settings.json` with `"engine_path"`. Stockfish never uses the network; the program talks to it only through pipes, and closes it when you leave the mode or exit.
 
@@ -112,7 +115,7 @@ The program creates no exe files: no venv, and packages are run as `python -m <m
 py -3.15 -m pytest
 ```
 
-The tests cover the model (rules, variations, navigation, take-back), files (PGN and FEN round trips), settings, modes (including games started with `start(config)` against a fake window), the chess clock, the rules of a game against the computer, the opening book and the rules of opening training, and the engines (the UCI client against a small fake engine in `tests/fake_uci.py`). The Stockfish tests are skipped when `engines/stockfish/` has no exe. The windows themselves have no automated tests.
+The tests cover the model (rules, variations, navigation, take-back), files (PGN and FEN round trips), settings, modes (including games started with `start(config)` against a fake window), the chess clock, the rules of a game against the computer, the opening book and the rules of opening training, the endgame positions (every file loads, the levels, drawing without repeats) and the rules of endgame practice (the success light, the engine as judge, take-back), and the engines (the UCI client against a small fake engine in `tests/fake_uci.py`). The Stockfish tests are skipped when `engines/stockfish/` has no exe. The windows themselves have no automated tests.
 
 ## Folders
 
@@ -126,6 +129,7 @@ The tests cover the model (rules, variations, navigation, take-back), files (PGN
 | `assets/openings/` | the opening book: one PGN game per opening; see [docs/EXTENDING.md](docs/EXTENDING.md) |
 | `tools/make_dist.py` | builds the zip for another computer |
 | `tools/make_sounds.py` | regenerates the sounds: `python tools\make_sounds.py` |
+| `tools/check_endgames.py` | checks the positions in `assets/endgames/` with Stockfish (goal, solution, wrong tries): `python tools\check_endgames.py` |
 | `tools/extract_pieces.py` | writes the SVG pieces from the data bundled with python-chess |
 | `engines/stockfish/` | `stockfish.exe` (downloaded separately, not part of the code) and its licence `Copying.txt` |
 | `tests/` | pytest tests |
@@ -137,5 +141,5 @@ The tests cover the model (rules, variations, navigation, take-back), files (PGN
 ## Documentation
 
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): structure, data flow and where new code belongs.
-- [docs/EXTENDING.md](docs/EXTENDING.md): how to add a mode, a chess engine, an opening or an engine level.
-- [docs/plans/](docs/plans/): the original plans (in Finnish), kept for the reasons behind the choices: [Shakkilauta_suunnitelma.md](docs/plans/Shakkilauta_suunnitelma.md) (technology choices), [Pelikone_suunnitelma.md](docs/plans/Pelikone_suunnitelma.md) (modes, Stockfish, where libraries are installed), [Avausteoria_suunnitelma.md](docs/plans/Avausteoria_suunnitelma.md) (Learn Openings).
+- [docs/EXTENDING.md](docs/EXTENDING.md): how to add a mode, a chess engine, an opening, an endgame position or an engine level.
+- [docs/plans/](docs/plans/): the original plans (in Finnish), kept for the reasons behind the choices: [Shakkilauta_suunnitelma.md](docs/plans/Shakkilauta_suunnitelma.md) (technology choices), [Pelikone_suunnitelma.md](docs/plans/Pelikone_suunnitelma.md) (modes, Stockfish, where libraries are installed), [Avausteoria_suunnitelma.md](docs/plans/Avausteoria_suunnitelma.md) (Learn Openings), [Loppupeli_suunnitelma.md](docs/plans/Loppupeli_suunnitelma.md) (Endgame Practice).

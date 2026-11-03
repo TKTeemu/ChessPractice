@@ -16,18 +16,19 @@ class EngineWorker:
 
     def __init__(self, engine):
         self.engine = engine
-        self.results = queue.Queue()   # (request_id, chess.Move or EngineError)
+        self.results = queue.Queue()   # (request_id, chess.Move, Analysis or EngineError)
         self._jobs = queue.Queue()
         self._stop = threading.Event()
         self._closed = False
         self._thread = threading.Thread(target=self._run, daemon=True)
         self._thread.start()
 
-    def request(self, board, level, request_id):
-        """Start a search on a copy of `board`."""
+    def request(self, board, level, request_id, analyse=False):
+        """Start a search on a copy of `board`. analyse=True: the result is an Analysis (score
+        and best move) if the engine can give one (Engine.can_analyse), else just the move."""
         self.cancel()
         self._stop = threading.Event()
-        self._jobs.put((board.copy(), level, request_id, self._stop))
+        self._jobs.put((board.copy(), level, request_id, self._stop, analyse))
 
     def cancel(self):
         """Ask the running search to stop. Its result still arrives; ignore it by request id."""
@@ -58,7 +59,7 @@ class EngineWorker:
                 job = self._jobs.get()
                 if job is None:
                     return
-                board, level, request_id, stop = job
+                board, level, request_id, stop, analyse = job
                 if stop.is_set():
                     continue
                 try:
@@ -66,7 +67,10 @@ class EngineWorker:
                         self.engine.start()
                         self.engine.new_game()
                         started = True
-                    result = self.engine.best_move(board, level, stop)
+                    if analyse and self.engine.can_analyse:
+                        result = self.engine.analyse(board, level, stop)
+                    else:
+                        result = self.engine.best_move(board, level, stop)
                 except EngineError as e:
                     result = e
                 except Exception as e:   # a bug in an engine must not kill the thread silently

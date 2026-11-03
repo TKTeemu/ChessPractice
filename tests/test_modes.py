@@ -193,3 +193,88 @@ def test_deactivate_cancels_pending_computer_moves(tmp_path):
     mode.deactivate()
     ctx.root.run_timers()
     assert not played_moves(calls) and not ctx.root.timers
+
+
+# --- Endgame Practice -------------------------------------------------------
+
+def endgame_mode(tmp_path, monkeypatch, key="saavedra"):
+    from app.engines import RandomEngine
+    from app.modes.endgames import EndgameMode
+    ctx, calls = fake_context(tmp_path)
+    mode = EndgameMode(ctx)
+    monkeypatch.setattr(EndgameMode, "_engine", lambda self: RandomEngine(seed=1))
+    mode._load()
+    monkeypatch.setattr(EndgameMode._deck, "draw", lambda difficulty: EndgameMode._collection.sample(key))
+    return mode, ctx, calls
+
+
+def user_plays(mode, ctx, san):
+    """What MainWindow.play_move does: the model plays the move, then the mode is told."""
+    ctx.model.play(ctx.model.board.parse_san(san))
+    mode.after_move()
+
+
+def test_endgame_mode_is_registered_and_harmless_before_a_game(tmp_path):
+    ctx, calls = fake_context(tmp_path)
+    cls = mode_class("end_practice")
+    assert cls in MODES and cls.label == "Endgame Practice…"
+    mode = cls(ctx)
+    assert mode.confirm_leave() and not mode.can_move(chess.WHITE) and mode.replaces_game
+    assert mode.light() is None and mode.subtitle() is None and mode.hint_arrows() == []
+    mode.take_back()
+    mode.deactivate()
+    assert not any(name == "take_back" for name, _ in calls)
+
+
+def test_endgame_start_sets_up_the_position(tmp_path, monkeypatch):
+    mode, ctx, calls = endgame_mode(tmp_path, monkeypatch)
+    mode.start({"difficulty": 5, "minutes": 10})
+    try:
+        assert ctx.settings["end_difficulty"] == 5 and ctx.settings["end_minutes"] == 10
+        headers = ctx.model.headers
+        assert headers["Event"] == "Endgame practice" and headers["EndgameKey"] == "saavedra"
+        assert ctx.model.board.fen() == mode.game.sample.fen and ("set_flipped", (False,)) in calls
+        assert mode.can_move(chess.WHITE) and not mode.can_move(chess.BLACK)
+        assert mode.light() == "pending" and "Saavedra" in mode.title() and "1895" in mode.subtitle()
+        assert mode.allows("take_back") and not mode.allows("navigate")
+        assert mode.score_text() is None
+    finally:
+        mode.deactivate()
+
+
+def test_endgame_computer_plays_the_stored_defence(tmp_path, monkeypatch):
+    mode, ctx, calls = endgame_mode(tmp_path, monkeypatch)
+    mode.start({"difficulty": 5, "minutes": 10})
+    try:
+        user_plays(mode, ctx, "c7")
+        assert not played_moves(calls)   # the stored reply waits TREE_DELAY_MS
+        ctx.root.run_timers()
+        assert played_moves(calls) == [chess.Move.from_uci("d5d6")]
+        assert mode.game.judgements == {1: "ok"}
+    finally:
+        mode.deactivate()
+
+
+def test_endgame_suggestions_and_take_back(tmp_path, monkeypatch):
+    mode, ctx, calls = endgame_mode(tmp_path, monkeypatch)
+    ctx.settings["end_suggest"] = True
+    mode.start({"difficulty": 5, "minutes": 10})
+    try:
+        assert mode.hint_arrows() == [(chess.C6, chess.C7, "main")] and mode.game.hints_used == 1
+        user_plays(mode, ctx, "Kb7")   # off the solution; no engine to judge it
+        assert mode.game.light == "pending" and "No engine" in mode.status_text()
+        mode.take_back()
+        assert ("take_back", (chess.WHITE,)) in calls   # MainWindow removes the moves
+    finally:
+        mode.deactivate()
+
+
+def test_endgame_leave_resigns_and_the_light_turns_red(tmp_path, monkeypatch):
+    mode, ctx, calls = endgame_mode(tmp_path, monkeypatch)
+    mode.start({"difficulty": 5, "minutes": 10})
+    try:
+        mode.leave()
+        assert mode.game.over and mode.light() == "fail" and ctx.model.headers["Result"] == "0-1"
+        assert not mode.allows("take_back")
+    finally:
+        mode.deactivate()

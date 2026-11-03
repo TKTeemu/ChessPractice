@@ -1,4 +1,5 @@
-"""A tiny UCI engine for testing the UCI client: plays the first legal move.
+"""A tiny UCI engine for testing the UCI client: plays a mate in one if there is one, else the
+first legal move, and reports a score for it.
 
 Run as: python fake_uci.py   (reads UCI commands from stdin)
 """
@@ -9,6 +10,14 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "vendor"))
 
 import chess  # noqa: E402
+
+
+def _mates(board, move):
+    board.push(move)
+    try:
+        return board.is_checkmate()
+    finally:
+        board.pop()
 
 
 def main():
@@ -38,6 +47,13 @@ def main():
                     board.push_uci(uci)
         elif cmd == "go":
             moves = sorted(board.legal_moves, key=lambda m: m.uci())
+            mates = [m for m in moves if _mates(board, m)]
+            if mates:   # a mate in one is reported as such, after a bound line to be ignored
+                out.write(f"info depth 1 score cp 50 lowerbound pv {mates[0].uci()}\n")
+                out.write(f"info depth 2 score mate 1 pv {mates[0].uci()}\n")
+                moves = mates
+            else:
+                out.write("info depth 1 score cp 0\n")
             out.write(f"bestmove {moves[0].uci() if moves else '(none)'}\n")
         elif cmd == "quit":
             return

@@ -23,6 +23,12 @@ CLOCK_ACTIVE_BG = "#E8E6E3"   # the side whose clock is running
 CLOCK_ACTIVE_FG = "#1E1D1B"
 CLOCK_LOW_FG = "#E04B3A"      # under a minute
 
+# Success light above the board (Endgame Practice): state -> colour
+LIGHT_PENDING = "#8B8987"
+LIGHT_SUCCESS = "#5FB540"
+LIGHT_FAIL = "#E04B3A"
+LIGHT_COLORS = {"pending": LIGHT_PENDING, "success": LIGHT_SUCCESS, "fail": LIGHT_FAIL}
+
 # Move list
 MOVE_NUMBER_FG = "#8B8987"
 MOVE_COMMENT_FG = "#7FA650"

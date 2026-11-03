@@ -22,6 +22,7 @@ BASE_OPTIONS = {"Threads": 1, "Hash": 64}
 class StockfishEngine(Engine):
     key = "stockfish"
     name = S.ENGINE_STOCKFISH
+    can_analyse = True
 
     def __init__(self, settings, app_dir=None):
         super().__init__(settings, app_dir)
@@ -48,6 +49,14 @@ class StockfishEngine(Engine):
         found = sorted(folder.glob("stockfish*.exe")) if folder.is_dir() else []
         return found[0] if found else None
 
+    @staticmethod
+    def syzygy_dir(app_dir):
+        """engines/syzygy/ if it holds endgame tablebase files (optional; makes analysis exact)."""
+        if app_dir is None:
+            return None
+        folder = Path(app_dir) / "engines" / "syzygy"
+        return folder if folder.is_dir() and any(folder.glob("*.rtbw")) else None
+
     @classmethod
     def available(cls, settings, app_dir):
         return cls.find_exe(settings, app_dir) is not None
@@ -69,6 +78,9 @@ class StockfishEngine(Engine):
         self.client.start()
         for name, value in BASE_OPTIONS.items():
             self._set(name, value)
+        syzygy = self.syzygy_dir(self.app_dir)
+        if syzygy is not None:
+            self._set("SyzygyPath", str(syzygy))
         self.client.isready()
 
     def new_game(self):
@@ -85,11 +97,14 @@ class StockfishEngine(Engine):
         self._options[name] = value
 
     def best_move(self, board, level, stop):
+        return self.analyse(board, level, stop).move
+
+    def analyse(self, board, level, stop):
         if self.client is None:
             raise EngineError("engine not started")
         for name, value in level.options.items():
             self._set(name, value)
-        return self.client.go(board, level.think_time, stop)
+        return self.client.search(board, level.think_time, stop)
 
     def close(self):
         if self.client is not None:

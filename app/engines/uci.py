@@ -12,7 +12,7 @@ import time
 
 import chess
 
-from .base import EngineError
+from .base import Analysis, EngineError
 
 NO_WINDOW = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
 START_TIMEOUT = 10.0     # seconds to wait for uciok / readyok
@@ -42,6 +42,24 @@ def parse_option(line):
             except ValueError:
                 del info[key]
     return " ".join(name), info
+
+
+def parse_score(line):
+    """'info depth 20 score cp 35 … pv …' -> (35, None); '… score mate -3 …' -> (None, -3).
+    None if the line has no exact score (none at all, or only a lowerbound/upperbound)."""
+    words = line.split()
+    try:
+        i = words.index("score")
+        kind, value = words[i + 1], int(words[i + 2])
+    except (ValueError, IndexError):
+        return None
+    if words[i + 3:i + 4] in (["lowerbound"], ["upperbound"]):
+        return None
+    if kind == "cp":
+        return value, None
+    if kind == "mate":
+        return None, value
+    return None
 
 
 class UciClient:
@@ -125,12 +143,18 @@ class UciClient:
 
     def go(self, board, movetime, stop):
         """Search `board` for `movetime` seconds; returns the best chess.Move."""
+        return self.search(board, movetime, stop).move
+
+    def search(self, board, movetime, stop):
+        """Search `board` for `movetime` seconds; returns an Analysis (best move, the last
+        exact score reported, and the ponder move if any)."""
         root = board.root()
         moves = " ".join(m.uci() for m in board.move_stack)
         self.send(f"position fen {root.fen()}" + (f" moves {moves}" if moves else ""))
         self.send(f"go movetime {max(1, round(movetime * 1000))}")
         deadline = time.monotonic() + movetime + EXTRA_TIMEOUT
         stopped = False
+        score = (None, None)
         while True:
             if stop.is_set() and not stopped:
                 self.send("stop")
@@ -144,7 +168,9 @@ class UciClient:
                 continue
             if line is None:
                 raise EngineError("engine exited")
-            if line.startswith("bestmove"):
+            if line.startswith("info "):
+                score = parse_score(line) or score
+            elif line.startswith("bestmove"):
                 parts = line.split()
                 try:
                     move = chess.Move.from_uci(parts[1])
@@ -152,7 +178,13 @@ class UciClient:
                     raise EngineError(f"engine has no move: {line}") from None
                 if move not in board.legal_moves:
                     raise EngineError(f"illegal move from engine: {parts[1]}")
-                return move
+                ponder = None
+                if len(parts) >= 4 and parts[2] == "ponder":
+                    try:
+                        ponder = chess.Move.from_uci(parts[3])
+                    except ValueError:
+                        pass
+                return Analysis(move, *score, ponder=ponder)
 
     def close(self):
         with self._lock:

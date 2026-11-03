@@ -1,5 +1,5 @@
 """Small modal dialogs of the main window: choosing a game, starting a game against
-the computer and choosing an opening to learn."""
+the computer, choosing an opening to learn and choosing an endgame level."""
 
 import tkinter as tk
 from tkinter import messagebox, ttk
@@ -290,5 +290,56 @@ def choose_opening(root, book, engines, notes, settings):
     top.bind("<Return>", ok)
     top.bind("<Escape>", lambda e: top.destroy())
     search.focus_set()
+    _show_modal(root, top)
+    return result or None
+
+
+def choose_endgame(root, levels, played, notes, settings):
+    """Endgame Practice: the difficulty level and the clock.
+
+    `levels` are (difficulty, name, number of positions), `played` maps a difficulty to how
+    many of its positions have been played this run, `notes` explain a missing engine.
+    Returns {"difficulty", "minutes"} or None.
+    """
+    top = _dialog(root, S.END_TITLE)
+    result = {}
+    saved = settings["end_difficulty"]
+    level_var = tk.IntVar(value=saved if any(d == saved for d, _, _ in levels) else levels[0][0])
+
+    tk.Label(top, text=S.END_DIFFICULTY, anchor="w").grid(row=0, column=0, columnspan=3, sticky="w",
+                                                          padx=12, pady=(12, 4))
+    for row, (difficulty, name, count) in enumerate(levels, 1):
+        tk.Radiobutton(top, text=f"{difficulty}  {name}", value=difficulty, variable=level_var,
+                       anchor="w").grid(row=row, column=0, columnspan=2, sticky="w", padx=(24, 12))
+        tk.Label(top, text=S.END_LEVEL_COUNT.format(count=count, played=played.get(difficulty, 0)),
+                 fg=DIALOG_MUTED_FG, anchor="e").grid(row=row, column=2, sticky="e", padx=(0, 12))
+
+    row = len(levels) + 1
+    time_row = tk.Frame(top)
+    time_row.grid(row=row, column=0, columnspan=3, sticky="w", padx=12, pady=(10, 0))
+    tk.Label(time_row, text=S.END_TIME).pack(side="left")
+    minutes_var = tk.IntVar(value=settings["end_minutes"])
+    tk.Spinbox(time_row, from_=1, to=180, width=4, textvariable=minutes_var).pack(side="left", padx=6)
+    tk.Label(time_row, text=S.END_MINUTES).pack(side="left")
+
+    for note in notes:
+        row += 1
+        tk.Label(top, text=note, anchor="w", justify="left", fg=DIALOG_WARNING_FG).grid(
+            row=row, column=0, columnspan=3, sticky="w", padx=12, pady=(8, 0))
+
+    def ok(event=None):
+        try:
+            minutes = max(1, min(180, minutes_var.get()))
+        except tk.TclError:   # not a number
+            minutes = settings["end_minutes"]
+        result.update(difficulty=level_var.get(), minutes=minutes)
+        top.destroy()
+
+    buttons = tk.Frame(top)
+    buttons.grid(row=row + 1, column=0, columnspan=3, sticky="e", padx=12, pady=12)
+    tk.Button(buttons, text=S.END_START, width=10, command=ok).pack(side="left", padx=6)
+    tk.Button(buttons, text=S.BTN_CANCEL, width=10, command=top.destroy).pack(side="left")
+    top.bind("<Return>", ok)
+    top.bind("<Escape>", lambda e: top.destroy())
     _show_modal(root, top)
     return result or None

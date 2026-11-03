@@ -10,7 +10,7 @@ The program has three layers. Dependencies only point downwards.
 | --- | --- | --- |
 | Controller | `main_window.py`, `modes/` | yes |
 | Views | `board_view.py`, `movelist_view.py`, `dialogs.py`, `pieces.py`, `widgets.py` | yes |
-| Logic and services | `model.py`, `engine_game.py`, `computer_game.py`, `learning_game.py`, `openings.py`, `clock.py`, `commands.py`, `engines/`, `fileio.py`, `settings.py`, `sounds.py`, `strings.py`, `theme.py` | no |
+| Logic and services | `model.py`, `engine_game.py`, `computer_game.py`, `learning_game.py`, `openings.py`, `endgame_game.py`, `endgames.py`, `clock.py`, `commands.py`, `engines/`, `fileio.py`, `settings.py`, `sounds.py`, `strings.py`, `theme.py` | no |
 
 The logic layer does not import tkinter and knows nothing about windows, so it can be tested with pytest without a display. `pieces.py` belongs to the views because it creates Tk images (`tk.PhotoImage`), which need a Tk root window.
 
@@ -26,16 +26,18 @@ The logic layer does not import tkinter and knows nothing about windows, so it c
 | `theme.py` | Colours, fonts and board themes of all views. |
 | `commands.py` | The command names a mode can allow or block (`NAVIGATE`, `TAKE_BACK`, …) and `ALL_COMMANDS`. |
 | `pieces.py` | Piece images: Cburnett SVGs drawn by Tk itself (Tk 9 reads SVG) or Unicode glyphs via Pillow, cached per square size. |
-| `widgets.py` | `button`, `label` and `checkbox` in the style of the right-hand panel, for `MainWindow` and the modes' panels. |
+| `widgets.py` | `button`, `label` and `checkbox` in the style of the right-hand panel, for `MainWindow` and the modes' panels, and `light` (the success light above the board). |
 | `board_view.py` | `BoardCanvas` (geometry and square drawing) and `BoardView` (the game board: drag, click, promotion picker, arrows and square marks, and a separate layer of suggestion arrows set by the mode with `set_hints`). |
 | `movelist_view.py` | The move list with variations in a Text widget, one tag per move; right-click menu. |
-| `dialogs.py` | Choosing a game from a multi-game PGN, the Play vs Computer dialog and the Learn Openings dialog (`choose_opening`); both game dialogs share `_engine_level_pickers`, which finds the chosen engine and level by position, not by label. |
-| `main_window.py` | `MainWindow`: creates the model and views; menus, keyboard shortcuts, file and clipboard commands, the New Game button and the collapsible Comment & FEN section; holds the active mode and asks it what is allowed. |
-| `modes/` | `Mode` interface and `MODES` registry; `BoardMode` (the free board), `EngineGameMode` (shared base of modes where the computer plays: engine choice, worker, polling, delayed moves, the questions answered from the game, Open in Board Mode), `VsComputerMode` (play the computer: dialog, clocks, Resign) and `LearnOpeningsMode` (opening training: book replies, suggestion arrows, Take Back). |
+| `dialogs.py` | Choosing a game from a multi-game PGN, the Play vs Computer dialog, the Learn Openings dialog (`choose_opening`) and the Endgame Practice dialog (`choose_endgame`); both game dialogs share `_engine_level_pickers`, which finds the chosen engine and level by position, not by label. |
+| `main_window.py` | `MainWindow`: creates the model and views; menus, keyboard shortcuts, file and clipboard commands, the New Game button, the title area above the board (title, subtitle, score or success light) and the collapsible Comment & FEN section; holds the active mode and asks it what is allowed. |
+| `modes/` | `Mode` interface and `MODES` registry; `BoardMode` (the free board), `EngineGameMode` (shared base of modes where the computer plays: engine choice, worker, polling, delayed moves, the questions answered from the game, Open in Board Mode), `TimedGameMode` (base of the modes with a chess clock: clock tick, clocks, Resign), `VsComputerMode` (play the computer: dialog), `LearnOpeningsMode` (opening training: book replies, suggestion arrows, Take Back) and `EndgameMode` (endgame practice: level dialog, stored defence, engine analyses that judge the user's moves, success light). |
 | `engine_game.py` | `EngineGame`: the shared rules of a game against the computer (turns, allowed commands, status line, common PGN headers, result, stale computer replies via request ids). |
 | `computer_game.py` | `ComputerGame(EngineGame)`: clock, material score, time-control headers, result by time or resignation. |
 | `openings.py` | `OpeningBook` (loads `assets/openings/*.pgn`), `Opening`, `OpeningLine` (book moves looked up by position, so transpositions are found) and `BookMove`. |
 | `learning_game.py` | `LearningGame(EngineGame)`: rules of an opening-training game (book or engine reply, deviations, theory count, the opening phase that limits suggestions, take-back). |
+| `endgames.py` | `EndgameCollection` (loads `assets/endgames/*.pgn`), `EndgameSample` (one position), `SolutionTree` (the solution looked up by position, with wrong tries and line ends) and `EndgameDeck` (drawing positions without repeats while the program runs). |
+| `endgame_game.py` | `EndgameGame(ComputerGame)`: rules of an endgame-practice game (stored defence, judging each user move by the solution or by the engine's score, the success light, take-back), and `is_mistake`, the judging rule also used by `tools/check_endgames.py`. |
 | `clock.py` | `ChessClock` and `format_time`, driven by a time source that tests can replace. |
 | `engines/` | `Engine` interface and `ENGINES` registry; `StockfishEngine`, `RandomEngine`, the UCI client (`uci.py`) and `EngineWorker` (searches in a background thread). |
 
@@ -72,13 +74,17 @@ mouse → BoardView._press/_release
 | Selection, drag, arrows, marks | `BoardView`, cleared when the position changes |
 | Settings | `Settings`, saved a few seconds after a change and when the program exits |
 
+## Above the board
+
+The title row shows `Mode.title()` on the left and, on the right, `Mode.score_text()` (e.g. the material in Play vs Computer) and the success light when `Mode.light()` is not None (Endgame Practice). A second, smaller row below it shows `Mode.subtitle()` (where an endgame position comes from) and is hidden when it is None. Below them are the player names with the clocks, then the board.
+
 ## Right-hand panel
 
 From top to bottom: the shared toolbar (New Game, the same in every mode; it calls `MainWindow.new_game`, which lets the mode decide what a new game means), the status line, the mode's own panel (`Mode.build_panel`, hidden if None), the move list (gets the spare height), the navigation buttons, and the collapsible Comment & FEN section. Whether that section is open is remembered per mode in `settings["details_open"]` (e.g. `{"board": true, "vs_computer": false}`); a mode not listed there uses `Mode.show_details`.
 
 ## Modes and engines
 
-The program has modes (Board, the current free board; Play vs Computer, with a chess clock and no take-backs; Learn Openings, where the computer plays from an opening book) and chess engines (Stockfish over UCI). The opening-training plan is in [Avausteoria_suunnitelma.md](plans/Avausteoria_suunnitelma.md) (in Finnish). The plan, with the reasons for the choices, is in [Pelikone_suunnitelma.md](plans/Pelikone_suunnitelma.md) (in Finnish); both are historical. The interfaces and step-by-step instructions for adding a mode, an engine or a level are in [EXTENDING.md](EXTENDING.md).
+The program has modes (Board, the current free board; Play vs Computer, with a chess clock and no take-backs; Learn Openings, where the computer plays from an opening book; Endgame Practice, where the user plays a stored endgame position against Stockfish at full strength) and chess engines (Stockfish over UCI). The opening-training plan is in [Avausteoria_suunnitelma.md](plans/Avausteoria_suunnitelma.md) and the endgame-practice plan in [Loppupeli_suunnitelma.md](plans/Loppupeli_suunnitelma.md) (in Finnish). The plan, with the reasons for the choices, is in [Pelikone_suunnitelma.md](plans/Pelikone_suunnitelma.md) (in Finnish); both are historical. The interfaces and step-by-step instructions for adding a mode, an engine or a level are in [EXTENDING.md](EXTENDING.md).
 
 In short: `app/modes/` (controller layer) decides what the user may do and what happens after a move, with the rules of a game in the logic layer (`engine_game.py` and its subclasses); `app/engines/` (logic layer, no tkinter) chooses moves in a background thread. `MainWindow` asks the active mode (`can_move`, `allows`, `after_move`, `status_text`) instead of checking which mode is active, and engine moves go through `MainWindow.play_move` like user moves.
 
@@ -91,9 +97,11 @@ VsComputerMode.after_move → EngineGameMode.request_engine_move → EngineWorke
       → MainWindow.play_move(move, from_end=True) → same path as a user move
 ```
 
+In Endgame Practice, `EndgameMode.computer_turn` first asks the solution tree (`EndgameGame.tree_reply`, played after 400 ms). Outside the tree it asks the worker for an analysis (`request(…, analyse=True)`): the `Analysis` gives the score that judges the user's move (`EndgameGame.analysed`) and the computer's reply in one search. If no score is known for the position before the user's move (the first move off the solution), a baseline analysis of that position is requested first. The analysis's ponder move is kept as the suggestion for the user's next move.
+
 In Learn Openings, `LearnOpeningsMode.computer_turn` first asks the book (`LearningGame.computer_reply`); a book move is played with `play_computer_move(move, 400 ms)` through the same request-id check, and only outside the book is the engine asked.
 
-Stockfish runs as a child process (`engines/stockfish/stockfish.exe`, started with `CREATE_NO_WINDOW`) only while a game against it is in progress, and only from the first engine request; Board mode, and the book part of Learn Openings, start no processes.
+Stockfish runs as a child process (`engines/stockfish/stockfish.exe`, started with `CREATE_NO_WINDOW`) only while a game against it is in progress, and only from the first engine request; Board mode, the book part of Learn Openings and the stored defence of Endgame Practice start no processes.
 
 ## Differences from the plan
 

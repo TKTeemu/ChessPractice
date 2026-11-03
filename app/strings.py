@@ -32,6 +32,7 @@ BOARD_THEMES = {"green": "Green", "brown": "Brown", "blue": "Blue"}
 MODE_BOARD = "Board"
 MODE_VS_COMPUTER = "Play vs Computer…"
 MODE_LEARN_OPENINGS = "Learn Openings…"
+MODE_ENDGAMES = "Endgame Practice…"
 MODE_RESIGN = "Resign"
 MODE_OPEN_IN_BOARD = "Open in Board Mode"
 MODE_TAKE_BACK = "Take Back"
@@ -183,3 +184,27 @@ LEARN_PHASE_OVER = "(opening phase over)"
 LEARN_OUT_OF_THEORY = "Out of theory"
 LEARN_OUT_OF_THEORY_BOOK = "Out of theory. Book moves: {moves}"
 LEARN_END_OF_THEORY = "End of theory – the engine takes over."
+
+# Endgame Practice dialog
+END_TITLE = "Endgame Practice"
+END_DIFFICULTY = "Difficulty:"
+END_LEVEL_COUNT = "({count}, {played} played)"
+END_TIME = "Time:"
+END_MINUTES = "min"
+END_START = "Start"
+END_NO_POSITIONS = "No endgame positions were found in\n{folder}"
+END_FILE_ERRORS = "Some positions were skipped:\n{errors}"
+END_NO_ENGINE = ("Stockfish was not found: the computer plays the stored defence and then random\n"
+                 "moves, and moves off the solution are not judged.")
+
+# Endgame Practice game
+END_EVENT = "Endgame practice"
+END_LEVEL = "Level {level}"
+END_CLASSIC = "Classic endgame position"
+END_GOALS = {"win": "Goal: {color} to play and win", "draw": "Goal: {color} to play and draw"}
+END_PLAYED = "Level {level} · {played} of {total} played"
+END_COUNTERS = "Hints used: {hints} · Take backs: {take_backs}"
+END_WRONG_TRY = "Missed – a known wrong try"
+END_MISTAKE = "Missed – the engine says the goal is gone"
+END_NO_JUDGE = "No engine to judge moves off the solution"
+LIGHT_TEXTS = {"pending": "In progress", "success": "Solved", "fail": "Missed – keep playing"}

@@ -20,7 +20,7 @@ from .sounds import ILLEGAL, Sounds
 from .theme import (BACKGROUND, CLOCK_ACTIVE_BG, CLOCK_ACTIVE_FG, CLOCK_BG, CLOCK_FG, CLOCK_LOW_FG,
                     ENTRY_BG, FONT, FONT_BOLD, FONT_CLOCK, FONT_LARGE_BOLD, FONT_MONO_SMALL, FONT_SMALL,
                     FONT_SMALL_BOLD, FONT_STATUS, MUTED_FG, PANEL_BG, PANEL_FG)
-from .widgets import button
+from .widgets import button, light
 
 AUTOSAVE_MS = 2000   # how often changed settings are written to settings.json
 
@@ -87,6 +87,10 @@ class MainWindow:
         self.mode_title.pack(side="left", fill="x", expand=True)
         self.score = tk.Label(title_row, bg=BACKGROUND, fg=PANEL_FG, font=FONT_BOLD, anchor="e")
         self.score.pack(side="right")
+        self.light = light(title_row, self._px(14))   # packed when the mode has a success light
+        # Where the position comes from (Mode.subtitle); packed only when the mode has one
+        self.subtitle = tk.Label(left, bg=BACKGROUND, fg=MUTED_FG, font=FONT_SMALL, anchor="w")
+        self._subtitle_after = title_row
         rows = {}
         for side in ("top", "bottom"):
             row = tk.Frame(left, bg=BACKGROUND)
@@ -319,11 +323,31 @@ class MainWindow:
         self.status.configure(text=self.mode.status_text() or self.model.status())
         self.mode_title.configure(text=self.mode.title())
         self.score.configure(text=self.mode.score_text() or "")
+        self._update_subtitle()
+        self._update_light()
         self.fen_var.set(self.model.fen())
         self.fen_entry.configure(state="normal" if self.mode.allows(PASTE) else "readonly")
         self._load_comment()
         self._update_names()
         self._update_title()
+
+    def _update_subtitle(self):
+        text = self.mode.subtitle()
+        if text is None:
+            self.subtitle.pack_forget()
+            return
+        self.subtitle.configure(text=text)
+        if not self.subtitle.winfo_manager():
+            self.subtitle.pack(side="top", fill="x", after=self._subtitle_after)
+
+    def _update_light(self):
+        state = self.mode.light()
+        if state is None:
+            self.light.pack_forget()
+            return
+        self.light.set_state(state)
+        if not self.light.winfo_manager():
+            self.light.pack(side="right", padx=(12, 0))
 
     def _update_names(self):
         h = self.model.headers

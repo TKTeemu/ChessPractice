@@ -5,8 +5,9 @@ A mode's panel uses these instead of repeating colours and fonts (see Mode.build
 
 import tkinter as tk
 
+from . import strings as S
 from .theme import (BUTTON_ACTIVE, BUTTON_BG, ENTRY_BG, FONT, FONT_BOLD, FONT_LARGE_BOLD, FONT_SMALL,
-                    MUTED_FG, PANEL_FG)
+                    LIGHT_COLORS, MUTED_FG, PANEL_FG)
 
 
 def button(parent, text, command, **kw):
@@ -33,3 +34,28 @@ def checkbox(parent, text, variable, command, **kw):
                           selectcolor=ENTRY_BG, activebackground=bg, activeforeground=PANEL_FG,
                           disabledforeground=MUTED_FG, font=FONT, bd=0, highlightthickness=0,
                           takefocus=0, **kw)
+
+
+class Light(tk.Frame):
+    """A round lamp and a short text: grey (pending), green (success) or red (fail)."""
+
+    def __init__(self, parent, size=14, **kw):
+        super().__init__(parent, bg=parent["bg"], **kw)
+        self.canvas = tk.Canvas(self, width=size, height=size, bg=parent["bg"], highlightthickness=0, bd=0)
+        self.canvas.pack(side="left", padx=(0, 6))
+        self.lamp = self.canvas.create_oval(1, 1, size - 1, size - 1, outline="")
+        self.text = tk.Label(self, bg=parent["bg"], fg=PANEL_FG, font=FONT_BOLD)
+        self.text.pack(side="left")
+        self.state = None
+
+    def set_state(self, state):
+        """state: "pending", "success" or "fail"."""
+        if state != self.state:
+            self.state = state
+            self.canvas.itemconfigure(self.lamp, fill=LIGHT_COLORS[state])
+            self.text.configure(text=S.LIGHT_TEXTS[state])
+
+
+def light(parent, size=14):
+    """A success light; size: the lamp's diameter in pixels."""
+    return Light(parent, size)

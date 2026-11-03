@@ -7,8 +7,8 @@ import chess
 import pytest
 
 from app.engines import ENGINES, EngineError, RandomEngine, StockfishEngine, engine_class
-from app.engines.base import Level
-from app.engines.uci import UciClient, parse_option
+from app.engines.base import Analysis, Level
+from app.engines.uci import UciClient, parse_option, parse_score
 from app.engines.worker import EngineWorker
 from app.settings import Settings
 
@@ -65,6 +65,17 @@ def test_parse_option():
     assert name == "Clear Hash" and info["type"] == "button"
 
 
+def test_parse_score():
+    assert parse_score("info depth 20 seldepth 30 score cp 35 nodes 1000 pv e2e4") == (35, None)
+    assert parse_score("info depth 9 score mate -3 pv h7h8") == (None, -3)
+    assert parse_score("info depth 9 score cp 120 lowerbound pv e2e4") is None
+    assert parse_score("info string hello") is None and parse_score("info score") is None
+
+
+def test_only_stockfish_can_analyse():
+    assert not RandomEngine.can_analyse and StockfishEngine.can_analyse
+
+
 # --- UCI client against a fake engine -------------------------------------
 
 @pytest.fixture
@@ -94,6 +105,13 @@ def test_uci_position_from_fen_with_moves(client):
     board.push_san("h3")
     board.push_san("h6")
     assert client.go(board, 0.01, threading.Event()) in board.legal_moves
+
+
+def test_uci_search_reports_mate_score(client):
+    analysis = client.search(chess.Board(MATE_IN_ONE), 0.01, threading.Event())
+    assert analysis.move == chess.Move.from_uci("d1d8") and analysis.mate == 1 and analysis.cp is None
+    quiet = client.search(chess.Board(), 0.01, threading.Event())
+    assert quiet.cp == 0 and quiet.mate is None
 
 
 def test_uci_close_ends_process_and_can_be_repeated(client):
@@ -173,6 +191,29 @@ def test_worker_skips_requests_cancelled_before_they_start():
         worker.close()
 
 
+def test_worker_analyse_falls_back_to_a_move_without_analysis():
+    worker = EngineWorker(RandomEngine(seed=3))
+    try:
+        worker.request(chess.Board(), QUICK, 4, analyse=True)
+        request_id, result = wait_result(worker)
+        assert request_id == 4 and isinstance(result, chess.Move)
+    finally:
+        worker.close()
+
+
+def test_worker_analyse_with_fake_uci(settings, monkeypatch):
+    monkeypatch.setattr(StockfishEngine, "find_exe", classmethod(lambda cls, s, d: FAKE_UCI))
+    monkeypatch.setattr("app.engines.stockfish.UciClient",
+                        lambda command, cwd: UciClient([sys.executable, *command], cwd=cwd))
+    worker = EngineWorker(StockfishEngine(settings))
+    try:
+        worker.request(chess.Board(MATE_IN_ONE), QUICK, 5, analyse=True)
+        request_id, result = wait_result(worker)
+        assert request_id == 5 and isinstance(result, Analysis) and result.mate == 1
+    finally:
+        worker.close()
+
+
 # --- Real Stockfish (skipped when not installed) ---------------------------
 
 @pytest.fixture
@@ -196,3 +237,10 @@ def test_stockfish_close_ends_process(stockfish):
     process = stockfish.client.process
     stockfish.close()
     assert process.poll() is not None
+
+
+def test_stockfish_analyse_finds_mate_score(stockfish):
+    level = stockfish.level("max")
+    quick = Level(level.key, level.label, None, 0.3, level.options)
+    analysis = stockfish.analyse(chess.Board(MATE_IN_ONE), quick, threading.Event())
+    assert analysis.move == chess.Move.from_uci("d1d8") and analysis.mate == 1

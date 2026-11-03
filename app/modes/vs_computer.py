@@ -1,31 +1,26 @@
 """VsComputerMode: the user plays one colour, an engine the other, with a chess clock.
 
-The rules live in ComputerGame; this class connects them to the window: the dialog, the
-engine worker (via EngineGameMode), the clock display and the Resign / Open in Board Mode
-buttons.
+The rules live in ComputerGame; this class connects them to the window: the dialog and the
+Resign / Open in Board Mode buttons. The engine worker comes from EngineGameMode, the
+clock and Resign from TimedGameMode.
 """
 
 import random
 import tkinter as tk
-from tkinter import messagebox
 
 import chess
 
 from .. import strings as S
 from .. import widgets
-from ..clock import format_time
 from ..computer_game import ComputerGame
 from ..dialogs import new_computer_game
-from ..model import END
 from .base import MenuItem
-from .engine_mode import EngineGameMode
+from .timed_mode import TimedGameMode
 
-TICK_MS = 100     # how often the clocks are redrawn and checked for a flag fall
-LOW_TIME = 60     # seconds; below this the clock is shown in red with tenths
 CHOICES = ("engine", "level", "color", "start")   # dialog choices, stored as settings vs_<choice>
 
 
-class VsComputerMode(EngineGameMode):
+class VsComputerMode(TimedGameMode):
     key = "vs_computer"
     label = S.MODE_VS_COMPUTER
     SETTINGS = {
@@ -35,10 +30,6 @@ class VsComputerMode(EngineGameMode):
         "vs_color": "white",
         "vs_start": "initial",
     }
-
-    def __init__(self, ctx):
-        super().__init__(ctx)
-        self._buttons = {}
 
     # --- Life cycle -------------------------------------------------------
 
@@ -69,20 +60,8 @@ class VsComputerMode(EngineGameMode):
         self.game.write_headers(ctx.model.headers)
         ctx.set_flipped(user_color == chess.BLACK)
         self.start_engine(engine, level)
-        self._schedule("tick", TICK_MS, self._tick)
+        self.start_clock()
         self._next_turn()
-
-    def deactivate(self):
-        super().deactivate()
-        self.ctx.set_clocks(None)
-
-    def confirm_leave(self):
-        if not self._running():
-            return True
-        return messagebox.askyesno(S.VS_RESIGN_TITLE, S.VS_RESIGN_PROMPT, parent=self.ctx.root)
-
-    def leave(self):
-        self.resign()
 
     # --- Questions --------------------------------------------------------
 
@@ -92,56 +71,6 @@ class VsComputerMode(EngineGameMode):
 
     def score_text(self):
         return self.game.score_text(self._tip()) if self.game else None
-
-    # --- Moves ------------------------------------------------------------
-
-    def after_move(self):
-        model = self.ctx.model
-        left = self.game.move_played(model.board)
-        model.set_clock(model.node, left)
-        if self.game.over:
-            self._game_over()
-        else:
-            self._next_turn()
-        self._update_clocks()
-
-    def _next_turn(self):
-        if self.game.is_computer_turn(self._tip()):
-            self.computer_turn()
-        self._update_buttons()
-
-    # --- Clock ------------------------------------------------------------
-
-    def _tick(self):
-        self._schedule("tick", TICK_MS, self._tick)
-        if self._running() and self.game.clock.flagged() is not None and self.game.check_time(self._tip()):
-            self._game_over()
-            self.ctx.refresh()
-            self.ctx.play_sound(END)
-        self._update_clocks()
-
-    def _update_clocks(self):
-        clock = self.game.clock
-        values = {}
-        for color in chess.COLORS:
-            left = clock.remaining(color)
-            values[color] = (format_time(left), clock.running == color, left < LOW_TIME)
-        self.ctx.set_clocks(values)
-
-    # --- Ending -----------------------------------------------------------
-
-    def resign(self):
-        if not self._running():
-            return
-        self.game.resign()
-        self._game_over()
-        self.ctx.refresh()
-        self.ctx.play_sound(END)
-
-    def _game_over(self):
-        super()._game_over()
-        self._update_buttons()
-        self._update_clocks()
 
     # --- UI ---------------------------------------------------------------
 
@@ -156,13 +85,6 @@ class VsComputerMode(EngineGameMode):
         self._buttons["open"].grid(row=0, column=1, sticky="ew", padx=2)
         self._update_buttons()
         return frame
-
-    def _update_buttons(self):
-        running = self._running()
-        states = {"resign": running, "open": self.game is not None and not running}
-        for name, button in self._buttons.items():
-            if button.winfo_exists():
-                button.configure(state="normal" if states[name] else "disabled")
 
     def menu_items(self):
         return [

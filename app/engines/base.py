@@ -16,12 +16,23 @@ class Level:
     options: dict = field(default_factory=dict)   # engine-specific, e.g. {"UCI_Elo": 1500}
 
 
+@dataclass(frozen=True)
+class Analysis:
+    """The result of Engine.analyse: the best move and the score, from the point of view of
+    the side to move in the analysed position. At most one of cp and mate is set."""
+    move: object             # chess.Move
+    cp: int | None = None    # centipawns
+    mate: int | None = None  # mate in n moves; negative: the side to move is mated
+    ponder: object = None    # the expected reply (chess.Move), if the engine gave one
+
+
 class Engine:
     """Something that chooses moves. Instances are used from the worker thread only,
     except for levels() and close()."""
 
     key = ""
     name = ""
+    can_analyse = False   # analyse() gives a score with the move
 
     def __init__(self, settings, app_dir=None):
         self.settings = settings
@@ -53,6 +64,10 @@ class Engine:
 
     def best_move(self, board, level, stop):
         """Return a legal chess.Move for `board`. Return soon after `stop` (threading.Event) is set."""
+        raise NotImplementedError
+
+    def analyse(self, board, level, stop):
+        """Like best_move, but returns an Analysis with the score. Only if can_analyse."""
         raise NotImplementedError
 
     def close(self):

@@ -1,6 +1,6 @@
 # Extending: modes and engines
 
-This guide explains how to add a new **mode** (a way of using the board, such as the free board or playing the computer), a new **engine** (something that chooses moves) and a new **opening** for Learn Openings. Read [ARCHITECTURE.md](ARCHITECTURE.md) first: the layers, the rule that the model changes only through `MainWindow`, and `refresh()` all still apply.
+This guide explains how to add a new **mode** (a way of using the board, such as the free board or playing the computer), a new **engine** (something that chooses moves), a new **opening** for Learn Openings and a new **endgame position** for Endgame Practice. Read [ARCHITECTURE.md](ARCHITECTURE.md) first: the layers, the rule that the model changes only through `MainWindow`, and `refresh()` all still apply.
 
 > Status: implemented as described in [Pelikone_suunnitelma.md](plans/Pelikone_suunnitelma.md) (historical); the differences are listed at the end of this file. Update this file when the code changes.
 
@@ -15,6 +15,8 @@ This guide explains how to add a new **mode** (a way of using the board, such as
 | `app/widgets.py` | View | Panel-style `button`, `label`, `checkbox` for a mode's panel | yes |
 | `app/openings.py`, `app/learning_game.py` | Logic | The opening book and the rules of an opening-training game | no |
 | `assets/openings/` | Data | The opening book, one PGN game per opening | – |
+| `app/endgames.py`, `app/endgame_game.py` | Logic | The endgame positions and the rules of an endgame-practice game | no |
+| `assets/endgames/` | Data | The endgame positions, one PGN file per difficulty level | – |
 | `app/clock.py` | Logic | `ChessClock`: remaining time per side, flag fall | no |
 
 `MainWindow` holds exactly one active mode in `self.mode`. It never checks which mode is active (`isinstance` or `mode.key == …`); it asks the mode questions. That is what keeps new modes from needing changes in `MainWindow`.
@@ -59,8 +61,10 @@ class Mode:
     def can_move(self, color: chess.Color) -> bool: return True
     def allows(self, command: str) -> bool: return True  # command: a constant from app/commands.py
     def title(self) -> str: ...                        # shown above the board; default: label without "…"
+    def subtitle(self) -> str | None: return None      # a smaller line under the title; None = hidden
     def status_text(self) -> str | None: return None   # None = the model's normal status
     def score_text(self) -> str | None: return None    # shown above the board on the right, e.g. material
+    def light(self) -> str | None: return None         # success light above the board: "pending" | "success" | "fail"
     def new_game(self) -> bool: return False    # New Game button, File > New Game; True = handled
     def hint_arrows(self) -> list: return []    # [(from_sq, to_sq, "main" | "alt")] suggestion arrows
 
@@ -88,7 +92,7 @@ Defaults are chosen so that the base class behaves like the free board (`BoardMo
 | `OPEN` | Open file |
 | `NAVIGATE` | ← → Home End ↑ ↓ and clicks in the move list. Blocked in Play vs Computer, also after the game: it is reviewed in Board mode. |
 | `EDIT_COMMENT` | Comment field (disabled when not allowed) |
-| `TAKE_BACK` | `MainWindow.take_back(color)` (`ctx.take_back`): Take Back in Learn Openings |
+| `TAKE_BACK` | `MainWindow.take_back(color)` (`ctx.take_back`): Take Back in Learn Openings and Endgame Practice (blocked there after a time-out or resignation) |
 
 File > New Game (and the New Game button above the status line) is not a command name: `MainWindow.new_game` first calls `mode.new_game()`, and only if that returns False does it start a free-board game. The game modes (`EngineGameMode.new_game`) call `ctx.set_mode(self.key)`, which shows the mode's dialog again and then goes through the normal switch below ("Resign the game?", the save prompt).
 
@@ -98,7 +102,7 @@ File > New Game (and the New Game button above the status line) is not a command
 | --- | --- |
 | `BoardView._press` (via the `can_move` callback) | `mode.can_move(piece.color)` |
 | `play_move()`, after the model accepted the move | `mode.after_move()`, then `refresh(rebuild=True)` and the sound |
-| `refresh()` | `mode.hint_arrows()` → `BoardView.set_hints`, `mode.title()` and `mode.score_text()` above the board, `mode.status_text()`, and `allows(PASTE)` / `allows(EDIT_COMMENT)` for the FEN and comment fields |
+| `refresh()` | `mode.hint_arrows()` → `BoardView.set_hints`, `mode.title()`, `mode.subtitle()`, `mode.score_text()` and `mode.light()` above the board, `mode.status_text()`, and `allows(PASTE)` / `allows(EDIT_COMMENT)` for the FEN and comment fields |
 | File menu (when opened) | `allows()` greys out Open, Paste |
 | Game menu (rebuilt when opened) | one radio item per `MODES` entry, then `mode.menu_items()` |
 | Game menu → other mode, or `ctx.set_mode(key)` | `set_mode(key)`, see below |
@@ -144,7 +148,9 @@ Example: a "Solve Puzzle" mode where the user must find the move stored in a PGN
 6. **Rules without tkinter** (whether a move solves the puzzle, scoring) go in a logic module, e.g. `app/puzzle.py`, so that pytest can test them.
 7. **Tests:** `tests/test_modes.py` checks that every registered mode has a unique `key` and a `label` and that mode settings do not clash. `fake_context()` gives a `ModeContext` with a fake root whose timers the test runs itself (`ctx.root.run_timers()`), so `mode.start(config)` can be tested without windows, as the Play vs Computer and Learn Openings tests do; add a test for the new mode there.
 
-**A mode in which the computer plays** should subclass `EngineGameMode` (`app/modes/engine_mode.py`) instead of `Mode`, and its rules should subclass `EngineGame` (`app/engine_game.py`). `EngineGame` provides the turns (`is_computer_turn`, `can_move`), `allows()` from the class sets `ALLOWED_DURING_GAME` / `ALLOWED_AFTER_GAME`, the status line, the common PGN headers (`EVENT`, Site, Date, Round, White, Black, Result), `engine_failed`, the result and the request ids. `EngineGameMode` provides `engine_choices()` (available engines and notes for the dialog), `make_engine(key)`, `start_engine(engine, level)`, `request_engine_move()`, `play_computer_move(move, delay_ms)` (a move chosen without the engine, e.g. from a book), `cancel_computer_move()`, the polling timer, engine-error handling, `deactivate()`, `new_game()` (the dialog again), `can_move`, `allows`, `status_text` and `open_in_board_mode()`. The subclass implements `choose()` and `start(config)` (create `self.game`, call `start_engine`), extends `_game_over()` if its panel must change, and overrides `computer_turn()` if the computer does not always ask the engine. `VsComputerMode` uses the default (always the engine); `LearnOpeningsMode` plays from the book first.
+**A mode in which the computer plays** should subclass `EngineGameMode` (`app/modes/engine_mode.py`) instead of `Mode`, and its rules should subclass `EngineGame` (`app/engine_game.py`). `EngineGame` provides the turns (`is_computer_turn`, `can_move`), `allows()` from the class sets `ALLOWED_DURING_GAME` / `ALLOWED_AFTER_GAME`, the status line, the common PGN headers (`EVENT`, Site, Date, Round, White, Black, Result), `engine_failed`, the result and the request ids. `EngineGameMode` provides `engine_choices()` (available engines and notes for the dialog), `make_engine(key)`, `start_engine(engine, level)`, `request_engine_move()`, `play_computer_move(move, delay_ms)` (a move chosen without the engine, e.g. from a book), `cancel_computer_move()`, the polling timer, engine-error handling, `deactivate()`, `new_game()` (the dialog again), `can_move`, `allows`, `status_text` and `open_in_board_mode()`. The subclass implements `choose()` and `start(config)` (create `self.game`, call `start_engine`), extends `_game_over()` if its panel must change, and overrides `computer_turn()` if the computer does not always ask the engine, and `engine_result(result)` if it asks for analyses (`worker.request(…, analyse=True)`) instead of plain moves. `VsComputerMode` uses the default (always the engine); `LearnOpeningsMode` plays from the book first; `EndgameMode` plays the stored defence first and judges the user's moves with analyses.
+
+**A mode with a chess clock** should subclass `TimedGameMode` (`app/modes/timed_mode.py`, itself an `EngineGameMode`) with rules that subclass `ComputerGame`. It provides `start_clock()` (call it in `start`), the clock tick and flag fall, the clocks next to the names, the `[%clk]` comments in `after_move()`, `confirm_leave()` / `leave()` ("Resign the game?", then resign), `resign()` and `_update_buttons()` for the buttons in `self._buttons` (override `_button_states()` to add buttons). `VsComputerMode` and `EndgameMode` use it.
 
 No change to `main_window.py` should be needed. If one is, it is usually a new command name for `allows()` or a new notification; add it to the base class with a neutral default so that the existing modes keep working.
 
@@ -174,6 +180,8 @@ class Engine:
     def start(self): ...                        # start the process / load data
     def new_game(self): ...
     def best_move(self, board: chess.Board, level: Level, stop: threading.Event) -> chess.Move: ...
+    can_analyse = False                         # True if analyse() is implemented
+    def analyse(self, board, level, stop) -> Analysis: ...   # best move and score: Analysis(move, cp, mate, ponder)
     def close(self): ...                        # must be safe to call twice
 ```
 
@@ -182,6 +190,7 @@ Rules for implementations:
 - `best_move` runs in the worker thread. It gets its own copy of the board and must not touch tkinter, the model or the settings.
 - It returns a legal move for `board`. If it cannot, it raises `EngineError`; the mode then shows an error and stops the game.
 - It returns soon after `stop` is set (resign, mode change, exit).
+- `analyse` follows the same rules. `Analysis.cp` (centipawns) or `Analysis.mate` (mate in n; negative: the side to move is mated) is from the point of view of the side to move in `board`; `ponder` is the expected reply, if the engine gave one.
 - `close()` ends any process. Leaving `stockfish.exe` running after the program exits is a bug.
 
 ### Existing engines
@@ -189,7 +198,7 @@ Rules for implementations:
 | Class | File | Notes |
 | --- | --- | --- |
 | `RandomEngine` | `random_engine.py` | Picks a random legal move. Always available; used in tests and as a fallback. |
-| `StockfishEngine` | `stockfish.py` | UCI via `uci.py`. Finds the exe from `settings["engine_path"]`, or else `<app_dir>/engines/stockfish/stockfish.exe` (or the first `stockfish*.exe` there). Reads the option limits from the engine and clamps numeric options such as `UCI_Elo` into them, so a level below the engine's minimum plays at the minimum. Sends options only when they change. |
+| `StockfishEngine` | `stockfish.py` | UCI via `uci.py`. Finds the exe from `settings["engine_path"]`, or else `<app_dir>/engines/stockfish/stockfish.exe` (or the first `stockfish*.exe` there). Reads the option limits from the engine and clamps numeric options such as `UCI_Elo` into them, so a level below the engine's minimum plays at the minimum. Sends options only when they change. Can analyse. If `engines/syzygy/` holds tablebase files, sets `SyzygyPath` to it. |
 
 ### UCI client (`uci.py`)
 
@@ -197,12 +206,12 @@ A small client on top of `subprocess`, written instead of `chess.engine` because
 
 - Start with `creationflags=subprocess.CREATE_NO_WINDOW` so no console window flashes under `pythonw`.
 - A reader thread puts each output line in a `queue.Queue`; the client waits for `uciok`, `readyok` and `bestmove` with a timeout.
-- `go movetime <ms>`; on `stop`, send `stop` and wait for `bestmove`.
+- `go movetime <ms>`; on `stop`, send `stop` and wait for `bestmove`. `search()` also returns the last exact score of the `info … score cp|mate …` lines (`parse_score`; bound scores are ignored) and the ponder move, as an `Analysis`; `go()` returns just the move.
 - `close()`: `quit`, wait 1 s, then `kill()`.
 
 ### The worker (`worker.py`)
 
-`EngineWorker` owns one engine and one thread, and starts the engine (`start()`, `new_game()`) on the first request, so the process exists only while a game is played. `request(board, level, request_id)` starts a search on a copy of the board; the result `(request_id, move or EngineError)` goes into a queue. The mode reads it with `poll()` from a `root.after(50, …)` timer on the main thread and ignores results whose `request_id` is no longer current (`EngineGame.is_current`). `cancel()` sets the search's `stop` event; a request cancelled before it started is skipped. `close()` stops the thread and the engine process.
+`EngineWorker` owns one engine and one thread, and starts the engine (`start()`, `new_game()`) on the first request, so the process exists only while a game is played. `request(board, level, request_id, analyse=False)` starts a search on a copy of the board; the result `(request_id, move, Analysis or EngineError)` goes into a queue. With `analyse=True` the result is an `Analysis` if the engine `can_analyse`, otherwise just the move. The mode reads it with `poll()` from a `root.after(50, …)` timer on the main thread and ignores results whose `request_id` is no longer current (`EngineGame.is_current`). `cancel()` sets the search's `stop` event; a request cancelled before it started is skipped. `close()` stops the thread and the engine process.
 
 ## The chess clock (`clock.py`)
 
@@ -259,6 +268,41 @@ Learn Openings reads every `*.pgn` file in `assets/openings/`; no code changes a
 
 The book can also be edited in Board mode: open the PGN file, change the moves and comments, and save.
 
+## Recipe: add an endgame
+
+Endgame Practice reads every `*.pgn` file in `assets/endgames/` (one file per level, `level1.pgn` … `level5.pgn`, by convention); no code changes are needed.
+
+1. Add a game to the file of its level. One game is one position; the side to move is the user's side:
+
+   ```pgn
+   [Event "Saavedra Position"]
+   [Key "saavedra"]
+   [Difficulty "5"]
+   [Goal "win"]
+   [Composer "Fernando Saavedra (after Georges Barbier)"]
+   [Source "Glasgow Weekly Citizen"]
+   [Year "1895"]
+   [SetUp "1"]
+   [FEN "8/8/1KP5/3r4/8/8/8/k7 w - - 0 1"]
+
+   {White's pawn is one step from queening, but the rook keeps checking.}
+   1. c7 Rd6+ 2. Kb5 Rd5+ 3. Kb4 Rd4+ 4. Kb3 Rd3+ 5. Kc2 Rd4
+   6. c8=R $1 (6. c8=Q $2 {Rc4+ 7. Qxc4 is stalemate.} 6... Rc4+ 7. Qxc4) 6... Ra4 7. Kb3 *
+   ```
+
+   | Header | Required | Meaning |
+   | --- | --- | --- |
+   | `Event` | yes | Name of the position, shown above the board. |
+   | `Key` | yes | Unique and permanent. Never change an existing key. |
+   | `Difficulty` | yes | 1–5. |
+   | `DifficultyName` | in one game per level | Name of the level in the dialog (*Basic mates* …). |
+   | `Goal` | yes | `win` or `draw`, for the side to move. |
+   | `SetUp`, `FEN` | yes | The start position. |
+   | `Composer`, `Source`, `Year` | no | Shown under the title; only when verified. Nothing known: *Classic endgame position*. |
+
+2. **The move tree:** the main line is the solution and the computer's preferred defence. A user-side variation without a NAG is an equally good move; a variation whose first move has `$2` (?) or `$4` (??) is a known wrong try: the light turns red at once and the move's comment is shown. Computer-side variations are other defences; the computer picks the main line most often (weights 2^(n−1), …, 2, 1). Where a correct line ends, the position counts as solved (green light); after that, and anywhere outside the tree, Stockfish plays and judges. Comments explain moves; write them yourself rather than copying them from books.
+3. Run `python tools\check_endgames.py --key <key>`: it checks the goal and every solution move with Stockfish, using the same rule as the game. Then `python -m pytest`: `tests/test_endgames.py` loads every file (illegal moves, a duplicate `Key`, a bad `Difficulty`, `Goal` or `FEN` are reported) and requires at least 15 positions per level.
+
 ## Adding a level
 
 Edit the level table in the engine's file. Keep the `key` of existing levels unchanged, because `settings.json` stores it; an unknown stored key falls back to the engine's first level.
@@ -291,6 +335,14 @@ New code should use only the standard library and the packages already listed in
 - In Play vs Computer, Open, Paste and the FEN field are disabled; switch to Board first. File > New Game asks "Resign the game?" and shows the dialog again.
 - The engine `Random moves` is registered after Stockfish, so a game can be played without Stockfish.
 - New setting `vs_start` remembers the dialog's "Start from" choice. The `vs_…` and `learn_…` settings live in the modes' `SETTINGS`, not in `settings.DEFAULTS`.
+
+Endgame Practice, compared with [Loppupeli_suunnitelma.md](plans/Loppupeli_suunnitelma.md):
+
+- The mode is called *Endgame Practice…* (key `end_practice`), and the success light is above the board on the right, in place of the material score, as decided in the plan's open questions.
+- `Mode.light()` was added for the light, and `EngineGameMode.engine_result()` so that a mode can receive analyses. `Engine.analyse` takes a `Level` (for the engine options) instead of a think time.
+- Judging: a move is a mistake only if the score falls below the limit (+150 cp for a win, −300 cp for a draw) *and* drops by at least 100 cp from the score before the move (`is_mistake`). Stockfish's NNUE scores some won endings low (bishop and knight about +180), so a fixed limit alone would turn correct moves red. When the score before the move is not known, it is analysed first.
+- The engine's ponder move is used as the suggestion off the solution, so a separate analysis is needed only at the start or right after the solution ends.
+- Positions: the textbook positions of levels 1–3 and Lasker–Reichhelm were set up by hand; their solution lines, where not written by hand, are Stockfish's main lines. Apart from Saavedra, Réti and Lasker–Reichhelm, levels 4 and 5 are positions found by a search with Stockfish (random realistic material, exactly one move keeps the goal; on level 5 at least twice in a row), not master games or published studies. Their source is empty, so they show *Classic endgame position*.
 
 Learn Openings, compared with [Avausteoria_suunnitelma.md](plans/Avausteoria_suunnitelma.md):
 

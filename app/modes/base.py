@@ -79,12 +79,20 @@ class Mode:
         """The mode name shown above the board."""
         return self.label.rstrip("…")
 
+    def subtitle(self):
+        """A second, smaller line under the title, e.g. where a position comes from. None = hidden."""
+        return None
+
     def status_text(self):
         """None = the model's normal status."""
         return None
 
     def score_text(self):
         """Shown above the board on the right, e.g. the material balance. None = nothing."""
+        return None
+
+    def light(self):
+        """A success light above the board on the right: "pending", "success" or "fail". None = hidden."""
         return None
 
     def new_game(self):
