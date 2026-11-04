@@ -89,7 +89,7 @@ py -3.15 -m pip install --target vendor -r requirements-vendor.txt
 | `requirements-dev.txt` | the system Python | tests (pytest) |
 | `requirements-vendor.txt` | `vendor/` | python-chess |
 
-python-chess is installed into the program folder instead of a venv, so that no new exe files are created on disk (F-Secure); the reasons are in [docs/plans/Pelikone_suunnitelma.md](docs/plans/Pelikone_suunnitelma.md). `vendor/` and `engines/stockfish/` are not in git (`.gitignore`), so a fresh clone needs the commands above and the network.
+python-chess is installed into the program folder instead of a venv, so that no new exe files are created on disk (F-Secure); the reasons are in [docs/plans/Pelikone_suunnitelma.md](docs/plans/Pelikone_suunnitelma.md). `vendor/`, the engine exe files and `engines/syzygy/` are not in git (`.gitignore`), so a fresh clone needs the commands above and the network. `engines/stockfish/` itself is in git with its `README.txt` and `Copying.txt`; only `stockfish.exe` has to be downloaded.
 
 The Cburnett pieces are drawn with Tk's own SVG support (Tk 9), so no SVG library is needed.
 
@@ -131,7 +131,7 @@ The tests cover the model (rules, variations, navigation, take-back), files (PGN
 | `tools/make_sounds.py` | regenerates the sounds: `python tools\make_sounds.py` |
 | `tools/check_endgames.py` | checks the positions in `assets/endgames/` with Stockfish (goal, solution, wrong tries): `python tools\check_endgames.py` |
 | `tools/extract_pieces.py` | writes the SVG pieces from the data bundled with python-chess |
-| `engines/stockfish/` | `stockfish.exe` (downloaded separately, not part of the code) and its licence `Copying.txt` |
+| `engines/stockfish/` | `stockfish.exe` (downloaded separately, not part of the code), its licence `Copying.txt` and a `README.txt` placeholder note |
 | `tests/` | pytest tests |
 | `vendor/` | python-chess (do not edit) |
 | `docs/` | developer documentation; `docs/plans/` holds the original plans (in Finnish, historical) |

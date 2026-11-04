@@ -1,6 +1,8 @@
 ﻿# Verkosta ladattavat kirjastot ja ohjelmat (asennetaan requirements-tiedostoista / ladataan erikseen)
 vendor/
-engines/stockfish/
+# Vain moottorien exet ja loppupelitaulut; lisenssi ja ohjetiedosto ovat versionhallinnassa
+engines/**/*.exe
+engines/syzygy/
 
 # Python
 __pycache__/
@@ -13,6 +15,9 @@ settings.json
 error.log
 Games/
 settings.json.tmp
+
+# Katselmointimuistiinpanot (vain paikallisesti)
+KATSELMOINTI.txt
 
 # Jakelupaketit (tools/make_dist.py)
 dist/
