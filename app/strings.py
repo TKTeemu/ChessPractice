@@ -102,6 +102,7 @@ ERROR_SETTINGS = "Could not save the settings to\n{path}\nThe details are in err
 SHORTCUTS_TITLE = "Keyboard Shortcuts"
 SHORTCUTS_TEXT = """\
 ← / →\tMove back / forward
+\t(Learn Openings, Endgame Practice: ← takes your move back)
 Home / End\tGo to start / end
 ↑ / ↓\tSwitch between variations
 F\tFlip board

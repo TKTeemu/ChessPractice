@@ -33,6 +33,7 @@ BASELINE, REPLY, HINT = "baseline", "reply", "hint"
 class EndgameMode(TimedGameMode):
     key = "end_practice"
     label = S.MODE_ENDGAMES
+    takes_back = True
     SETTINGS = {
         "end_difficulty": 1,
         "end_minutes": 15,
@@ -184,7 +185,7 @@ class EndgameMode(TimedGameMode):
             self.ctx.refresh()   # the suggestion arrow
 
     def take_back(self):
-        if self.game is None or not self._can_take_back():
+        if self.game is None or not self.can_take_back():
             return
         self.cancel_computer_move()
         if self.ctx.take_back(self.game.user_color):
@@ -196,7 +197,7 @@ class EndgameMode(TimedGameMode):
             self._update_clocks()
             self.ctx.refresh()
 
-    def _can_take_back(self):
+    def can_take_back(self):
         return self.game is not None and self.game.allows(TAKE_BACK) and any(
             node.parent.turn() == self.game.user_color for node in self.ctx.model.game.mainline())
 
@@ -214,13 +215,11 @@ class EndgameMode(TimedGameMode):
         widgets.checkbox(frame, S.LEARN_SUGGEST, self._suggest_var, self._suggest_changed).grid(
             row=3, column=0, columnspan=2, sticky="w", pady=(2, 4))
         self._buttons = {
-            "take_back": widgets.button(frame, S.MODE_TAKE_BACK, self.take_back),
             "resign": widgets.button(frame, S.MODE_RESIGN, self.resign),
             "open": widgets.button(frame, S.MODE_OPEN_IN_BOARD, self.open_in_board_mode),
         }
-        self._buttons["take_back"].grid(row=4, column=0, sticky="ew", padx=2)
-        self._buttons["resign"].grid(row=4, column=1, sticky="ew", padx=2)
-        self._buttons["open"].grid(row=5, column=0, columnspan=2, sticky="ew", padx=2, pady=(4, 0))
+        self._buttons["resign"].grid(row=4, column=0, sticky="ew", padx=2)
+        self._buttons["open"].grid(row=4, column=1, sticky="ew", padx=2)
         self._update_buttons()
         self._update_panel()
         return frame
@@ -230,9 +229,6 @@ class EndgameMode(TimedGameMode):
         if self._running() and not self.game.is_computer_turn(self._tip()):
             self._user_turn()
         self.ctx.refresh()
-
-    def _button_states(self):
-        return {**super()._button_states(), "take_back": self._can_take_back()}
 
     def _game_over(self):
         super()._game_over()
@@ -253,7 +249,7 @@ class EndgameMode(TimedGameMode):
 
     def menu_items(self):
         return [
-            MenuItem(S.MODE_TAKE_BACK, self.take_back, self._can_take_back),
+            MenuItem(S.MODE_TAKE_BACK, self.take_back, self.can_take_back),
             MenuItem(S.MODE_RESIGN, self.resign, self._running),
             MenuItem(S.MODE_OPEN_IN_BOARD, self.open_in_board_mode,
                      lambda: self.game is not None and self.game.over),

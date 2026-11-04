@@ -116,6 +116,7 @@ def test_learn_openings_mode_is_registered_and_harmless_before_a_game(tmp_path):
     mode = cls(ctx)
     assert mode.confirm_leave() and not mode.can_move(chess.WHITE)
     assert mode.hint_arrows() == [] and mode.status_text() is None
+    assert mode.takes_back and not mode.can_take_back()
     mode.take_back()
     mode.deactivate()
     assert not any(name == "take_back" for name, _ in calls)
@@ -125,6 +126,8 @@ def test_default_mode_hooks(tmp_path):
     ctx, _ = fake_context(tmp_path)
     mode = BoardMode(ctx)
     assert mode.hint_arrows() == [] and mode.show_details and mode.allows("take_back")
+    assert not mode.takes_back and not mode.can_take_back()   # ← browses back in Board mode
+    assert not mode_class("vs_computer").takes_back
     assert not mode_class("vs_computer").show_details and not mode_class("learn_openings").show_details
 
 
@@ -221,6 +224,7 @@ def test_endgame_mode_is_registered_and_harmless_before_a_game(tmp_path):
     mode = cls(ctx)
     assert mode.confirm_leave() and not mode.can_move(chess.WHITE) and mode.replaces_game
     assert mode.light() is None and mode.subtitle() is None and mode.hint_arrows() == []
+    assert mode.takes_back and not mode.can_take_back()
     mode.take_back()
     mode.deactivate()
     assert not any(name == "take_back" for name, _ in calls)
@@ -263,6 +267,7 @@ def test_endgame_suggestions_and_take_back(tmp_path, monkeypatch):
         assert mode.hint_arrows() == [(chess.C6, chess.C7, "main")] and mode.game.hints_used == 1
         user_plays(mode, ctx, "Kb7")   # off the solution; no engine to judge it
         assert mode.game.light == "pending" and "No engine" in mode.status_text()
+        assert mode.can_take_back()
         mode.take_back()
         assert ("take_back", (chess.WHITE,)) in calls   # MainWindow removes the moves
     finally:
@@ -275,6 +280,6 @@ def test_endgame_leave_resigns_and_the_light_turns_red(tmp_path, monkeypatch):
     try:
         mode.leave()
         assert mode.game.over and mode.light() == "fail" and ctx.model.headers["Result"] == "0-1"
-        assert not mode.allows("take_back")
+        assert not mode.allows("take_back") and not mode.can_take_back()
     finally:
         mode.deactivate()

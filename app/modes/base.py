@@ -43,6 +43,7 @@ class Mode:
     label = ""      # menu text, from strings.py
     show_details = True    # the Comment & FEN section is open until the user closes it
     replaces_game = False  # start() replaces the game: MainWindow asks to save the old one first
+    takes_back = False     # ← and the ◀ button call take_back() instead of browsing back
     SETTINGS = {}   # the mode's own settings and their defaults, keys prefixed with the mode key
 
     def __init__(self, ctx):
@@ -102,6 +103,13 @@ class Mode:
     def hint_arrows(self):
         """Suggestion arrows for the board: [(from_sq, to_sq, style)], style "main" or "alt"."""
         return []
+
+    def can_take_back(self):
+        """A mode with takes_back: there is a move of the user's to take back now."""
+        return False
+
+    def take_back(self):
+        """A mode with takes_back: ← or the ◀ button, e.g. remove the user's last move and the reply."""
 
     # Notifications
     def after_move(self):

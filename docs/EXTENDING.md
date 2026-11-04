@@ -67,6 +67,9 @@ class Mode:
     def light(self) -> str | None: return None         # success light above the board: "pending" | "success" | "fail"
     def new_game(self) -> bool: return False    # New Game button, File > New Game; True = handled
     def hint_arrows(self) -> list: return []    # [(from_sq, to_sq, "main" | "alt")] suggestion arrows
+    takes_back = False                          # ← and ◀ call take_back() instead of browsing back
+    def can_take_back(self) -> bool: return False   # enables ◀ in a mode with takes_back
+    def take_back(self): pass
 
     # Notifications
     def after_move(self): pass                  # after every successful play_move, before refresh()
@@ -92,7 +95,7 @@ Defaults are chosen so that the base class behaves like the free board (`BoardMo
 | `OPEN` | Open file |
 | `NAVIGATE` | ← → Home End ↑ ↓ and clicks in the move list. Blocked in Play vs Computer, also after the game: it is reviewed in Board mode. |
 | `EDIT_COMMENT` | Comment field (disabled when not allowed) |
-| `TAKE_BACK` | `MainWindow.take_back(color)` (`ctx.take_back`): Take Back in Learn Openings and Endgame Practice (blocked there after a time-out or resignation) |
+| `TAKE_BACK` | `MainWindow.take_back(color)` (`ctx.take_back`): Take Back (← and the ◀ button, `takes_back = True`) in Learn Openings and Endgame Practice (blocked there after a time-out or resignation) |
 
 File > New Game (and the New Game button above the status line) is not a command name: `MainWindow.new_game` first calls `mode.new_game()`, and only if that returns False does it start a free-board game. The game modes (`EngineGameMode.new_game`) call `ctx.set_mode(self.key)`, which shows the mode's dialog again and then goes through the normal switch below ("Resign the game?", the save prompt).
 
@@ -102,7 +105,7 @@ File > New Game (and the New Game button above the status line) is not a command
 | --- | --- |
 | `BoardView._press` (via the `can_move` callback) | `mode.can_move(piece.color)` |
 | `play_move()`, after the model accepted the move | `mode.after_move()`, then `refresh(rebuild=True)` and the sound |
-| `refresh()` | `mode.hint_arrows()` → `BoardView.set_hints`, `mode.title()`, `mode.subtitle()`, `mode.score_text()` and `mode.light()` above the board, `mode.status_text()`, and `allows(PASTE)` / `allows(EDIT_COMMENT)` for the FEN and comment fields |
+| `refresh()` | `mode.hint_arrows()` → `BoardView.set_hints`, `mode.title()`, `mode.subtitle()`, `mode.score_text()` and `mode.light()` above the board, `mode.status_text()`, `allows(PASTE)` / `allows(EDIT_COMMENT)` for the FEN and comment fields, and `allows(NAVIGATE)` / `can_take_back()` to enable the |◀ ◀ ▶ ▶| buttons |
 | File menu (when opened) | `allows()` greys out Open, Paste |
 | Game menu (rebuilt when opened) | one radio item per `MODES` entry, then `mode.menu_items()` |
 | Game menu → other mode, or `ctx.set_mode(key)` | `set_mode(key)`, see below |

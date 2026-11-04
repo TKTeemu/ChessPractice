@@ -2,7 +2,7 @@
 
 The rules live in LearningGame and the book in openings.py; this class connects them to the
 window: the opening dialog, book moves after a short pause, the engine worker (via
-EngineGameMode), suggestion arrows and the panel with Take Back and Open in Board Mode.
+EngineGameMode), suggestion arrows, Take Back (← and the ◀ button) and the panel with Open in Board Mode.
 """
 
 import random
@@ -27,6 +27,7 @@ CHOICES = ("opening", "role", "engine", "level", "vary")   # dialog choices, sto
 class LearnOpeningsMode(EngineGameMode):
     key = "learn_openings"
     label = S.MODE_LEARN_OPENINGS
+    takes_back = True
     SETTINGS = {
         "learn_opening": "reti",
         "learn_role": "opening",
@@ -161,11 +162,9 @@ class LearnOpeningsMode(EngineGameMode):
         self._labels["phase"] = widgets.label(check_row)
         self._labels["phase"].pack(side="left", padx=(4, 0))
         self._buttons = {
-            "take_back": widgets.button(frame, S.MODE_TAKE_BACK, self.take_back),
             "open": widgets.button(frame, S.MODE_OPEN_IN_BOARD, self.open_in_board_mode),
         }
-        self._buttons["take_back"].grid(row=4, column=0, sticky="ew", padx=2)
-        self._buttons["open"].grid(row=4, column=1, sticky="ew", padx=2)
+        self._buttons["open"].grid(row=4, column=0, columnspan=2, sticky="ew", padx=2)
         self._update_panel()
         return frame
 
@@ -173,7 +172,7 @@ class LearnOpeningsMode(EngineGameMode):
         self.ctx.settings["learn_suggest"] = self._suggest_var.get()
         self.ctx.refresh()
 
-    def _can_take_back(self):
+    def can_take_back(self):
         return self.game is not None and any(
             node.parent.turn() == self.game.user_color for node in self.ctx.model.game.mainline())
 
@@ -193,10 +192,9 @@ class LearnOpeningsMode(EngineGameMode):
         phase = self.game.opening_phase
         self._suggest_check.configure(state="normal" if phase else "disabled")
         self._labels["phase"].configure(text="" if phase else S.LEARN_PHASE_OVER)
-        self._buttons["take_back"].configure(state="normal" if self._can_take_back() else "disabled")
 
     def menu_items(self):
         return [
-            MenuItem(S.MODE_TAKE_BACK, self.take_back, self._can_take_back),
+            MenuItem(S.MODE_TAKE_BACK, self.take_back, self.can_take_back),
             MenuItem(S.MODE_OPEN_IN_BOARD, self.open_in_board_mode, lambda: self.game is not None),
         ]

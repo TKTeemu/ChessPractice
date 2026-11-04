@@ -11,6 +11,6 @@ PASTE = "paste"                 # paste PGN/FEN, and typing a FEN into the FEN f
 OPEN = "open"                   # File > Open
 NAVIGATE = "navigate"           # ← → Home End ↑ ↓ and clicks in the move list
 EDIT_COMMENT = "edit_comment"   # the comment field
-TAKE_BACK = "take_back"         # MainWindow.take_back(color), Take Back in a game mode
+TAKE_BACK = "take_back"         # MainWindow.take_back(color): ← / ◀ and Take Back in a game mode
 
 ALL_COMMANDS = frozenset({DELETE_LAST, EDIT_TREE, PASTE, OPEN, NAVIGATE, EDIT_COMMENT, TAKE_BACK})

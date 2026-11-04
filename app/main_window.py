@@ -23,6 +23,7 @@ from .theme import (BACKGROUND, CLOCK_ACTIVE_BG, CLOCK_ACTIVE_FG, CLOCK_BG, CLOC
 from .widgets import button, light
 
 AUTOSAVE_MS = 2000   # how often changed settings are written to settings.json
+NAV_FIRST, NAV_PREV, NAV_NEXT, NAV_LAST = "first", "prev", "next", "last"   # the |◀ ◀ ▶ ▶| buttons
 
 
 class MainWindow:
@@ -129,10 +130,14 @@ class MainWindow:
 
         nav = tk.Frame(right, bg=PANEL_BG)
         nav.grid(row=4, column=0, sticky="ew", padx=6, pady=6)
-        for i, (text, command) in enumerate(((S.BTN_FIRST, self.go_start), (S.BTN_PREV, self.back),
-                                             (S.BTN_NEXT, self.forward), (S.BTN_LAST, self.go_end))):
+        self.nav_buttons = {}   # disabled when the mode does not allow them (_update_nav)
+        for i, (name, text, command) in enumerate(((NAV_FIRST, S.BTN_FIRST, self.go_start),
+                                                   (NAV_PREV, S.BTN_PREV, self.back),
+                                                   (NAV_NEXT, S.BTN_NEXT, self.forward),
+                                                   (NAV_LAST, S.BTN_LAST, self.go_end))):
             nav.columnconfigure(i, weight=1, uniform="nav")
-            button(nav, text, command).grid(row=0, column=i, sticky="ew", padx=2)
+            self.nav_buttons[name] = button(nav, text, command)
+            self.nav_buttons[name].grid(row=0, column=i, sticky="ew", padx=2)
         nav.columnconfigure(4, weight=2)
         button(nav, S.BTN_FLIP, self.flip).grid(row=0, column=4, sticky="ew", padx=2)
 
@@ -327,6 +332,7 @@ class MainWindow:
         self._update_light()
         self.fen_var.set(self.model.fen())
         self.fen_entry.configure(state="normal" if self.mode.allows(PASTE) else "readonly")
+        self._update_nav()
         self._load_comment()
         self._update_names()
         self._update_title()
@@ -339,6 +345,15 @@ class MainWindow:
         self.subtitle.configure(text=text)
         if not self.subtitle.winfo_manager():
             self.subtitle.pack(side="top", fill="x", after=self._subtitle_after)
+
+    def _update_nav(self):
+        """The |◀ ◀ ▶ ▶| buttons are enabled only when they would do something the mode allows;
+        in a mode with takes_back, ◀ takes the user's move back."""
+        browse = self.mode.allows(NAVIGATE)
+        back = self.mode.can_take_back() if self.mode.takes_back else browse
+        for name, nav_button in self.nav_buttons.items():
+            enabled = back if name == NAV_PREV else browse
+            nav_button.configure(state="normal" if enabled else "disabled")
 
     def _update_light(self):
         state = self.mode.light()
@@ -435,7 +450,10 @@ class MainWindow:
             self.sounds.play(event_for(self.model.node))
 
     def back(self):
-        self._navigate(self.model.back)
+        if self.mode.takes_back:
+            self.mode.take_back()   # a game mode: the user's last move and the reply are removed
+        else:
+            self._navigate(self.model.back)
 
     def forward(self):
         self._navigate(self.model.forward)
