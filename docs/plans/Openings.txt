@@ -1,22 +1,22 @@
-Historiallinen muistiinpano: avausten raakalista, josta assets/openings/*.pgn tehtiin.
+Historical note: the raw list of openings from which assets/openings/*.pgn was made.
 
-Anderssenin avaus: 1.a3
-Waren avaus: 1.a4
-Durkinin avaus: 1.Ra3
-Dunstin avaus: 1.Rc3
-Sokolskin avaus: 1.b4
-Saragossan avaus: 1.c3
-Miesesin avaus: 1.d3
-Van't Kruijsin avaus: 1.e3
-Barnesin avaus: 1.f3
-Grobin hyökkäys: 1.g4
-Clemenzin avaus: 1.h3
-Desprezin avaus: 1.h4
-Amarin avaus: 1.Rh3
-Laita-avaukset
-Larsenin avaus A01: 1.b3
-Birdin avaus A02-A03: 1.f4
-Rétin avaus A04-A09: 1.Rf3
-Englantilainen avaus A10-A39: 1.c4
-Englantilainen puolustus A14: 1.c4 e6 2.d4 b6
-Benkön avaus: 1.g3
+Anderssen's Opening: 1.a3
+Ware Opening: 1.a4
+Durkin's Opening: 1.Na3
+Dunst Opening: 1.Nc3
+Sokolsky Opening: 1.b4
+Saragossa Opening: 1.c3
+Mieses Opening: 1.d3
+Van't Kruijs Opening: 1.e3
+Barnes Opening: 1.f3
+Grob's Attack: 1.g4
+Clemenz Opening: 1.h3
+Desprez Opening: 1.h4
+Amar Opening: 1.Nh3
+Flank openings
+Larsen's Opening A01: 1.b3
+Bird's Opening A02-A03: 1.f4
+Réti Opening A04-A09: 1.Nf3
+English Opening A10-A39: 1.c4
+English Defence A14: 1.c4 e6 2.d4 b6
+Benko's Opening: 1.g3

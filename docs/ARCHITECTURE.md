@@ -84,7 +84,7 @@ From top to bottom: the shared toolbar (New Game, the same in every mode; it cal
 
 ## Modes and engines
 
-The program has modes (Board, the current free board; Play vs Computer, with a chess clock and no take-backs; Learn Openings, where the computer plays from an opening book; Endgame Practice, where the user plays a stored endgame position against Stockfish at full strength) and chess engines (Stockfish over UCI). The opening-training plan is in [Avausteoria_suunnitelma.md](plans/Avausteoria_suunnitelma.md) and the endgame-practice plan in [Loppupeli_suunnitelma.md](plans/Loppupeli_suunnitelma.md) (in Finnish). The plan, with the reasons for the choices, is in [Pelikone_suunnitelma.md](plans/Pelikone_suunnitelma.md) (in Finnish); both are historical. The interfaces and step-by-step instructions for adding a mode, an engine or a level are in [EXTENDING.md](EXTENDING.md).
+The program has modes (Board, the current free board; Play vs Computer, with a chess clock and no take-backs; Learn Openings, where the computer plays from an opening book; Endgame Practice, where the user plays a stored endgame position against Stockfish at full strength) and chess engines (Stockfish over UCI). The opening-training plan is in [Opening_theory_plan.md](plans/Opening_theory_plan.md) and the endgame-practice plan in [Endgame_plan.md](plans/Endgame_plan.md) (in Finnish). The plan, with the reasons for the choices, is in [Engine_plan.md](plans/Engine_plan.md) (in Finnish); both are historical. The interfaces and step-by-step instructions for adding a mode, an engine or a level are in [EXTENDING.md](EXTENDING.md).
 
 In short: `app/modes/` (controller layer) decides what the user may do and what happens after a move, with the rules of a game in the logic layer (`engine_game.py` and its subclasses); `app/engines/` (logic layer, no tkinter) chooses moves in a background thread. `MainWindow` asks the active mode (`can_move`, `allows`, `after_move`, `status_text`) instead of checking which mode is active, and engine moves go through `MainWindow.play_move` like user moves.
 
@@ -105,7 +105,7 @@ Stockfish runs as a child process (`engines/stockfish/stockfish.exe`, started wi
 
 ## Differences from the plan
 
-- The application lives in `C:\Users\Omistaja\.local\ChessBoard`, not in the plan's `C:\Users\Omistaja\Shakkilauta`.
+- The application lives in `C:\Users\Omistaja\.local\ChessBoard`, not in the plan's `C:\Users\Omistaja\Chessboard`.
 - Captured pieces and the material difference are not shown; only the player names appear above and below the board.
 - The repository includes tools not in the plan: `tools/extract_pieces.py` and `tools/make_dist.py`.
 - The pieces are drawn with Tk's own SVG support instead of PyMuPDF (one package less to install).

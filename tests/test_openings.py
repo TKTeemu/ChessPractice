@@ -8,7 +8,7 @@ from app.openings import OpeningBook, OpeningLine, split_comment
 
 FOLDER = Path(__file__).resolve().parent.parent / "assets" / "openings"
 
-# Key -> (group, start moves, side that makes the opening), as in docs/plans/Avausteoria_suunnitelma.md
+# Key -> (group, start moves, side that makes the opening), as in docs/plans/Opening_theory_plan.md
 EXPECTED = {
     "anderssen": ("Irregular openings", "1. a3", chess.WHITE),
     "ware": ("Irregular openings", "1. a4", chess.WHITE),

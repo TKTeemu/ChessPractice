@@ -16,5 +16,5 @@ if errorlevel 1 (
     exit /b 1
 )
 echo.
-echo Done. Start Chessboard with Shakkilauta.bat.
+echo Done. Start Chessboard with Chessboard.bat.
 pause

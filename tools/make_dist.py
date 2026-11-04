@@ -1,11 +1,11 @@
 """Build a zip of the program for copying to another computer.
 
     python tools\\make_dist.py               -> dist\\Chessboard-<date>.zip
-    python tools\\make_dist.py --no-wheels   (without the Pillow wheel; then Asenna.bat needs the network)
+    python tools\\make_dist.py --no-wheels   (without the Pillow wheel; then Install.bat needs the network)
 
 The zip contains everything except Python itself and Stockfish: the application, the assets,
 python-chess (vendor/), the Pillow wheel for this Python version (wheels/, installed offline
-by Asenna.bat), the launchers and the licence files. Left out: settings.json (your own paths),
+by Install.bat), the launchers and the licence files. Left out: settings.json (your own paths),
 error.log, Games/, engines/, tests, tools, __pycache__ and .git.
 
 Stockfish is left out on purpose: GPL-3.0 requires its source code to go with the exe when it
@@ -22,7 +22,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 TOP = "Chessboard"   # folder name inside the zip
-INCLUDE = ["app", "assets", "vendor", "shakkilauta.pyw", "Shakkilauta.bat", "Asenna.bat",
+INCLUDE = ["app", "assets", "vendor", "chessboard.pyw", "Chessboard.bat", "Install.bat",
            "README.md", "LICENSE", "NOTICE", "requirements-global.txt", "requirements-vendor.txt"]
 SKIP_DIRS = {"__pycache__"}
 SKIP_SUFFIXES = {".pyc", ".pyo"}

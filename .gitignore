@@ -1,6 +1,6 @@
-﻿# Verkosta ladattavat kirjastot ja ohjelmat (asennetaan requirements-tiedostoista / ladataan erikseen)
+﻿# Libraries and programs downloaded from the net (installed from the requirements files / downloaded separately)
 vendor/
-# Vain moottorien exet ja loppupelitaulut; lisenssi ja ohjetiedosto ovat versionhallinnassa
+# Only the engine exes and endgame tablebases; the licence and readme files are under version control
 engines/**/*.exe
 engines/syzygy/
 
@@ -10,19 +10,19 @@ __pycache__/
 .pytest_cache/
 .venv/
 
-# Paikalliset asetukset, lokit ja pelatut pelit
+# Local settings, logs and played games
 settings.json
 error.log
 Games/
 settings.json.tmp
 
-# Katselmointimuistiinpanot (vain paikallisesti)
+# Review notes (local only)
 KATSELMOINTI.txt
 
-# Jakelupaketit (tools/make_dist.py)
+# Distribution packages (tools/make_dist.py)
 dist/
 
-# Editorit ja kayttojarjestelma
+# Editors and operating system
 .vscode/
 .idea/
 Thumbs.db

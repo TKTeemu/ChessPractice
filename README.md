@@ -11,18 +11,18 @@ The first part of this file is for **using** the program; the second part, from 
 | What | Where from | Notes |
 | --- | --- | --- |
 | **Python 3.15** (64-bit) with Tcl/Tk | python.org | Exactly 3.15: Python 3.16 does not work yet (see [Python version](#python-version)). `python -m tkinter` opens a test window if Tk is installed. |
-| Pillow | `Asenna.bat` | image handling; the only package installed into Python |
+| Pillow | `Install.bat` | image handling; the only package installed into Python |
 | python-chess 1.11.2 | `vendor/` folder | rules, PGN, FEN; comes with the program folder |
 | Stockfish (optional) | `engines/stockfish/stockfish.exe` | Play vs Computer, Learn Openings and Endgame Practice at real strength; see [Stockfish](#stockfish) |
 
 ## Running
 
-Double-click `Shakkilauta.bat`. It starts the program with the Python launcher (`pyw -3.15`) if it is installed, otherwise with `pythonw` from PATH, so no console window opens.
+Double-click `Chessboard.bat`. It starts the program with the Python launcher (`pyw -3.15`) if it is installed, otherwise with `pythonw` from PATH, so no console window opens.
 
 If something the program needs is missing (Tk, Pillow, python-chess), a message box says what and how to fix it. Other errors are written to `error.log` in the program folder. To see errors directly, run it from a console:
 
 ```
-py -3.15 shakkilauta.pyw
+py -3.15 chessboard.pyw
 ```
 
 ## Modes
@@ -89,7 +89,7 @@ py -3.15 -m pip install --target vendor -r requirements-vendor.txt
 | `requirements-dev.txt` | the system Python | tests (pytest) |
 | `requirements-vendor.txt` | `vendor/` | python-chess |
 
-python-chess is installed into the program folder instead of a venv, so that no new exe files are created on disk (F-Secure); the reasons are in [docs/plans/Pelikone_suunnitelma.md](docs/plans/Pelikone_suunnitelma.md). `vendor/`, the engine exe files and `engines/syzygy/` are not in git (`.gitignore`), so a fresh clone needs the commands above and the network. `engines/stockfish/` itself is in git with its `README.txt` and `Copying.txt`; only `stockfish.exe` has to be downloaded.
+python-chess is installed into the program folder instead of a venv, so that no new exe files are created on disk (F-Secure); the reasons are in [docs/plans/Engine_plan.md](docs/plans/Engine_plan.md). `vendor/`, the engine exe files and `engines/syzygy/` are not in git (`.gitignore`), so a fresh clone needs the commands above and the network. `engines/stockfish/` itself is in git with its `README.txt` and `Copying.txt`; only `stockfish.exe` has to be downloaded.
 
 The Cburnett pieces are drawn with Tk's own SVG support (Tk 9), so no SVG library is needed.
 
@@ -99,11 +99,11 @@ The Cburnett pieces are drawn with Tk's own SVG support (Tk 9), so no SVG librar
 py -3.15 tools\make_dist.py
 ```
 
-writes `dist\Chessboard-<date>.zip`: the program, `vendor/`, the Pillow wheel for this Python version (`wheels/`), `Asenna.bat`, `Shakkilauta.bat`, `LICENSE` and `NOTICE`. Left out: `settings.json` (your own paths), `error.log`, `Games/`, `engines/` (Stockfish), tests, tools and `.git`. On the other computer: install Python 3.15 (same bitness), unpack the zip, run `Asenna.bat` once (installs Pillow from `wheels/`, no network needed), then `Shakkilauta.bat`. `--no-wheels` makes a smaller zip; `Asenna.bat` then downloads Pillow.
+writes `dist\Chessboard-<date>.zip`: the program, `vendor/`, the Pillow wheel for this Python version (`wheels/`), `Install.bat`, `Chessboard.bat`, `LICENSE` and `NOTICE`. Left out: `settings.json` (your own paths), `error.log`, `Games/`, `engines/` (Stockfish), tests, tools and `.git`. On the other computer: install Python 3.15 (same bitness), unpack the zip, run `Install.bat` once (installs Pillow from `wheels/`, no network needed), then `Chessboard.bat`. `--no-wheels` makes a smaller zip; `Install.bat` then downloads Pillow.
 
 ## Python version
 
-Python 3.16 removes `asyncio.DefaultEventLoopPolicy`. The program's own UCI client (`app/engines/uci.py`) does not use it, but the vendored python-chess 1.11.2 does in `chess.engine`, and `chess.pgn` imports `chess.engine`; on 3.16 the program would stop at `import chess.pgn`. `tests/test_python_version.py` watches for this: it is reported as *xfailed* until python-chess is fixed, and fails (XPASS) once an updated python-chess no longer warns. Then update `requirements-vendor.txt`, remove the xfail marker, and relax the 3.15 requirement here and in `shakkilauta.pyw` / `Shakkilauta.bat`.
+Python 3.16 removes `asyncio.DefaultEventLoopPolicy`. The program's own UCI client (`app/engines/uci.py`) does not use it, but the vendored python-chess 1.11.2 does in `chess.engine`, and `chess.pgn` imports `chess.engine`; on 3.16 the program would stop at `import chess.pgn`. `tests/test_python_version.py` watches for this: it is reported as *xfailed* until python-chess is fixed, and fails (XPASS) once an updated python-chess no longer warns. Then update `requirements-vendor.txt`, remove the xfail marker, and relax the 3.15 requirement here and in `chessboard.pyw` / `Chessboard.bat`.
 
 ## F-Secure
 
@@ -121,8 +121,8 @@ The tests cover the model (rules, variations, navigation, take-back), files (PGN
 
 | Path | Contents |
 | --- | --- |
-| `shakkilauta.pyw` | entry point: paths, requirement check, error log, DPI awareness, main window |
-| `Shakkilauta.bat`, `Asenna.bat` | start the program; install Pillow |
+| `chessboard.pyw` | entry point: paths, requirement check, error log, DPI awareness, main window |
+| `Chessboard.bat`, `Install.bat` | start the program; install Pillow |
 | `app/` | application code, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
 | `assets/pieces/cburnett/` | 12 SVG pieces |
 | `assets/sounds/` | event sounds (WAV) |
@@ -134,7 +134,7 @@ The tests cover the model (rules, variations, navigation, take-back), files (PGN
 | `engines/stockfish/` | `stockfish.exe` (downloaded separately, not part of the code), its licence `Copying.txt` and a `README.txt` placeholder note |
 | `tests/` | pytest tests |
 | `vendor/` | python-chess (do not edit) |
-| `docs/` | developer documentation; `docs/plans/` holds the original plans (in Finnish, historical) |
+| `docs/` | developer documentation; `docs/plans/` holds the original plans (historical) |
 | `Games/` | default folder for saved games |
 | `settings.json` | settings |
 
@@ -142,4 +142,4 @@ The tests cover the model (rules, variations, navigation, take-back), files (PGN
 
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): structure, data flow and where new code belongs.
 - [docs/EXTENDING.md](docs/EXTENDING.md): how to add a mode, a chess engine, an opening, an endgame position or an engine level.
-- [docs/plans/](docs/plans/): the original plans (in Finnish), kept for the reasons behind the choices: [Shakkilauta_suunnitelma.md](docs/plans/Shakkilauta_suunnitelma.md) (technology choices), [Pelikone_suunnitelma.md](docs/plans/Pelikone_suunnitelma.md) (modes, Stockfish, where libraries are installed), [Avausteoria_suunnitelma.md](docs/plans/Avausteoria_suunnitelma.md) (Learn Openings), [Loppupeli_suunnitelma.md](docs/plans/Loppupeli_suunnitelma.md) (Endgame Practice).
+- [docs/plans/](docs/plans/): the original plans, kept for the reasons behind the choices: [Chessboard_plan.md](docs/plans/Chessboard_plan.md) (technology choices), [Engine_plan.md](docs/plans/Engine_plan.md) (modes, Stockfish, where libraries are installed), [Opening_theory_plan.md](docs/plans/Opening_theory_plan.md) (Learn Openings), [Endgame_plan.md](docs/plans/Endgame_plan.md) (Endgame Practice).

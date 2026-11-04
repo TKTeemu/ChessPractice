@@ -1,3 +1,3 @@
 # Needed to run the program; installed into the system Python:
-#   python -m pip install -r requirements-global.txt   (or Asenna.bat)
+#   python -m pip install -r requirements-global.txt   (or Install.bat)
 pillow==12.3.0

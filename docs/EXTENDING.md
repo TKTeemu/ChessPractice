@@ -2,7 +2,7 @@
 
 This guide explains how to add a new **mode** (a way of using the board, such as the free board or playing the computer), a new **engine** (something that chooses moves), a new **opening** for Learn Openings and a new **endgame position** for Endgame Practice. Read [ARCHITECTURE.md](ARCHITECTURE.md) first: the layers, the rule that the model changes only through `MainWindow`, and `refresh()` all still apply.
 
-> Status: implemented as described in [Pelikone_suunnitelma.md](plans/Pelikone_suunnitelma.md) (historical); the differences are listed at the end of this file. Update this file when the code changes.
+> Status: implemented as described in [Engine_plan.md](plans/Engine_plan.md) (historical); the differences are listed at the end of this file. Update this file when the code changes.
 
 ## Overview
 
@@ -324,9 +324,9 @@ Edit the level table in the engine's file. Keep the `key` of existing levels unc
 New code should use only the standard library and the packages already listed in the README. If a new library is unavoidable:
 
 - Pure Python and specific to this program → `python -m pip install --target vendor <package>`, and add it with a fixed version to `requirements-vendor.txt`.
-- A general compiled package the program needs → the system Python, added to `requirements-global.txt` (`tools/make_dist.py` then puts its wheel in the zip, and `Asenna.bat` installs it).
+- A general compiled package the program needs → the system Python, added to `requirements-global.txt` (`tools/make_dist.py` then puts its wheel in the zip, and `Install.bat` installs it).
 - A development tool → the system Python, added to `requirements-dev.txt`.
-- Add a missing-package message for it to `REQUIREMENTS` in `shakkilauta.pyw`, and its licence to `NOTICE`.
+- Add a missing-package message for it to `REQUIREMENTS` in `chessboard.pyw`, and its licence to `NOTICE`.
 - Never a venv (it creates `python.exe` copies), and avoid packages whose command-line tools create `.exe` launchers; run tools as `python -m <module>`.
 
 ## Differences from the plan
@@ -339,7 +339,7 @@ New code should use only the standard library and the packages already listed in
 - The engine `Random moves` is registered after Stockfish, so a game can be played without Stockfish.
 - New setting `vs_start` remembers the dialog's "Start from" choice. The `vs_…` and `learn_…` settings live in the modes' `SETTINGS`, not in `settings.DEFAULTS`.
 
-Endgame Practice, compared with [Loppupeli_suunnitelma.md](plans/Loppupeli_suunnitelma.md):
+Endgame Practice, compared with [Endgame_plan.md](plans/Endgame_plan.md):
 
 - The mode is called *Endgame Practice…* (key `end_practice`), and the success light is above the board on the right, in place of the material score, as decided in the plan's open questions.
 - `Mode.light()` was added for the light, and `EngineGameMode.engine_result()` so that a mode can receive analyses. `Engine.analyse` takes a `Level` (for the engine options) instead of a think time.
@@ -347,7 +347,7 @@ Endgame Practice, compared with [Loppupeli_suunnitelma.md](plans/Loppupeli_suunn
 - The engine's ponder move is used as the suggestion off the solution, so a separate analysis is needed only at the start or right after the solution ends.
 - Positions: the textbook positions of levels 1–3 and Lasker–Reichhelm were set up by hand; their solution lines, where not written by hand, are Stockfish's main lines. Apart from Saavedra, Réti and Lasker–Reichhelm, levels 4 and 5 are positions found by a search with Stockfish (random realistic material, exactly one move keeps the goal; on level 5 at least twice in a row), not master games or published studies. Their source is empty, so they show *Classic endgame position*.
 
-Learn Openings, compared with [Avausteoria_suunnitelma.md](plans/Avausteoria_suunnitelma.md):
+Learn Openings, compared with [Opening_theory_plan.md](plans/Opening_theory_plan.md):
 
 - `details_open` is a dict `{mode key: open}` that also stores modes where the section was closed, so that `Mode.show_details` can be the default for modes not yet toggled.
 - New Game in Learn Openings does not ask a separate question; the opening dialog opens, and choosing Start asks to save the current game if it has changes (Cancel keeps it, and the game goes on).
