@@ -4,6 +4,8 @@ An offline chessboard for analysing games (legal moves only, variations, comment
 
 Copyright (C) 2026 Teemu. Licensed under the GNU General Public License v3.0 or later; see [LICENSE](LICENSE) and [Licences and sharing](#licences-and-sharing).
 
+**Installing on Windows 11: follow the step-by-step instructions in [INSTALL.txt](INSTALL.txt).** No programming knowledge is needed.
+
 The first part of this file is for **using** the program; the second part, from [For developers](#for-developers), is for changing it.
 
 ## Requirements
@@ -12,8 +14,8 @@ The first part of this file is for **using** the program; the second part, from 
 | --- | --- | --- |
 | **Python 3.15** (64-bit) with Tcl/Tk | python.org | Exactly 3.15: Python 3.16 does not work yet (see [Python version](#python-version)). `python -m tkinter` opens a test window if Tk is installed. |
 | Pillow | `Install.bat` | image handling; the only package installed into Python |
-| python-chess 1.11.2 | `vendor/` folder | rules, PGN, FEN; comes with the program folder |
-| Stockfish (optional) | `engines/stockfish/stockfish.exe` | Play vs Computer, Learn Openings and Endgame Practice at real strength; see [Stockfish](#stockfish) |
+| python-chess 1.11.2 | `vendor/` folder, filled by `Install.bat` | rules, PGN, FEN; already included in a zip from `tools/make_dist.py` |
+| Stockfish (optional) | `engines/stockfish/stockfish.exe`, downloaded by `Install.bat` | Play vs Computer, Learn Openings and Endgame Practice at real strength; see [Stockfish](#stockfish) |
 
 ## Running
 
@@ -40,7 +42,7 @@ Settings are kept in `settings.json` in the program folder and saved a few secon
 
 ## Stockfish
 
-The program runs without Stockfish (the dialogs then offer only *Random moves*). To play Stockfish, download it once:
+The program runs without Stockfish (the dialogs then offer only *Random moves*). `Install.bat` downloads Stockfish 19, checks its SHA-256 and puts it in the right place. To do the same by hand:
 
 1. From [stockfishchess.org/download](https://stockfishchess.org/download/) (GitHub release), take the Windows build `stockfish-windows-x86-64-universal.zip`. Since Stockfish 19 this one build picks the right code for the CPU itself.
 2. Unpack it into a new, empty folder and compare `Get-FileHash <zip>` with the checksum on the release page.
@@ -89,7 +91,7 @@ py -3.15 -m pip install --target vendor -r requirements-vendor.txt
 | `requirements-dev.txt` | the system Python | tests (pytest) |
 | `requirements-vendor.txt` | `vendor/` | python-chess |
 
-python-chess is installed into the program folder instead of a venv, so that no new exe files are created on disk (F-Secure); the reasons are in [docs/plans/Engine_plan.md](docs/plans/Engine_plan.md). `vendor/`, the engine exe files and `engines/syzygy/` are not in git (`.gitignore`), so a fresh clone needs the commands above and the network. `engines/stockfish/` itself is in git with its `README.txt` and `Copying.txt`; only `stockfish.exe` has to be downloaded.
+python-chess is installed into the program folder instead of a venv, so that no new exe files are created on disk (F-Secure); the reasons are in [docs/plans/Engine_plan.md](docs/plans/Engine_plan.md). `vendor/`, the engine exe files and `engines/syzygy/` are not in git (`.gitignore`), so a fresh clone needs the commands above (or `Install.bat`) and the network. `engines/stockfish/` itself is in git with its `README.txt` and `Copying.txt`; only `stockfish.exe` has to be downloaded. When a new Stockfish or Python 3.15 release should be used, update the URLs and the checksum at the top of `Install.bat` and the links in `INSTALL.txt`.
 
 The Cburnett pieces are drawn with Tk's own SVG support (Tk 9), so no SVG library is needed.
 
@@ -122,7 +124,7 @@ The tests cover the model (rules, variations, navigation, take-back), files (PGN
 | Path | Contents |
 | --- | --- |
 | `chessboard.pyw` | entry point: paths, requirement check, error log, DPI awareness, main window |
-| `Chessboard.bat`, `Install.bat` | start the program; install Pillow |
+| `Chessboard.bat`, `Install.bat`, `INSTALL.txt` | start the program; set up everything it needs (Pillow, python-chess, Stockfish); installation instructions for end users |
 | `app/` | application code, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
 | `assets/pieces/cburnett/` | 12 SVG pieces |
 | `assets/sounds/` | event sounds (WAV) |

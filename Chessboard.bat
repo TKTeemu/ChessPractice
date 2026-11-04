@@ -13,5 +13,5 @@ if not errorlevel 1 (
     exit /b
 )
 echo Python 3.15 was not found.
-echo Install it from https://www.python.org/downloads/ and run this file again.
+echo Double-click Install.bat first. INSTALL.txt has the full instructions.
 pause

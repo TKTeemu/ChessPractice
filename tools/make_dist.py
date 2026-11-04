@@ -5,11 +5,11 @@
 
 The zip contains everything except Python itself and Stockfish: the application, the assets,
 python-chess (vendor/), the Pillow wheel for this Python version (wheels/, installed offline
-by Install.bat), the launchers and the licence files. Left out: settings.json (your own paths),
-error.log, Games/, engines/, tests, tools, __pycache__ and .git.
+by Install.bat), the launchers, INSTALL.txt and the licence files. Left out: settings.json (your
+own paths), error.log, Games/, the engine exe, tests, tools, __pycache__ and .git.
 
 Stockfish is left out on purpose: GPL-3.0 requires its source code to go with the exe when it
-is given to someone else. The README tells the recipient how to download it.
+is given to someone else. Install.bat downloads it on the recipient's computer.
 """
 
 import argparse
@@ -22,8 +22,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 TOP = "Chessboard"   # folder name inside the zip
-INCLUDE = ["app", "assets", "vendor", "chessboard.pyw", "Chessboard.bat", "Install.bat",
-           "README.md", "LICENSE", "NOTICE", "requirements-global.txt", "requirements-vendor.txt"]
+INCLUDE = ["app", "assets", "vendor", "chessboard.pyw", "Chessboard.bat", "Install.bat", "INSTALL.txt",
+           "README.md", "LICENSE", "NOTICE", "requirements-global.txt", "requirements-vendor.txt",
+           "engines/stockfish/Copying.txt", "engines/stockfish/README.txt"]
 SKIP_DIRS = {"__pycache__"}
 SKIP_SUFFIXES = {".pyc", ".pyo"}
 
@@ -73,7 +74,7 @@ def main():
     print(f"Wrote {target} ({len(files)} files, {len(wheels)} wheels, {target.stat().st_size // 1024} KB)")
     print(f"Python on the target computer: {sys.version_info.major}.{sys.version_info.minor} "
           f"({'64' if sys.maxsize > 2**32 else '32'}-bit), the same as here, because of the Pillow wheel.")
-    print("Not included: Stockfish (download it on the target computer, see README).")
+    print("Not included: Stockfish (Install.bat downloads it on the target computer, see INSTALL.txt).")
 
 
 if __name__ == "__main__":

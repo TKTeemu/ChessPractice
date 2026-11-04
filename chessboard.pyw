@@ -18,8 +18,8 @@ REQUIREMENTS = [
     ("tkinter", "Tcl/Tk is missing. Reinstall Python 3.15 from python.org with "
                 "\"tcl/tk and IDLE\" selected."),
     ("PIL", "Pillow is missing. Run Install.bat, or: python -m pip install -r requirements-global.txt"),
-    ("chess.pgn", "python-chess is missing from the vendor folder. Copy the whole program folder "
-                  "again, or: python -m pip install --target vendor -r requirements-vendor.txt"),
+    ("chess.pgn", "python-chess is missing from the vendor folder. Run Install.bat, "
+                  "or: python -m pip install --target vendor -r requirements-vendor.txt"),
 ]
 
 

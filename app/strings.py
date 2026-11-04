@@ -132,8 +132,8 @@ ENGINE_RANDOM = "Random moves"
 LEVEL_MAXIMUM = "Maximum"
 LEVEL_RANDOM = ""
 LEVEL_NONE = "–"   # shown in the dialog for a level without a label
-STOCKFISH_MISSING = ("Stockfish was not found. Copy stockfish.exe into\n{folder}\n"
-                     "or set \"engine_path\" in settings.json.")
+STOCKFISH_MISSING = ("Stockfish was not found. Run Install.bat, or copy stockfish.exe into\n{folder}\n"
+                     "(see INSTALL.txt), or set \"engine_path\" in settings.json.")
 
 # Play vs Computer dialog
 VS_TITLE = "Play vs Computer"

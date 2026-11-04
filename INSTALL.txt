@@ -1,0 +1,196 @@
+HOW TO INSTALL CHESSBOARD ON WINDOWS 11
+=======================================
+
+Chessboard is a free chess program for analysing games, playing against
+the computer, and practising openings and endgames.
+
+You do not need any programming knowledge. Everything is done by
+clicking. It takes about 15 minutes.
+
+You need:
+  - a Windows 11 computer
+  - an internet connection
+  - at least 500 MB of free disk space
+
+There are four steps. Please do them in this order.
+
+
+STEP 1: DOWNLOAD AND UNPACK CHESSBOARD
+--------------------------------------
+Skip the download if you already have the zip file.
+
+  1. Open this page in your web browser:
+     https://github.com/TKTeemu/ChessPractice
+
+  2. Click the green "Code" button, then "Download ZIP".
+
+  3. Open your Downloads folder and find "ChessPractice-main.zip".
+
+  4. Right-click the zip file and choose "Extract All...".
+     Then click "Extract".
+     IMPORTANT: The program will not work from inside the zip file.
+     It must be extracted.
+
+  5. Open the new folder. If there is another "ChessPractice-main"
+     folder inside it, open that one too. You are in the right place
+     when you can see the files "Install.bat" and "Chessboard.bat".
+
+     You can move this folder somewhere else, such as Documents, if you
+     want to. Do this now, before the next steps.
+
+
+STEP 2: INSTALL PYTHON 3.15
+---------------------------
+Python is a free program that Chessboard needs in order to run. You
+install it once and never have to open it yourself.
+
+  1. Download the Python installer by opening this link in your browser:
+     https://www.python.org/ftp/python/3.15.2/python-3.15.2-amd64.exe
+
+  2. Open the downloaded file "python-3.15.2-amd64.exe".
+
+  3. At the bottom of the first screen, tick the box
+     "Add python.exe to PATH".
+
+  4. Click "Install Now". If Windows asks for permission, click "Yes".
+
+  5. When it says "Setup was successful", click "Close".
+
+If the installer shows "Modify", "Repair" and "Uninstall" instead, this
+Python is already installed. Click "Cancel" and go to Step 3.
+
+Other versions: if your computer already has a different Python version,
+such as 3.14 or 3.16, keep it and still install this one. They can live
+side by side. Chessboard needs Python 3.15.
+
+
+STEP 3: RUN THE SETUP
+---------------------
+This step installs the remaining parts, including Stockfish, the chess
+engine that plays against you. It downloads Stockfish, gives it the
+correct name and puts it in the correct folder for you.
+
+  1. In the Chessboard folder from Step 1, double-click "Install.bat".
+     (Windows may hide the ".bat" and show just "Install".)
+
+  2. Windows may show a blue box saying "Windows protected your PC".
+     This is normal for files downloaded from the internet. Click
+     "More info", then "Run anyway". If you see a box asking "Do you
+     want to run this file?" instead, click "Run".
+
+  3. A black window opens and shows the progress in four parts.
+     The Stockfish download can take a few minutes. Just wait.
+
+  4. When you see "Everything is ready", press any key on the keyboard.
+     The window closes.
+
+If you see a message instead of "Everything is ready", read what it says
+and follow it. See also "If something goes wrong" below.
+
+
+STEP 4: START CHESSBOARD
+------------------------
+  1. Double-click "Chessboard.bat". The chessboard opens.
+     Use this file every time you want to play. If Windows shows the
+     blue box again, click "More info", then "Run anyway".
+
+  2. Check that Stockfish works: open the "Game" menu and choose
+     "Play vs Computer...". You should be able to choose Stockfish as the
+     opponent. If only "Random moves" is offered, see "Installing
+     Stockfish by hand" below.
+
+Tip: to get an icon on your desktop, right-click "Chessboard.bat", then
+choose "Show more options", then "Send to", then "Desktop (create
+shortcut)".
+
+The installation is now complete.
+
+
+INSTALLING STOCKFISH BY HAND
+----------------------------
+You only need this if Install.bat could not install Stockfish, for
+example because of a firewall.
+
+The file must end up in exactly this place, with exactly this name:
+
+    (your Chessboard folder)\engines\stockfish\stockfish.exe
+
+  1. Make file extensions visible, so that you can see the full name of
+     the file: in File Explorer, click "View", then "Show", then
+     "File name extensions".
+
+  2. Download Stockfish by opening this link in your browser:
+     https://github.com/official-stockfish/Stockfish/releases/download/sf_19/stockfish-windows-x86-64-universal.zip
+
+  3. In your Downloads folder, right-click the downloaded zip file,
+     choose "Extract All...", then click "Extract".
+
+  4. Open the new folder, and then the "stockfish" folder inside it.
+
+  5. Find the file "stockfish-windows-x86-64-universal.exe". Right-click
+     it and choose the Copy icon.
+
+  6. Open your Chessboard folder, then "engines", then "stockfish".
+     Right-click an empty area and choose the Paste icon.
+
+  7. Right-click the copied file, choose the Rename icon, and change the
+     name to exactly:
+
+         stockfish.exe
+
+     Check that the name is not "stockfish.exe.exe".
+
+  8. Double-click "Install.bat" again. The last part should now say:
+
+         Done: engines\stockfish\stockfish.exe
+
+     Install.bat also tests that Stockfish runs. If the name or the folder
+     inside "engines\stockfish" is slightly wrong, it corrects them.
+
+When you are finished, the "engines\stockfish" folder should contain:
+
+    Copying.txt
+    README.txt
+    stockfish.exe
+
+
+IF SOMETHING GOES WRONG
+-----------------------
+"The program files were not found next to this file"
+    You are still inside the zip file. Go back to Step 1 and use
+    "Extract All...".
+
+"Python 3.15 is not installed" even though you installed it
+    Restart the computer and run Install.bat again. If that does not
+    help, open the Python installer again and choose "Repair".
+
+"Windows protected your PC"
+    Click "More info", then "Run anyway".
+
+The setup says it failed, or a download does not work
+    Check your internet connection and run Install.bat again. It is safe
+    to run as many times as you like.
+
+Your antivirus program blocks or removes stockfish.exe
+    Stockfish is a well-known free chess engine. Allow "stockfish.exe" in
+    your antivirus settings, then run Install.bat again.
+
+A box says "Chessboard cannot start"
+    Run Install.bat again and read the last message it shows.
+
+Double-clicking Chessboard.bat does nothing
+    Look in the Chessboard folder for a file called "error.log". If you
+    ask someone for help, send them that file.
+
+
+REMOVING CHESSBOARD
+-------------------
+  1. Save anything you want to keep from the "Games" folder inside the
+     Chessboard folder, if there is one.
+
+  2. Delete the Chessboard folder.
+
+  3. To remove Python too, open Settings, then "Apps", then "Installed
+     apps". Uninstall "Python 3.15.2" and "Python Install Manager" or
+     "Python Launcher" if listed. Keep them if you use other programs
+     that need Python.
