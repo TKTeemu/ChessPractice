@@ -12,7 +12,7 @@ The first part of this file is for **using** the program; the second part, from 
 
 | What | Where from | Notes |
 | --- | --- | --- |
-| **Python 3.15** (64-bit) with Tcl/Tk | python.org | Exactly 3.15: Python 3.16 does not work yet (see [Python version](#python-version)). `python -m tkinter` opens a test window if Tk is installed. |
+| **Python 3.15** (64-bit) with Tcl/Tk | python.org | Exactly 3.15: Python 3.16 does not work yet (see [docs/MAINTENANCE.md](docs/MAINTENANCE.md#moving-to-a-new-python-minor-version)). `python -m tkinter` opens a test window if Tk is installed. |
 | Pillow | `Install.bat` | image handling; the only package installed into Python |
 | python-chess 1.11.2 | `vendor/` folder, filled by `Install.bat` | rules, PGN, FEN; already included in a zip from `tools/make_dist.py` |
 | Stockfish (optional) | `engines/stockfish/stockfish.exe`, downloaded by `Install.bat` | Play vs Computer, Learn Openings and Endgame Practice at real strength; see [Stockfish](#stockfish) |
@@ -77,71 +77,21 @@ The licence costs nothing: it is just the text file; nothing is registered or bo
 
 # For developers
 
-## Installing for development
+To set up a development copy:
 
 ```
 py -3.15 -m pip install -r requirements-global.txt
 py -3.15 -m pip install -r requirements-dev.txt
 py -3.15 -m pip install --target vendor -r requirements-vendor.txt
-```
-
-| File | Installed into | Contents |
-| --- | --- | --- |
-| `requirements-global.txt` | the system Python | what the program needs to run (Pillow) |
-| `requirements-dev.txt` | the system Python | tests (pytest) |
-| `requirements-vendor.txt` | `vendor/` | python-chess |
-
-python-chess is installed into the program folder instead of a venv, so that no new exe files are created on disk (F-Secure); the reasons are in [docs/plans/Engine_plan.md](docs/plans/Engine_plan.md). `vendor/`, the engine exe files and `engines/syzygy/` are not in git (`.gitignore`), so a fresh clone needs the commands above (or `Install.bat`) and the network. `engines/stockfish/` itself is in git with its `README.txt` and `Copying.txt`; only `stockfish.exe` has to be downloaded. When a new Stockfish or Python 3.15 release should be used, update the URLs and the checksum at the top of `Install.bat` and the links in `INSTALL.txt`.
-
-The Cburnett pieces are drawn with Tk's own SVG support (Tk 9), so no SVG library is needed.
-
-## Copying the program to another computer
-
-```
-py -3.15 tools\make_dist.py
-```
-
-writes `dist\Chessboard-<date>.zip`: the program, `vendor/`, the Pillow wheel for this Python version (`wheels/`), `Install.bat`, `Chessboard.bat`, `LICENSE` and `NOTICE`. Left out: `settings.json` (your own paths), `error.log`, `Games/`, `engines/` (Stockfish), tests, tools and `.git`. On the other computer: install Python 3.15 (same bitness), unpack the zip, run `Install.bat` once (installs Pillow from `wheels/`, no network needed), then `Chessboard.bat`. `--no-wheels` makes a smaller zip; `Install.bat` then downloads Pillow.
-
-## Python version
-
-Python 3.16 removes `asyncio.DefaultEventLoopPolicy`. The program's own UCI client (`app/engines/uci.py`) does not use it, but the vendored python-chess 1.11.2 does in `chess.engine`, and `chess.pgn` imports `chess.engine`; on 3.16 the program would stop at `import chess.pgn`. `tests/test_python_version.py` watches for this: it is reported as *xfailed* until python-chess is fixed, and fails (XPASS) once an updated python-chess no longer warns. Then update `requirements-vendor.txt`, remove the xfail marker, and relax the 3.15 requirement here and in `chessboard.pyw` / `Chessboard.bat`.
-
-## F-Secure
-
-The program creates no exe files: no venv, and packages are run as `python -m <module>`. Stockfish is the only exe; after installing it, start one game and check the F-Secure event log. If an exception is needed, add only `stockfish.exe`. The checklist is in [docs/EXTENDING.md](docs/EXTENDING.md#f-secure-checklist-for-an-engine-exe).
-
-## Tests
-
-```
 py -3.15 -m pytest
 ```
 
-The tests cover the model (rules, variations, navigation, take-back), files (PGN and FEN round trips), settings, modes (including games started with `start(config)` against a fake window), the chess clock, the rules of a game against the computer, the opening book and the rules of opening training, the endgame positions (every file loads, the levels, drawing without repeats) and the rules of endgame practice (the success light, the engine as judge, take-back), and the engines (the UCI client against a small fake engine in `tests/fake_uci.py`). The Stockfish tests are skipped when `engines/stockfish/` has no exe. The windows themselves have no automated tests.
+A healthy test run is all passed plus exactly 1 xfailed. The developer documentation is in `docs/` in the repository (the zip from `tools/make_dist.py` leaves it out):
 
-## Folders
-
-| Path | Contents |
+| Document | Read it to |
 | --- | --- |
-| `chessboard.pyw` | entry point: paths, requirement check, error log, DPI awareness, main window |
-| `Chessboard.bat`, `Install.bat`, `INSTALL.txt` | start the program; set up everything it needs (Pillow, python-chess, Stockfish); installation instructions for end users |
-| `app/` | application code, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
-| `assets/pieces/cburnett/` | 12 SVG pieces |
-| `assets/sounds/` | event sounds (WAV) |
-| `assets/openings/` | the opening book: one PGN game per opening; see [docs/EXTENDING.md](docs/EXTENDING.md) |
-| `tools/make_dist.py` | builds the zip for another computer |
-| `tools/make_sounds.py` | regenerates the sounds: `python tools\make_sounds.py` |
-| `tools/check_endgames.py` | checks the positions in `assets/endgames/` with Stockfish (goal, solution, wrong tries): `python tools\check_endgames.py` |
-| `tools/extract_pieces.py` | writes the SVG pieces from the data bundled with python-chess |
-| `engines/stockfish/` | `stockfish.exe` (downloaded separately, not part of the code), its licence `Copying.txt` and a `README.txt` placeholder note |
-| `tests/` | pytest tests |
-| `vendor/` | python-chess (do not edit) |
-| `docs/` | developer documentation; `docs/plans/` holds the original plans (historical) |
-| `Games/` | default folder for saved games |
-| `settings.json` | settings |
-
-## Documentation
-
-- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): structure, data flow and where new code belongs.
-- [docs/EXTENDING.md](docs/EXTENDING.md): how to add a mode, a chess engine, an opening, an endgame position or an engine level.
-- [docs/plans/](docs/plans/): the original plans, kept for the reasons behind the choices: [Chessboard_plan.md](docs/plans/Chessboard_plan.md) (technology choices), [Engine_plan.md](docs/plans/Engine_plan.md) (modes, Stockfish, where libraries are installed), [Opening_theory_plan.md](docs/plans/Opening_theory_plan.md) (Learn Openings), [Endgame_plan.md](docs/plans/Endgame_plan.md) (Endgame Practice).
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | understand the structure, the rules it relies on and how a move flows through it |
+| [docs/EXTENDING.md](docs/EXTENDING.md) | add a mode, an engine, a setting, a command or a library |
+| [docs/DATA_FORMATS.md](docs/DATA_FORMATS.md) | add openings and endgame positions; look up settings, saved PGN headers and permanent keys |
+| [docs/MAINTENANCE.md](docs/MAINTENANCE.md) | run tests and tools, update Python or Stockfish, build the zip, diagnose problems |
+| [docs/DECISIONS.md](docs/DECISIONS.md) | find out why something is the way it is before changing it |
