@@ -248,6 +248,6 @@ def test_headers():
     assert headers["EndgameKey"] == "saavedra" and headers["Difficulty"] == "5"
     assert headers["Composer"] == "Fernando Saavedra" and "Source" not in headers
     game.resign()
-    game.write_result(headers)
+    headers.update(game.result_headers())
     assert headers["Result"] == "0-1" and headers["HintsUsed"] == "0" and headers["TakeBacks"] == "0"
     assert game.light == "fail"

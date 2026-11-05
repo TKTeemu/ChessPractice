@@ -1,9 +1,9 @@
 """TimedGameMode: the shared base of modes in which the computer plays and a chess clock runs.
 
 On top of EngineGameMode: the clock tick and flag fall, the clocks next to the player names,
-the [%clk] comments, Resign (also when the mode is left during a game) and the buttons that
-depend on whether the game runs. `self.game` is a ComputerGame (app/computer_game.py).
-A subclass implements choose() and start(config), which creates the game, calls
+the [%clk] comments, Resign (also when the mode is left during a game) and the Resign and Open
+in Board Mode buttons. `self.game` is a ComputerGame (app/computer_game.py).
+A subclass implements choose() and start(config), which creates the game, calls start_game(),
 start_engine() and start_clock(), and then _next_turn().
 """
 
@@ -12,6 +12,7 @@ from tkinter import messagebox
 import chess
 
 from .. import strings as S
+from .. import widgets
 from ..clock import format_time
 from ..model import END
 from .engine_mode import EngineGameMode
@@ -40,6 +41,9 @@ class TimedGameMode(EngineGameMode):
             return True
         return messagebox.askyesno(S.VS_RESIGN_TITLE, S.VS_RESIGN_PROMPT, parent=self.ctx.root)
 
+    def leaving_changes_game(self):
+        return self._running() and bool(self.ctx.model.game.variations)
+
     def leave(self):
         self.resign()
 
@@ -56,8 +60,7 @@ class TimedGameMode(EngineGameMode):
         self._update_clocks()
 
     def _next_turn(self):
-        if self.game.is_computer_turn(self._tip()):
-            self.computer_turn()
+        super()._next_turn()
         self._update_buttons()
 
     # --- Clock ------------------------------------------------------------
@@ -66,7 +69,7 @@ class TimedGameMode(EngineGameMode):
         self._schedule("tick", TICK_MS, self._tick)
         if self._running() and self.game.clock.flagged() is not None and self.game.check_time(self._tip()):
             self._game_over()
-            self.ctx.refresh()
+            self.ctx.update_status()
             self.ctx.play_sound(END)
         self._update_clocks()
 
@@ -85,7 +88,7 @@ class TimedGameMode(EngineGameMode):
             return
         self.game.resign()
         self._game_over()
-        self.ctx.refresh()
+        self.ctx.update_status()
         self.ctx.play_sound(END)
 
     def _game_over(self):
@@ -95,6 +98,16 @@ class TimedGameMode(EngineGameMode):
 
     # --- UI ---------------------------------------------------------------
 
+    def _grid_game_buttons(self, frame, row):
+        """The Resign and Open in Board Mode buttons, side by side in this row of the frame."""
+        self._buttons = {
+            "resign": widgets.button(frame, S.MODE_RESIGN, self.resign),
+            "open": widgets.button(frame, S.MODE_OPEN_IN_BOARD, self.open_in_board_mode),
+        }
+        self._buttons["resign"].grid(row=row, column=0, sticky="ew", padx=2)
+        self._buttons["open"].grid(row=row, column=1, sticky="ew", padx=2)
+        self._update_buttons()
+
     def _button_states(self):
         """{button name: enabled} for the buttons in self._buttons."""
         running = self._running()
@@ -103,5 +116,4 @@ class TimedGameMode(EngineGameMode):
     def _update_buttons(self):
         states = self._button_states()
         for name, button in self._buttons.items():
-            if button.winfo_exists():
-                button.configure(state="normal" if states.get(name, True) else "disabled")
+            button.configure(state="normal" if states.get(name, True) else "disabled")

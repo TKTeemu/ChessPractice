@@ -2,6 +2,8 @@
 
 import logging
 import sys
+import tempfile
+import time
 import traceback
 from pathlib import Path
 
@@ -9,8 +11,22 @@ APP_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(APP_DIR / "vendor"))
 sys.path.insert(0, str(APP_DIR))
 
-logging.basicConfig(filename=APP_DIR / "error.log", level=logging.ERROR, encoding="utf-8",
-                    format="%(asctime)s %(levelname)s %(message)s")
+
+def setup_logging():
+    """Log to error.log in the program folder or, if that is read-only, in the temp folder.
+    Returns the path of the log."""
+    for path in (APP_DIR / "error.log", Path(tempfile.gettempdir()) / "chessboard-error.log"):
+        try:
+            logging.basicConfig(filename=path, level=logging.ERROR, encoding="utf-8",
+                                format="%(asctime)s %(levelname)s %(message)s", force=True)
+            return path
+        except OSError:
+            continue
+    return None   # nowhere to write: logging falls back to stderr, and the program still runs
+
+
+LOG_PATH = setup_logging()
+ERROR_QUIET_SECONDS = 30   # a repeating error (a timer) shows its message box only this often
 
 REQUIRED_PYTHON = (3, 15)
 # (module, what to tell the user if it cannot be imported)
@@ -53,6 +69,31 @@ def log_exception(exc_type, exc, tb):
         sys.stderr.write(text)
 
 
+def callback_error_reporter(root):
+    """For root.report_callback_exception: an error in a button or timer callback does not stop
+    the program, so without a message the user would just see nothing happen."""
+    import tkinter as tk
+    from tkinter import messagebox
+
+    state = {"open": False, "last": -ERROR_QUIET_SECONDS}
+
+    def report(exc_type, exc, tb):
+        log_exception(exc_type, exc, tb)
+        if state["open"] or time.monotonic() - state["last"] < ERROR_QUIET_SECONDS:
+            return
+        state["open"] = True
+        try:
+            messagebox.showerror("Chessboard", f"Something went wrong: {exc}\n\n"
+                                               f"The program keeps running, but save your game "
+                                               f"soon. The details are in\n{LOG_PATH}", parent=root)
+        except tk.TclError:   # the window is already closing
+            pass
+        state["open"] = False
+        state["last"] = time.monotonic()
+
+    return report
+
+
 def enable_dpi_awareness():
     """Draw sharply on scaled displays instead of letting Windows stretch a blurry bitmap."""
     try:
@@ -64,12 +105,12 @@ def enable_dpi_awareness():
 
 def main():
     problems = missing_requirements()
-    if problems:
+    if problems or sys.version_info[:2] != REQUIRED_PYTHON:
         version = ".".join(map(str, sys.version_info[:3]))
         wanted = ".".join(map(str, REQUIRED_PYTHON))
         show_error("Chessboard cannot start",
                    f"Chessboard needs Python {wanted}. This is Python {version} ({sys.executable}).\n\n"
-                   + "\n\n".join(problems))
+                   + "\n\n".join(problems or ["Run Install.bat, which installs the right version."]))
         sys.exit(1)
 
     import tkinter as tk
@@ -79,7 +120,7 @@ def main():
     sys.excepthook = log_exception
     enable_dpi_awareness()
     root = tk.Tk()
-    root.report_callback_exception = log_exception
+    root.report_callback_exception = callback_error_reporter(root)
     MainWindow(root, APP_DIR)
     root.mainloop()
 
@@ -89,6 +130,5 @@ if __name__ == "__main__":
         main()
     except Exception:
         log_exception(*sys.exc_info())
-        show_error("Chessboard", f"Chessboard stopped because of an error. The details are in\n"
-                                 f"{APP_DIR / 'error.log'}")
+        show_error("Chessboard", f"Chessboard stopped because of an error. The details are in\n{LOG_PATH}")
         raise

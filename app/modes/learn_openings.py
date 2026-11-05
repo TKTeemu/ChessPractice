@@ -2,7 +2,7 @@
 
 The rules live in LearningGame and the book in openings.py; this class connects them to the
 window: the opening dialog, book moves after a short pause, the engine worker (via
-EngineGameMode), suggestion arrows, Take Back (← and the ◀ button) and the panel with Open in Board Mode.
+EngineGameMode), suggestion arrows and the panel with Open in Board Mode.
 """
 
 import random
@@ -15,13 +15,12 @@ from .. import strings as S
 from .. import widgets
 from ..dialogs import choose_opening
 from ..learning_game import LearningGame
-from ..openings import OpeningBook, OpeningLine
+from ..openings import OpeningLine
 from .base import MenuItem
 from .engine_mode import EngineGameMode
 
 BOOK_DELAY_MS = 400   # a book reply waits a moment, so that it is seen as a separate move
-SUGGEST_MOVES_RANGE = (10, 15)
-CHOICES = ("opening", "role", "engine", "level", "vary")   # dialog choices, stored as learn_<choice>
+CHOICES = ("opening", "role", "engine", "level", "vary", "suggest_moves")   # stored as settings learn_<choice>
 
 
 class LearnOpeningsMode(EngineGameMode):
@@ -40,7 +39,6 @@ class LearnOpeningsMode(EngineGameMode):
 
     def __init__(self, ctx):
         super().__init__(ctx)
-        self._book = None
         self._labels = {}
         self._buttons = {}
         self._suggest_var = None
@@ -48,19 +46,11 @@ class LearnOpeningsMode(EngineGameMode):
 
     # --- Life cycle -------------------------------------------------------
 
-    def book_folder(self):
-        return self.ctx.app_dir / "assets" / "openings"
-
-    def _load_book(self):
-        if self._book is None:
-            self._book = OpeningBook.load(self.book_folder())
-        return self._book
-
     def choose(self):
         ctx = self.ctx
-        book = self._load_book()
+        book = ctx.assets.opening_book()
         if not book.openings:
-            messagebox.showerror(S.LEARN_TITLE, S.LEARN_NO_BOOK.format(folder=self.book_folder()),
+            messagebox.showerror(S.LEARN_TITLE, S.LEARN_NO_BOOK.format(folder=ctx.assets.opening_folder),
                                  parent=ctx.root)
             return None
         available, notes = self.engine_choices()
@@ -75,17 +65,15 @@ class LearnOpeningsMode(EngineGameMode):
         for key in CHOICES:
             settings[f"learn_{key}"] = config[key]
 
-        opening = self._load_book().opening(config["opening"])
+        opening = ctx.assets.opening_book().opening(config["opening"])
         engine = self.make_engine(config["engine"])
         level = engine.level(config["level"])
         user_color = opening.side if config["role"] == "opening" else not opening.side
-        low, high = SUGGEST_MOVES_RANGE
         self.game = LearningGame(OpeningLine(opening), user_color, f"{engine.name} {level.label}".strip(),
                                  vary=config["vary"], rng=random.Random(),
-                                 suggest_moves=min(high, max(low, settings["learn_suggest_moves"])))
+                                 suggest_moves=config["suggest_moves"])
 
-        ctx.new_game(None)
-        self.game.write_headers(ctx.model.headers)
+        self.start_game()
         ctx.set_flipped(user_color == chess.BLACK)
         self.start_engine(engine, level)
         self._next_turn()
@@ -109,7 +97,7 @@ class LearnOpeningsMode(EngineGameMode):
     def after_move(self):
         model = self.ctx.model
         node = model.node
-        self.game.move_played(node.parent.board(), node.move, model.board, suggest=self._suggest())
+        self.game.move_played(model.board, suggest=self._suggest())
         if self.game.last_comment and not node.comment:
             model.set_comment(node, self.game.last_comment)
         if self.game.over:
@@ -119,9 +107,7 @@ class LearnOpeningsMode(EngineGameMode):
         self._update_panel()
 
     def _next_turn(self):
-        board = self._tip()
-        if self.game.is_computer_turn(board):
-            self.computer_turn()
+        super()._next_turn()
         self._update_panel()
 
     def computer_turn(self):
@@ -130,18 +116,6 @@ class LearnOpeningsMode(EngineGameMode):
             self.request_engine_move()
         else:
             self.play_computer_move(move, BOOK_DELAY_MS)
-
-    def take_back(self):
-        if self.game is None:
-            return
-        self.cancel_computer_move()
-        if self.ctx.take_back(self.game.user_color):
-            self.game.took_back(self._tip())
-            headers = self.ctx.model.headers
-            headers["Result"] = "*"
-            headers.pop("Termination", None)   # e.g. after an engine error
-            self._next_turn()
-            self.ctx.refresh()
 
     # --- UI ---------------------------------------------------------------
 
@@ -170,14 +144,10 @@ class LearnOpeningsMode(EngineGameMode):
 
     def _suggest_changed(self):
         self.ctx.settings["learn_suggest"] = self._suggest_var.get()
-        self.ctx.refresh()
-
-    def can_take_back(self):
-        return self.game is not None and any(
-            node.parent.turn() == self.game.user_color for node in self.ctx.model.game.mainline())
+        self.ctx.update_status()
 
     def _update_panel(self):
-        if not self._labels or not self._labels["name"].winfo_exists() or self.game is None:
+        if not self._labels or self.game is None:
             return
         opening = self.game.opening
         eco = opening.eco.replace("-", "–")

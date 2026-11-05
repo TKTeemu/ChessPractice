@@ -1,8 +1,8 @@
 """Small modal dialogs of the main window: choosing a game, starting a game against
-the computer, choosing an opening to learn and choosing an endgame level."""
+the computer, choosing an opening to learn, choosing an endgame level and locating Stockfish."""
 
 import tkinter as tk
-from tkinter import messagebox, ttk
+from tkinter import filedialog, messagebox, ttk
 
 import chess
 
@@ -25,6 +25,21 @@ def _show_modal(root, top):
     top.geometry(f"+{max(x, 0)}+{max(y, 0)}")
     top.grab_set()
     root.wait_window(top)
+
+
+def _number_box(parent, value, low, high):
+    """A spin box for a whole number. Returns (widget, read), where read() gives the number,
+    kept between low and high; anything that is not a number reads as `value`."""
+    var = tk.IntVar(value=value)
+    widget = tk.Spinbox(parent, from_=low, to=high, width=4, textvariable=var)
+
+    def read():
+        try:
+            return max(low, min(high, var.get()))
+        except tk.TclError:
+            return max(low, min(high, value))
+
+    return widget, read
 
 
 def choose_game(root, games):
@@ -97,7 +112,8 @@ def new_computer_game(root, engines, notes, settings, current_finished):
     """Play vs Computer: engine, level, colour and start position.
 
     `engines` are the available engine classes, `notes` explain the missing ones.
-    Returns {"engine", "level", "color", "start"} (keys as stored in settings) or None.
+    Returns {"engine", "level", "color", "start", "minutes", "increment"} (keys as stored in
+    settings) or None.
     """
     top = _dialog(root, S.VS_TITLE)
     result = {}
@@ -125,9 +141,19 @@ def new_computer_game(root, engines, notes, settings, current_finished):
     if current_finished:
         start_var.set("initial")
 
-    row = 4
-    tk.Label(top, text=S.VS_CLOCK_NOTE.format(minutes=settings["vs_minutes"]), anchor="w",
-             fg=DIALOG_MUTED_FG).grid(row=row, column=0, columnspan=2, sticky="w", padx=12, pady=(8, 0))
+    labelled(4, S.VS_TIME)
+    time_row = tk.Frame(top)
+    time_row.grid(row=4, column=1, sticky="w", padx=(0, 12), pady=4)
+    minutes_box, read_minutes = _number_box(time_row, settings["vs_minutes"], 1, 180)
+    increment_box, read_increment = _number_box(time_row, settings["vs_increment"], 0, 60)
+    minutes_box.pack(side="left")
+    tk.Label(time_row, text=S.VS_MINUTES).pack(side="left", padx=6)
+    increment_box.pack(side="left")
+    tk.Label(time_row, text=S.VS_INCREMENT).pack(side="left", padx=6)
+
+    row = 5
+    tk.Label(top, text=S.VS_NOTE, anchor="w", fg=DIALOG_MUTED_FG).grid(
+        row=row, column=0, columnspan=2, sticky="w", padx=12, pady=(8, 0))
     for note in notes:
         row += 1
         tk.Label(top, text=note, anchor="w", justify="left", fg=DIALOG_WARNING_FG).grid(
@@ -139,7 +165,8 @@ def new_computer_game(root, engines, notes, settings, current_finished):
             start_var.set("initial")
             return
         engine, level = chosen()
-        result.update(engine=engine, level=level, color=color_var.get(), start=start_var.get())
+        result.update(engine=engine, level=level, color=color_var.get(), start=start_var.get(),
+                      minutes=read_minutes(), increment=read_increment())
         top.destroy()
 
     buttons = tk.Frame(top)
@@ -166,7 +193,8 @@ def _opening_matches(opening, query):
 def choose_opening(root, book, engines, notes, settings):
     """Learn Openings: the opening (grouped list with search), your side, engine and level.
 
-    Returns {"opening", "role", "engine", "level", "vary"} (as stored in settings) or None.
+    Returns {"opening", "role", "engine", "level", "vary", "suggest_moves"} (as stored in
+    settings) or None.
     """
     top = _dialog(root, S.LEARN_TITLE)
     result = {}
@@ -259,8 +287,13 @@ def choose_opening(root, book, engines, notes, settings):
     vary_var = tk.BooleanVar(value=settings["learn_vary"])
     tk.Checkbutton(top, text=S.LEARN_VARY, variable=vary_var).grid(
         row=4, column=0, columnspan=2, sticky="w", padx=12, pady=4)
+    suggest_row = tk.Frame(top)
+    suggest_row.grid(row=5, column=0, columnspan=2, sticky="w", padx=12, pady=4)
+    tk.Label(suggest_row, text=S.LEARN_SUGGEST_UNTIL).pack(side="left")
+    suggest_box, read_suggest = _number_box(suggest_row, settings["learn_suggest_moves"], 10, 15)
+    suggest_box.pack(side="left", padx=6)
 
-    row = 4
+    row = 5
     for note in notes:
         row += 1
         tk.Label(top, text=note, anchor="w", justify="left", fg=DIALOG_WARNING_FG).grid(
@@ -272,7 +305,7 @@ def choose_opening(root, book, engines, notes, settings):
             return
         engine, level = chosen()
         result.update(opening=opening.key, role=role_var.get(), engine=engine, level=level,
-                      vary=vary_var.get())
+                      vary=vary_var.get(), suggest_moves=read_suggest())
         top.destroy()
 
     buttons = tk.Frame(top)
@@ -294,11 +327,11 @@ def choose_opening(root, book, engines, notes, settings):
     return result or None
 
 
-def choose_endgame(root, levels, played, notes, settings):
+def choose_endgame(root, levels, played, solved, notes, settings):
     """Endgame Practice: the difficulty level and the clock.
 
-    `levels` are (difficulty, name, number of positions), `played` maps a difficulty to how
-    many of its positions have been played this run, `notes` explain a missing engine.
+    `levels` are (difficulty, name, number of positions), `played` and `solved` map a difficulty
+    to how many of its positions have been played and solved, `notes` explain a missing engine.
     Returns {"difficulty", "minutes"} or None.
     """
     top = _dialog(root, S.END_TITLE)
@@ -311,15 +344,16 @@ def choose_endgame(root, levels, played, notes, settings):
     for row, (difficulty, name, count) in enumerate(levels, 1):
         tk.Radiobutton(top, text=f"{difficulty}  {name}", value=difficulty, variable=level_var,
                        anchor="w").grid(row=row, column=0, columnspan=2, sticky="w", padx=(24, 12))
-        tk.Label(top, text=S.END_LEVEL_COUNT.format(count=count, played=played.get(difficulty, 0)),
+        tk.Label(top, text=S.END_LEVEL_COUNT.format(count=count, played=played.get(difficulty, 0),
+                                                    solved=solved.get(difficulty, 0)),
                  fg=DIALOG_MUTED_FG, anchor="e").grid(row=row, column=2, sticky="e", padx=(0, 12))
 
     row = len(levels) + 1
     time_row = tk.Frame(top)
     time_row.grid(row=row, column=0, columnspan=3, sticky="w", padx=12, pady=(10, 0))
     tk.Label(time_row, text=S.END_TIME).pack(side="left")
-    minutes_var = tk.IntVar(value=settings["end_minutes"])
-    tk.Spinbox(time_row, from_=1, to=180, width=4, textvariable=minutes_var).pack(side="left", padx=6)
+    minutes_box, read_minutes = _number_box(time_row, settings["end_minutes"], 1, 180)
+    minutes_box.pack(side="left", padx=6)
     tk.Label(time_row, text=S.END_MINUTES).pack(side="left")
 
     for note in notes:
@@ -328,11 +362,7 @@ def choose_endgame(root, levels, played, notes, settings):
             row=row, column=0, columnspan=3, sticky="w", padx=12, pady=(8, 0))
 
     def ok(event=None):
-        try:
-            minutes = max(1, min(180, minutes_var.get()))
-        except tk.TclError:   # not a number
-            minutes = settings["end_minutes"]
-        result.update(difficulty=level_var.get(), minutes=minutes)
+        result.update(difficulty=level_var.get(), minutes=read_minutes())
         top.destroy()
 
     buttons = tk.Frame(top)
@@ -343,3 +373,32 @@ def choose_endgame(root, levels, played, notes, settings):
     top.bind("<Escape>", lambda e: top.destroy())
     _show_modal(root, top)
     return result or None
+
+
+def choose_engine_path(root, current, default_folder):
+    """Where Stockfish is: `current` is settings["engine_path"] ("" = the default place).
+    Returns the new value, or None if nothing changed."""
+    top = _dialog(root, S.ENGINE_PATH_TITLE)
+    result = {}
+    shown = current or S.ENGINE_PATH_DEFAULT.format(folder=default_folder)
+    tk.Label(top, text=S.ENGINE_PATH_CURRENT.format(path=shown), anchor="w", justify="left").pack(
+        fill="x", padx=12, pady=12)
+
+    def choose_file():
+        name = filedialog.askopenfilename(parent=top, filetypes=[(S.FILETYPE_EXE, "*.exe"), (S.FILETYPE_ALL, "*.*")])
+        if name:
+            result["path"] = name
+            top.destroy()
+
+    def use_default():
+        result["path"] = ""
+        top.destroy()
+
+    buttons = tk.Frame(top)
+    buttons.pack(side="bottom", anchor="e", padx=12, pady=(0, 12))
+    tk.Button(buttons, text=S.ENGINE_PATH_CHOOSE, command=choose_file).pack(side="left", padx=(0, 6))
+    tk.Button(buttons, text=S.ENGINE_PATH_RESET, command=use_default).pack(side="left", padx=(0, 6))
+    tk.Button(buttons, text=S.BTN_CANCEL, width=10, command=top.destroy).pack(side="left")
+    top.bind("<Escape>", lambda e: top.destroy())
+    _show_modal(root, top)
+    return result.get("path")

@@ -84,6 +84,11 @@ def line_start(node):
     return node
 
 
+def position_key(board):
+    """Positions are compared without move counters, so transpositions are found."""
+    return board.epd()
+
+
 def is_descendant(node, ancestor):
     while node is not None:
         if node is ancestor:
@@ -97,7 +102,8 @@ class GameModel:
 
     `node` is the current position in the tree and `board` is its cached chess.Board;
     both change only through the methods below. `modified` tells whether the game
-    has unsaved changes.
+    has unsaved changes: every method that changes what would be saved sets it, so the game,
+    its nodes and its headers are not written to from outside this class.
     """
 
     def __init__(self):
@@ -105,17 +111,26 @@ class GameModel:
 
     # --- Game setup -------------------------------------------------------
 
-    def new_game(self, board=None):
+    def new_game(self, board=None, headers=None, intro=""):
+        """A new game, not yet modified. headers: PGN headers on top of the defaults.
+        intro: the comment before the first move."""
         game = chess.pgn.Game()
         default_headers(game)
         if board is not None:
             game.setup(board)
+        if headers:
+            game.headers.update(headers)
+        game.comment = intro
         self.load_game(game)
 
     def load_game(self, game):
         self.game = game
         self.modified = False
+        self._deleted = []   # (parent, node, index among its siblings, current node), last one last
         self._set_node(game)
+
+    def mark_saved(self):
+        self.modified = False
 
     def _set_node(self, node):
         self.node = node
@@ -137,9 +152,6 @@ class GameModel:
         return any(m.promotion for m in self.board.legal_moves
                    if m.from_square == from_sq and m.to_square == to_sq)
 
-    def is_legal(self, from_sq, to_sq, promotion=None):
-        return chess.Move(from_sq, to_sq, promotion) in self.board.legal_moves
-
     def status(self):
         board = self.board
         outcome = board.outcome(claim_draw=True)
@@ -156,10 +168,6 @@ class GameModel:
 
     # --- Making moves -----------------------------------------------------
 
-    def make_move(self, from_sq, to_sq, promotion=None):
-        """Play a move given as squares. Returns the event kind, or None if illegal."""
-        return self.play(chess.Move(from_sq, to_sq, promotion))
-
     def play(self, move):
         """Play a chess.Move from the current node. Returns the event kind, or None if illegal.
 
@@ -173,6 +181,7 @@ class GameModel:
         else:
             child = self.node.add_variation(move)
             self.modified = True
+            self._deleted.clear()   # a restored line could now clash with the new move
         self._set_node(child)
         return event_for(child)
 
@@ -209,15 +218,34 @@ class GameModel:
 
     # --- Editing the tree -------------------------------------------------
 
+    def _remove(self, node):
+        """Delete `node` and everything after it, in a way restore_deleted() can undo."""
+        parent = node.parent
+        self._deleted.append((parent, node, parent.variations.index(node), self.node))
+        parent.remove_variation(node)
+        self.modified = True
+
+    def can_restore(self):
+        return bool(self._deleted)
+
+    def restore_deleted(self):
+        """Undo the latest deletion: the moves come back where they were, and so does the current
+        position. Possible until a new move is played or another game is loaded."""
+        if not self._deleted:
+            return False
+        parent, node, index, current = self._deleted.pop()
+        parent.variations.insert(min(index, len(parent.variations)), node)
+        self.modified = True
+        self._set_node(current)
+        return True
+
     def delete_last(self):
         """Ctrl+Z: remove the current move if it is the last one in its line."""
         node = self.node
         if node.parent is None or node.variations:
             return False
-        parent = node.parent
-        parent.remove_variation(node)
-        self.modified = True
-        self._set_node(parent)
+        self._remove(node)
+        self._set_node(node.parent)
         return True
 
     def take_back(self, color):
@@ -231,6 +259,7 @@ class GameModel:
             return False
         node.remove_variation(child)
         self.modified = True
+        self._deleted.clear()
         self._set_node(node)
         return True
 
@@ -257,8 +286,7 @@ class GameModel:
         if parent is None:
             return False
         moved_out = is_descendant(self.node, node)
-        parent.remove_variation(node)
-        self.modified = True
+        self._remove(node)
         if moved_out:
             self._set_node(parent)
         return True
@@ -278,3 +306,18 @@ class GameModel:
         """Store the remaining clock time after this move as [%clk h:mm:ss]."""
         node.set_clock(round(seconds))
         self.modified = True
+
+    # --- Headers ----------------------------------------------------------
+
+    def set_headers(self, values):
+        """Change PGN headers (e.g. the result). The game counts as modified if any value changed."""
+        for name, value in values.items():
+            if self.game.headers.get(name) != value:
+                self.game.headers[name] = value
+                self.modified = True
+
+    def clear_result(self):
+        """The game goes on after all (moves were taken back): no result any more."""
+        self.set_headers({"Result": "*"})
+        if self.game.headers.pop("Termination", None) is not None:
+            self.modified = True

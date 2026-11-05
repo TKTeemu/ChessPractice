@@ -1,6 +1,6 @@
 """Chess engines. The order of ENGINES is the order in the Play vs Computer dialog."""
 
-from .base import Analysis, Engine, EngineError, Level
+from .base import Analysis, Engine, EngineError, Level, format_score
 from .random_engine import RandomEngine
 from .stockfish import StockfishEngine
 

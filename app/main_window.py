@@ -1,59 +1,89 @@
-"""Main window: layout, menus, keyboard shortcuts, file commands and the status line."""
+"""Main window: layout, menus, keyboard shortcuts, the status line and the active mode."""
 
+import re
 import tkinter as tk
 from pathlib import Path
-from tkinter import filedialog, messagebox
+from tkinter import messagebox
 
 import chess
 
-from . import fileio
 from . import strings as S
+from .assets import Assets
 from .board_view import BoardView
 from .commands import DELETE_LAST, EDIT_COMMENT, EDIT_TREE, NAVIGATE, OPEN, PASTE, TAKE_BACK
-from .dialogs import choose_game
+from .dialogs import choose_engine_path
+from .engines import StockfishEngine
+from .file_commands import FileCommands
 from .model import GameModel, event_for, visible_comment
 from .modes import MODES, ModeContext, mode_class, mode_settings
 from .movelist_view import MoveListView
 from .pieces import PieceImages
 from .settings import Settings
 from .sounds import ILLEGAL, Sounds
-from .theme import (BACKGROUND, CLOCK_ACTIVE_BG, CLOCK_ACTIVE_FG, CLOCK_BG, CLOCK_FG, CLOCK_LOW_FG,
-                    ENTRY_BG, FONT, FONT_BOLD, FONT_CLOCK, FONT_LARGE_BOLD, FONT_MONO_SMALL, FONT_SMALL,
-                    FONT_SMALL_BOLD, FONT_STATUS, MUTED_FG, PANEL_BG, PANEL_FG)
+from .theme import (BACKGROUND, BOARD_THEMES, CLOCK_ACTIVE_BG, CLOCK_ACTIVE_FG, CLOCK_BG, CLOCK_FG, CLOCK_LOW_FG,
+                    DEFAULT_BOARD_THEME, ENTRY_BG, FONT, FONT_BOLD, FONT_CLOCK, FONT_LARGE_BOLD, FONT_MONO_SMALL,
+                    FONT_SMALL, FONT_SMALL_BOLD, FONT_STATUS, MUTED_FG, PANEL_BG, PANEL_FG)
 from .widgets import button, light
 
 AUTOSAVE_MS = 2000   # how often changed settings are written to settings.json
+NOTICE_MS = 4000     # how long an explanation of a blocked action stays on the status line
 NAV_FIRST, NAV_PREV, NAV_NEXT, NAV_LAST = "first", "prev", "next", "last"   # the |◀ ◀ ▶ ▶| buttons
+GEOMETRY_RE = re.compile(r"(\d+)x(\d+)\+(-?\d+)\+(-?\d+)")
+MIN_VISIBLE = 100    # pixels of a restored window's title bar that must be on a screen
+
+
+def restored_geometry(saved, screen):
+    """The window geometry to use for a saved one, or None for the default size. If the saved
+    position would leave the title bar out of reach (a monitor has been disconnected), only the
+    size is kept and Windows chooses the position. screen: (x, y, width, height) of the desktop."""
+    match = GEOMETRY_RE.fullmatch(saved)
+    if match is None:
+        return None
+    width, height, x, y = map(int, match.groups())
+    left, top, screen_width, screen_height = screen
+    reachable = (x + width >= left + MIN_VISIBLE and x <= left + screen_width - MIN_VISIBLE
+                 and top <= y <= top + screen_height - MIN_VISIBLE)
+    return saved if reachable else f"{width}x{height}"
 
 
 class MainWindow:
     """Owns the model and all views and acts as the controller between them.
 
-    Every change to the model goes through a method here, which then calls refresh()
-    so that board, move list, status line, FEN field and title stay in step.
+    After a change, one of two methods brings the views up to date: position_changed() when the
+    current position or the game tree changed (board, move list, FEN, comment and everything
+    below), and update_status() when only what the mode says changed (status line, title, panel
+    buttons, arrows). update_status() leaves alone what the user is doing: the text being typed
+    in the comment field, and a piece being moved or the arrows on the board.
     The active mode (self.mode) is asked what the user may do; see app/modes/base.py.
+    File and clipboard commands are in self.files (app/file_commands.py).
     """
 
-    def __init__(self, root, app_dir):
+    def __init__(self, root, app_dir, settings=None):
         self.root = root
         self.app_dir = Path(app_dir)
-        self.settings = Settings(self.app_dir / "settings.json", mode_settings())
+        self.settings = settings if settings is not None else Settings(self.app_dir / "settings.json", mode_settings())
+        self._repair_settings()
         self.model = GameModel()
         self.pieces = PieceImages(self.app_dir / "assets" / "pieces", self.settings["piece_set"])
         self.sounds = Sounds(self.app_dir / "assets" / "sounds", self.settings["sound"])
-        self.path = None
+        self.files = FileCommands(self)
         self._comment_node = None
-        self._clocks = None   # {color: (text, active, low)} while a mode shows clocks
+        self._clocks = None         # {color: (text, active, low)} while a mode shows clocks
+        self._notice_after = None   # the timer that ends an explanation on the status line
+        self._autosave_failed = False
         self.ctx = ModeContext(
             root=root, model=self.model, settings=self.settings, app_dir=self.app_dir,
-            play_move=self.play_move, new_game=self._set_position, refresh=self.refresh,
+            assets=Assets(self.app_dir, lambda: self.settings["end_progress"]),
+            play_move=self.play_move, new_game=self.files.set_position, update_status=self.update_status,
             set_flipped=self.set_flipped, set_mode=self.set_mode, set_clocks=self.set_clocks,
             play_sound=self.sounds.play, take_back=self.take_back)
         self.mode = MODES[0](self.ctx)   # the program always starts in the first mode (Board)
 
         self.scale = root.winfo_fpixels("1i") / 96   # 1.25 on a 125 % display
         root.title(S.APP_TITLE)
-        root.geometry(self.settings["window_geometry"] or f"{self._px(1100)}x{self._px(760)}")
+        screen = (root.winfo_vrootx(), root.winfo_vrooty(), root.winfo_vrootwidth(), root.winfo_vrootheight())
+        root.geometry(restored_geometry(self.settings["window_geometry"], screen)
+                      or f"{self._px(1100)}x{self._px(760)}")
         root.minsize(self._px(780), self._px(520))
         root.configure(bg=BACKGROUND)
 
@@ -65,9 +95,16 @@ class MainWindow:
         self.board.flipped = self.settings["flipped"]
         self.board.show_coords = self.settings["show_coordinates"]
         self.board.theme = self.settings["board_theme"]
-        self._show_details()
-        self.refresh(rebuild=True)
+        self._build_mode_panel()
+        self.position_changed(rebuild=True)
         self.root.after(AUTOSAVE_MS, self._autosave)
+
+    def _repair_settings(self):
+        """A hand-edited settings.json can name something that does not exist."""
+        if self.settings["board_theme"] not in BOARD_THEMES:
+            self.settings["board_theme"] = DEFAULT_BOARD_THEME
+        if self.settings["piece_set"] not in S.PIECE_SETS:
+            self.settings["piece_set"] = next(iter(S.PIECE_SETS))
 
     # --- Layout -----------------------------------------------------------
 
@@ -110,10 +147,12 @@ class MainWindow:
         right.columnconfigure(0, weight=1)
         right.rowconfigure(3, weight=1)
 
-        # Shared toolbar: the same in every mode; the mode decides what a new game means
+        # Shared toolbar: the same in every mode; the mode decides what a new game means.
+        # Take Back is packed only in a mode that has it (_build_mode_panel).
         toolbar = tk.Frame(right, bg=PANEL_BG)
         toolbar.grid(row=0, column=0, sticky="ew", padx=6, pady=(6, 0))
         button(toolbar, S.BTN_NEW_GAME, self.new_game).pack(side="left", padx=2)
+        self.take_back_button = button(toolbar, S.MODE_TAKE_BACK, lambda: self.mode.take_back())
 
         self.status = tk.Label(right, bg=PANEL_BG, fg=PANEL_FG, font=FONT_STATUS,
                                anchor="w", justify="left", padx=10, pady=6)
@@ -125,7 +164,8 @@ class MainWindow:
         self.mode_panel.grid(row=2, column=0, sticky="ew", padx=6, pady=(0, 6))
         self.mode_panel.grid_remove()
 
-        self.movelist = MoveListView(right, self.model, self.select_node, self.edit_tree)
+        self.movelist = MoveListView(right, self.model, self.select_node, self.edit_tree,
+                                     can_edit=lambda: self.mode.allows(EDIT_TREE))
         self.movelist.grid(row=3, column=0, sticky="nsew")
 
         nav = tk.Frame(right, bg=PANEL_BG)
@@ -155,7 +195,7 @@ class MainWindow:
         self.comment = tk.Text(self.details, height=3, bg=ENTRY_BG, fg=PANEL_FG, insertbackground=PANEL_FG,
                                relief="flat", font=FONT, wrap="word", padx=6, pady=4)
         self.comment.grid(row=1, column=0, sticky="ew", padx=8)
-        self.comment.bind("<FocusOut>", lambda e: self._save_comment(rebuild=True))
+        self.comment.bind("<FocusOut>", lambda e: self.save_comment(rebuild=True))
 
         fen_row = tk.Frame(self.details, bg=PANEL_BG)
         fen_row.grid(row=2, column=0, sticky="ew", padx=8, pady=8)
@@ -164,10 +204,11 @@ class MainWindow:
                  font=FONT_SMALL).grid(row=0, column=0, padx=(2, 6))
         self.fen_var = tk.StringVar()
         self.fen_entry = tk.Entry(fen_row, textvariable=self.fen_var, bg=ENTRY_BG, fg=PANEL_FG,
-                                  insertbackground=PANEL_FG, relief="flat", font=FONT_MONO_SMALL)
+                                  readonlybackground=ENTRY_BG, insertbackground=PANEL_FG, relief="flat",
+                                  font=FONT_MONO_SMALL)
         self.fen_entry.grid(row=0, column=1, sticky="ew", ipady=4)
         self.fen_entry.bind("<Return>", self._fen_entered)
-        button(fen_row, S.BTN_COPY, self.copy_fen).grid(row=0, column=2, padx=(6, 0))
+        button(fen_row, S.BTN_COPY, self.files.copy_fen).grid(row=0, column=2, padx=(6, 0))
 
     def _build_menu(self):
         menubar = tk.Menu(self.root)
@@ -177,19 +218,25 @@ class MainWindow:
             menu.add_command(**kw)
             self._guarded.append((menu, menu.index("end"), name))
 
+        files = self.files
         m = tk.Menu(menubar, tearoff=0, postcommand=self._update_menu_states)
         m.add_command(label=S.FILE_NEW, accelerator="Ctrl+N", command=self.new_game)
-        guarded(m, OPEN, label=S.FILE_OPEN, accelerator="Ctrl+O", command=self.open_file)
-        m.add_command(label=S.FILE_SAVE, accelerator="Ctrl+S", command=self.save)
-        m.add_command(label=S.FILE_SAVE_AS, command=self.save_as)
-        m.add_command(label=S.FILE_SAVE_FEN, command=self.save_fen)
+        guarded(m, OPEN, label=S.FILE_OPEN, accelerator="Ctrl+O", command=files.open_file)
+        m.add_command(label=S.FILE_SAVE, accelerator="Ctrl+S", command=files.save)
+        m.add_command(label=S.FILE_SAVE_AS, command=files.save_as)
+        m.add_command(label=S.FILE_SAVE_FEN, command=files.save_fen)
         m.add_separator()
-        m.add_command(label=S.FILE_COPY_PGN, accelerator="Ctrl+C", command=self.copy_pgn)
-        m.add_command(label=S.FILE_COPY_FEN, command=self.copy_fen)
-        guarded(m, PASTE, label=S.FILE_PASTE, accelerator="Ctrl+V", command=self.paste)
+        m.add_command(label=S.FILE_COPY_PGN, accelerator="Ctrl+C", command=files.copy_pgn)
+        m.add_command(label=S.FILE_COPY_FEN, command=files.copy_fen)
+        guarded(m, PASTE, label=S.FILE_PASTE, accelerator="Ctrl+V", command=files.paste)
         m.add_separator()
         m.add_command(label=S.FILE_EXIT, command=self.exit)
         menubar.add_cascade(label=S.MENU_FILE, menu=m)
+
+        self.edit_menu = tk.Menu(menubar, tearoff=0, postcommand=self._update_edit_menu)
+        self.edit_menu.add_command(label=S.EDIT_DELETE_LAST, accelerator="Ctrl+Z", command=self.delete_last)
+        self.edit_menu.add_command(label=S.EDIT_RESTORE, accelerator="Ctrl+Y", command=self.restore_deleted)
+        menubar.add_cascade(label=S.MENU_EDIT, menu=self.edit_menu)
 
         m = tk.Menu(menubar, tearoff=0)
         m.add_command(label=S.VIEW_FLIP, accelerator="F", command=self.flip)
@@ -209,6 +256,8 @@ class MainWindow:
             sub.add_radiobutton(label=label, value=key, variable=self.theme_var,
                                 command=self._change_theme)
         m.add_cascade(label=S.VIEW_BOARD_THEME, menu=sub)
+        m.add_separator()
+        m.add_command(label=S.VIEW_ENGINE_PATH, command=self._choose_engine_path)
         menubar.add_cascade(label=S.MENU_VIEW, menu=m)
 
         self.mode_var = tk.StringVar(value=self.mode.key)
@@ -227,6 +276,12 @@ class MainWindow:
     def _update_menu_states(self):
         for menu, index, name in self._guarded:
             menu.entryconfigure(index, state="normal" if self.mode.allows(name) else "disabled")
+
+    def _update_edit_menu(self):
+        can_delete = self.mode.can_take_back() if self.mode.takes_back else self.mode.allows(DELETE_LAST)
+        can_restore = self.mode.allows(EDIT_TREE) and self.model.can_restore()
+        self.edit_menu.entryconfigure(0, state="normal" if can_delete else "disabled")
+        self.edit_menu.entryconfigure(1, state="normal" if can_restore else "disabled")
 
     def _build_mode_menu(self):
         """Rebuilt each time the menu opens: the modes, then the active mode's own items."""
@@ -252,6 +307,10 @@ class MainWindow:
         else:
             panel.pack(fill="x")
             self.mode_panel.grid()
+        if self.mode.takes_back:
+            self.take_back_button.pack(side="left", padx=2)
+        else:
+            self.take_back_button.pack_forget()
         self._show_details()
 
     def _details_open(self):
@@ -269,7 +328,7 @@ class MainWindow:
             self.details.grid_remove()
 
     def _toggle_details(self):
-        self._save_comment(rebuild=True)
+        self.save_comment(rebuild=True)
         self.settings["details_open"] = {**self.settings["details_open"], self.mode.key: not self._details_open()}
         self._show_details()
 
@@ -298,44 +357,81 @@ class MainWindow:
             widget = event.widget
             return isinstance(widget, tk.Misc) and widget.winfo_toplevel() is self.root
 
+        def leave_text_field(event):
+            # A click anywhere else takes focus away from the text fields, so that the arrow keys
+            # and F work again. (The move list has its own handler, which stops this event.)
+            if in_main_window(event) and event.widget not in (self.comment, self.fen_entry):
+                self.board.focus_set()
+
+        files = self.files
         keys = {
             "<Left>": self.back, "<Right>": self.forward, "<Home>": self.go_start, "<End>": self.go_end,
             "<Up>": lambda: self.switch_variation(-1), "<Down>": lambda: self.switch_variation(1),
             "<f>": self.flip, "<F>": self.flip,
             "<Control-z>": self.delete_last, "<Control-Z>": self.delete_last,
-            "<Control-c>": self.copy_pgn, "<Control-C>": self.copy_pgn,
-            "<Control-v>": self.paste, "<Control-V>": self.paste,
+            "<Control-y>": self.restore_deleted, "<Control-Y>": self.restore_deleted,
+            "<Control-c>": files.copy_pgn, "<Control-C>": files.copy_pgn,
+            "<Control-v>": files.paste, "<Control-V>": files.paste,
         }
         for sequence, handler in keys.items():
             self.root.bind_all(sequence, board_key(handler))
         for sequence, handler in {"<Control-n>": self.new_game, "<Control-N>": self.new_game,
-                                  "<Control-o>": self.open_file, "<Control-O>": self.open_file,
-                                  "<Control-s>": self.save, "<Control-S>": self.save}.items():
+                                  "<Control-o>": files.open_file, "<Control-O>": files.open_file,
+                                  "<Control-s>": files.save, "<Control-S>": files.save}.items():
             self.root.bind_all(sequence, always(handler))
-        # Clicking the board or the move list takes focus away from the text fields
-        self.board.bind("<ButtonPress-1>", lambda e: self.board.focus_set(), add="+")
+        self.root.bind_all("<ButtonPress-1>", leave_text_field, add="+")
 
-    # --- Refreshing -------------------------------------------------------
+    # --- Keeping the views up to date ---------------------------------------
 
-    def refresh(self, rebuild=False):
-        """Bring every view up to date with the model."""
-        self.board.set_hints(self.mode.hint_arrows())
+    def position_changed(self, rebuild=False):
+        """The current position or the game tree changed. rebuild: the tree did, so the move
+        list is drawn again (new move, deletion, comment)."""
+        self.mode.position_changed()
         self.board.position_changed()
         if rebuild:
             self.movelist.rebuild()
         else:
             self.movelist.show_current()
-        self.status.configure(text=self.mode.status_text() or self.model.status())
+        self.fen_var.set(self.model.fen())
+        self._load_comment()
+        self.update_status()
+
+    def update_status(self):
+        """What the mode says changed: labels, buttons and arrows. The position is the same, so
+        the comment field and a piece being moved are left alone."""
+        hints = self.mode.hint_arrows()
+        self.board.set_hints(hints)
+        self.mode.hints_shown(hints)
+        self.board.rules_changed()
+        self._show_status()
         self.mode_title.configure(text=self.mode.title())
         self.score.configure(text=self.mode.score_text() or "")
         self._update_subtitle()
         self._update_light()
-        self.fen_var.set(self.model.fen())
         self.fen_entry.configure(state="normal" if self.mode.allows(PASTE) else "readonly")
+        self.comment.configure(state="normal" if self.mode.allows(EDIT_COMMENT) else "disabled")
         self._update_nav()
-        self._load_comment()
         self._update_names()
-        self._update_title()
+        self.update_title()
+
+    def _show_status(self):
+        if self._notice_after is not None:
+            self.root.after_cancel(self._notice_after)
+            self._notice_after = None
+        self.status.configure(text=self.mode.status_text() or self.model.status())
+
+    def _show_notice(self, text):
+        """Explain something on the status line for a moment."""
+        self._show_status()
+        self.status.configure(text=text)
+        self._notice_after = self.root.after(NOTICE_MS, self._show_status)
+
+    def allowed(self, command):
+        """The mode allows this command now; if not, tell the user why nothing happens."""
+        if self.mode.allows(command):
+            return True
+        self._show_notice(S.BLOCKED_BROWSE if command == NAVIGATE else S.BLOCKED_IN_GAME)
+        return False
 
     def _update_subtitle(self):
         text = self.mode.subtitle()
@@ -347,13 +443,11 @@ class MainWindow:
             self.subtitle.pack(side="top", fill="x", after=self._subtitle_after)
 
     def _update_nav(self):
-        """The |◀ ◀ ▶ ▶| buttons are enabled only when they would do something the mode allows;
-        in a mode with takes_back, ◀ takes the user's move back."""
-        browse = self.mode.allows(NAVIGATE)
-        back = self.mode.can_take_back() if self.mode.takes_back else browse
-        for name, nav_button in self.nav_buttons.items():
-            enabled = back if name == NAV_PREV else browse
-            nav_button.configure(state="normal" if enabled else "disabled")
+        """The |◀ ◀ ▶ ▶| buttons browse the game, when the mode allows it. Take Back is separate."""
+        state = "normal" if self.mode.allows(NAVIGATE) else "disabled"
+        for nav_button in self.nav_buttons.values():
+            nav_button.configure(state=state)
+        self.take_back_button.configure(state="normal" if self.mode.can_take_back() else "disabled")
 
     def _update_light(self):
         state = self.mode.light()
@@ -390,8 +484,9 @@ class MainWindow:
             if not label.winfo_ismapped():
                 label.pack(side="right")
 
-    def _update_title(self):
-        name = self.path.name if self.path else S.UNTITLED
+    def update_title(self):
+        path = self.files.path
+        name = path.name if path else S.UNTITLED
         mark = "*" if self.model.modified else ""
         self.root.title(f"{mark}{name} – {S.APP_TITLE}")
 
@@ -400,23 +495,25 @@ class MainWindow:
         self.comment.configure(state="normal")
         self.comment.delete("1.0", "end")
         self.comment.insert("1.0", visible_comment(self.model.node.comment))
-        if not self.mode.allows(EDIT_COMMENT):
-            self.comment.configure(state="disabled")
+        # update_status(), which always follows, disables the field if the mode does not allow editing
 
-    def _save_comment(self, rebuild=False):
+    def save_comment(self, rebuild=False):
         node = self._comment_node
         if node is None or not self.mode.allows(EDIT_COMMENT):
             return False
         changed = self.model.set_comment(node, self.comment.get("1.0", "end"))
         if changed and rebuild:
             self.movelist.rebuild()
-            self._update_title()
+            self.update_title()
         return changed
 
     # --- Moves and navigation ---------------------------------------------
 
     def user_move(self, frm, to, promotion):
-        self.play_move(chess.Move(frm, to, promotion))
+        if self.mode.can_move(self.model.board.turn):   # the game may have ended during the drag
+            self.play_move(chess.Move(frm, to, promotion))
+        else:
+            self.illegal_move()
 
     def play_move(self, move, from_end=False):
         """Play a chess.Move from any source (the board or an engine) and update the views.
@@ -424,7 +521,7 @@ class MainWindow:
         from_end: play it after the last move of the line (an engine reply arriving while
         the user is looking at earlier moves).
         """
-        self._save_comment()
+        self.save_comment()
         if from_end:
             self.model.go_end()
         event = self.model.play(move)
@@ -432,7 +529,7 @@ class MainWindow:
             self.illegal_move()
             return
         self.mode.after_move()
-        self.refresh(rebuild=True)
+        self.position_changed(rebuild=True)
         self.sounds.play(event)
 
     def illegal_move(self):
@@ -440,20 +537,20 @@ class MainWindow:
         self.sounds.play(ILLEGAL)
 
     def _navigate(self, action):
-        if not self.mode.allows(NAVIGATE):
+        if not self.allowed(NAVIGATE):
             return
-        changed = self._save_comment()
+        changed = self.save_comment()
         moved = action()
-        if moved or changed:
-            self.refresh(rebuild=changed)
-        if moved and self.model.node.move is not None:
-            self.sounds.play(event_for(self.model.node))
+        if moved:
+            self.position_changed(rebuild=changed)
+            if self.model.node.move is not None:
+                self.sounds.play(event_for(self.model.node))
+        elif changed:
+            self.movelist.rebuild()
+            self.update_title()
 
     def back(self):
-        if self.mode.takes_back:
-            self.mode.take_back()   # a game mode: the user's last move and the reply are removed
-        else:
-            self._navigate(self.model.back)
+        self._navigate(self.model.back)
 
     def forward(self):
         self._navigate(self.model.forward)
@@ -471,31 +568,43 @@ class MainWindow:
         self._navigate(lambda: self.model.goto(node))
 
     def delete_last(self):
-        if not self.mode.allows(DELETE_LAST):
+        """Ctrl+Z. In a mode with Take Back that is what it means there."""
+        if self.mode.takes_back:
+            self.mode.take_back()
             return
-        self._save_comment()
+        if not self.allowed(DELETE_LAST):
+            return
+        self.save_comment()
         if self.model.delete_last():
-            self.refresh(rebuild=True)
+            self.position_changed(rebuild=True)
+
+    def restore_deleted(self):
+        """Ctrl+Y: undo the latest deletion of moves."""
+        if not self.allowed(EDIT_TREE):
+            return
+        self.save_comment()
+        if self.model.restore_deleted():
+            self.position_changed(rebuild=True)
 
     def take_back(self, color):
         """Remove the moves back to `color`'s previous turn (Take Back in a game mode)."""
         if not self.mode.allows(TAKE_BACK):
             return False
-        self._save_comment()
+        self.save_comment()
         if not self.model.take_back(color):
             return False
-        self.refresh(rebuild=True)
+        self.position_changed(rebuild=True)
         return True
 
     def edit_tree(self, action, node):
-        if not self.mode.allows(EDIT_TREE):
+        if not self.allowed(EDIT_TREE):
             return
-        self._save_comment()
+        self.save_comment()
         handler = {"promote": self.model.promote_to_main,
                    "delete_variation": self.model.delete_variation,
                    "delete_from_here": self.model.delete_from_here}[action]
         if handler(node):
-            self.refresh(rebuild=True)
+            self.position_changed(rebuild=True)
 
     def flip(self):
         self.set_flipped(not self.board.flipped)
@@ -514,8 +623,11 @@ class MainWindow:
         else:
             self.set_mode(key)
 
-    def set_mode(self, key):
+    def set_mode(self, key, config=None, discard=False):
         """Switch to the mode with this key (or restart the current one). Returns True on success.
+
+        config: what the new mode's dialog would return, so that it is not shown. discard: the
+        new mode replaces the game without offering to save it.
 
         The order matters (see app/modes/base.py): the new mode's dialog first, then leaving
         the old mode, and only after the old mode is closed does the new one start."""
@@ -523,32 +635,37 @@ class MainWindow:
         if cls is None:
             return False
         new = cls(self.ctx)
-        config = new.choose()
-        if config is None or not self._leave_mode(keep_game=not new.replaces_game):
+        if config is None:
+            config = new.choose()
+        if config is None or not self._leave_mode(keep_game=discard or not new.replaces_game):
             return False
         old, self.mode = self.mode, new
         old.deactivate()
-        self.settings["mode"] = key
         self.mode_var.set(key)
-        new.start(config)
         self._build_mode_panel()
-        self.refresh(rebuild=True)
+        new.start(config)
+        self.position_changed(rebuild=True)
         return True
 
     def _leave_mode(self, keep_game):
         """Ask before leaving the active mode, then leave it (e.g. resign). keep_game=False:
         the game will be replaced or the program closed, so offer to save it first.
-        False = the user cancelled, and nothing has changed."""
+        False = the user cancelled, and nothing has changed (unless the disk failed while
+        saving; the user was told, and the game is still there to save again)."""
         if not self.mode.confirm_leave():
             return False
-        self._save_comment()
-        save = False
-        if not keep_game and self.model.modified:
-            save = messagebox.askyesnocancel(S.UNSAVED_TITLE, S.UNSAVED_PROMPT, parent=self.root)
-            if save is None:
-                return False
-        self.mode.leave()   # after the questions, so that Cancel never leaves a resigned game
-        return self.save() if save else True
+        if keep_game:
+            self.save_comment()
+            self.mode.leave()
+            return True
+        return self.files.confirm_discard(before_write=self.mode.leave,
+                                          will_change=self.mode.leaving_changes_game())
+
+    def new_game(self):
+        if self.mode.new_game():
+            return
+        if self.files.confirm_discard():
+            self.files.set_position()
 
     # --- View settings ----------------------------------------------------
 
@@ -568,166 +685,25 @@ class MainWindow:
         self.settings["board_theme"] = self.theme_var.get()
         self.board.set_theme(self.theme_var.get())
 
+    def _choose_engine_path(self):
+        path = choose_engine_path(self.root, self.settings["engine_path"], StockfishEngine.default_dir(self.app_dir))
+        if path is not None:
+            self.settings["engine_path"] = path
+            self._build_mode_panel()   # a panel may depend on whether the engine is there
+
     # --- Files ------------------------------------------------------------
 
-    def _initial_dir(self):
-        last = self.settings["last_directory"]
-        if last and Path(last).is_dir():
-            return last
-        games = self.app_dir / "Games"
-        games.mkdir(exist_ok=True)
-        return str(games)
-
-    def _confirm_discard(self):
-        """True if it is fine to replace the current game."""
-        self._save_comment()
-        if not self.model.modified:
-            return True
-        answer = messagebox.askyesnocancel(S.UNSAVED_TITLE, S.UNSAVED_PROMPT, parent=self.root)
-        if answer is None:
-            return False
-        return self.save() if answer else True
-
-    def _set_game(self, game, path=None):
-        self.model.load_game(game)
-        self.path = Path(path) if path else None
-        self.refresh(rebuild=True)
-
-    def _set_position(self, board):
-        self.model.new_game(board)
-        self.path = None
-        self.refresh(rebuild=True)
-
-    def new_game(self):
-        if self.mode.new_game():
-            return
-        if self._confirm_discard():
-            self._set_position(None)
-
-    def open_file(self):
-        if not self.mode.allows(OPEN) or not self._confirm_discard():
-            return
-        name = filedialog.askopenfilename(
-            parent=self.root, initialdir=self._initial_dir(),
-            filetypes=[(S.FILETYPE_PGN, "*.pgn"), (S.FILETYPE_FEN, "*.fen"), (S.FILETYPE_ALL, "*.*")])
-        if not name:
-            return
-        path = Path(name)
-        self.settings["last_directory"] = str(path.parent)
-        try:
-            if path.suffix.lower() == ".fen":
-                self._set_position(fileio.read_fen(path))
-                return
-            games = fileio.read_pgn_games(path)
-        except (OSError, ValueError) as e:
-            messagebox.showerror(S.ERROR_TITLE, S.ERROR_OPEN.format(error=e), parent=self.root)
-            return
-        self._load_games(games, path)
-
-    def _load_games(self, games, path=None):
-        if not games:
-            messagebox.showerror(S.ERROR_TITLE, S.ERROR_NO_GAMES, parent=self.root)
-            return
-        if len(games) == 1:
-            self._set_game(games[0], path)
-            return
-        index = choose_game(self.root, games)
-        if index is not None:
-            # Saving must not overwrite a multi-game file with a single game
-            self._set_game(games[index], None)
-
-    def save(self):
-        self._save_comment()
-        if self.path is None:
-            return self.save_as()
-        return self._write_pgn(self.path)
-
-    def save_as(self):
-        self._save_comment()
-        h = self.model.headers
-        suggestion = f"{h.get('White', '')} - {h.get('Black', '')}".strip(" -?") or "game"
-        name = filedialog.asksaveasfilename(
-            parent=self.root, initialdir=self._initial_dir(), initialfile=suggestion + ".pgn",
-            defaultextension=".pgn", filetypes=[(S.FILETYPE_PGN, "*.pgn"), (S.FILETYPE_ALL, "*.*")])
-        if not name:
-            return False
-        self.settings["last_directory"] = str(Path(name).parent)
-        if self._write_pgn(Path(name)):
-            self.path = Path(name)
-            self._update_title()
-            return True
-        return False
-
-    def _write_pgn(self, path):
-        try:
-            fileio.write_pgn(self.model.game, path)
-        except OSError as e:
-            messagebox.showerror(S.ERROR_TITLE, S.ERROR_SAVE.format(error=e), parent=self.root)
-            return False
-        self.model.modified = False
-        self._update_title()
-        return True
-
-    def save_fen(self):
-        name = filedialog.asksaveasfilename(
-            parent=self.root, initialdir=self._initial_dir(), initialfile="position.fen",
-            defaultextension=".fen", filetypes=[(S.FILETYPE_FEN, "*.fen"), (S.FILETYPE_ALL, "*.*")])
-        if not name:
-            return
-        self.settings["last_directory"] = str(Path(name).parent)
-        try:
-            fileio.write_fen(self.model.board, name)
-        except OSError as e:
-            messagebox.showerror(S.ERROR_TITLE, S.ERROR_SAVE.format(error=e), parent=self.root)
-
-    # --- Clipboard --------------------------------------------------------
-
-    def _copy(self, text):
-        self.root.clipboard_clear()
-        self.root.clipboard_append(text)
-
-    def copy_pgn(self):
-        self._save_comment()
-        self._copy(fileio.game_to_pgn(self.model.game))
-
-    def copy_fen(self):
-        self._copy(self.model.fen())
-
-    def paste(self):
-        if not self.mode.allows(PASTE):
-            return
-        try:
-            text = self.root.clipboard_get()
-            kind, data = fileio.parse_text(text)
-        except (tk.TclError, ValueError):
-            messagebox.showerror(S.ERROR_TITLE, S.ERROR_PASTE, parent=self.root)
-            return
-        if not self._confirm_discard():
-            return
-        if kind == "fen":
-            self._set_position(data)
-        else:
-            self._load_games(data)
-
     def _fen_entered(self, event):
-        if not self.mode.allows(PASTE):
-            return "break"
-        try:
-            board = chess.Board(self.fen_var.get().strip())
-        except ValueError as e:
-            messagebox.showerror(S.ERROR_TITLE, S.ERROR_FEN.format(error=e), parent=self.root)
-            return "break"
-        if board.fen() != self.model.fen() and self._confirm_discard():
-            self._set_position(board)
-        self.board.focus_set()
+        self.files.fen_entered(self.fen_var.get())
         return "break"
 
     # --- Exit -------------------------------------------------------------
 
     def _autosave(self):
-        """Settings are written soon after they change, so that a crash does not lose them."""
-        if self.settings.dirty:
-            self.settings.save()
+        """Settings are written soon after they change, so that a crash does not lose them.
+        After a failure (a read-only folder) only exit() tries again, and tells the user."""
+        if self.settings.dirty and not self._autosave_failed:
+            self._autosave_failed = not self.settings.save()
         self.root.after(AUTOSAVE_MS, self._autosave)
 
     def exit(self):

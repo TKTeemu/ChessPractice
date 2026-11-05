@@ -96,7 +96,7 @@ def test_uci_handshake(client):
 def test_uci_go_returns_legal_move(client):
     board = chess.Board()
     board.push_san("e4")
-    move = client.go(board, 0.01, threading.Event())
+    move = client.search(board, 0.01, threading.Event()).move
     assert move in board.legal_moves
 
 
@@ -104,7 +104,7 @@ def test_uci_position_from_fen_with_moves(client):
     board = chess.Board(MATE_IN_ONE)
     board.push_san("h3")
     board.push_san("h6")
-    assert client.go(board, 0.01, threading.Event()) in board.legal_moves
+    assert client.search(board, 0.01, threading.Event()).move in board.legal_moves
 
 
 def test_uci_search_reports_mate_score(client):
@@ -120,7 +120,7 @@ def test_uci_close_ends_process_and_can_be_repeated(client):
     assert process.poll() is not None
     client.close()
     with pytest.raises(EngineError):
-        client.go(chess.Board(), 0.01, threading.Event())
+        client.search(chess.Board(), 0.01, threading.Event()).move
 
 
 def test_stockfish_engine_with_fake_exe_clamps_elo(settings, monkeypatch):
@@ -244,3 +244,14 @@ def test_stockfish_analyse_finds_mate_score(stockfish):
     quick = Level(level.key, level.label, None, 0.3, level.options)
     analysis = stockfish.analyse(chess.Board(MATE_IN_ONE), quick, threading.Event())
     assert analysis.move == chess.Move.from_uci("d1d8") and analysis.mate == 1
+
+
+def test_parse_pv_and_format_score():
+    from app.engines import format_score
+    from app.engines.uci import parse_pv
+    assert parse_pv("info depth 3 score cp 5 pv e2e4 e7e5") == (chess.Move.from_uci("e2e4"), chess.Move.from_uci("e7e5"))
+    assert parse_pv("info depth 3 score cp 5") == () and parse_pv("info pv nonsense") == ()
+    move = chess.Move.from_uci("e2e4")
+    assert format_score(Analysis(move, cp=35), True) == "+0.35" and format_score(Analysis(move, cp=35), False) == "-0.35"
+    assert format_score(Analysis(move, mate=3), True) == "#3" and format_score(Analysis(move, mate=3), False) == "#-3"
+    assert format_score(Analysis(move), True) == ""

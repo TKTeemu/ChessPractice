@@ -1,11 +1,11 @@
 """All user-visible text in one place."""
 
-APP_NAME = "Chessboard"
 APP_TITLE = "Chessboard – Analysis"
 UNTITLED = "Untitled"
 
 # Menus
 MENU_FILE = "File"
+MENU_EDIT = "Edit"
 MENU_VIEW = "View"
 MENU_GAME = "Game"
 MENU_HELP = "Help"
@@ -20,11 +20,15 @@ FILE_COPY_FEN = "Copy FEN"
 FILE_PASTE = "Paste PGN/FEN"
 FILE_EXIT = "Exit"
 
+EDIT_DELETE_LAST = "Delete Last Move"
+EDIT_RESTORE = "Restore Deleted Moves"
+
 VIEW_FLIP = "Flip Board"
 VIEW_COORDS = "Show Coordinates"
 VIEW_SOUND = "Sound"
 VIEW_PIECE_SET = "Piece Set"
 VIEW_BOARD_THEME = "Board Theme"
+VIEW_ENGINE_PATH = "Stockfish Location…"
 
 PIECE_SETS = {"cburnett": "Cburnett", "unicode": "Unicode"}
 BOARD_THEMES = {"green": "Green", "brown": "Brown", "blue": "Blue"}
@@ -97,16 +101,24 @@ ERROR_SAVE = "Could not save file:\n{error}"
 ERROR_NO_GAMES = "No games found in the file."
 ERROR_PASTE = "The clipboard does not contain a valid PGN or FEN."
 ERROR_FEN = "Invalid FEN:\n{error}"
+ERROR_INVALID_POSITION = ("not a valid chess position (for example a missing king, or the side "
+                          "not to move is in check)")
+GAME_SKIPPED = "Game {number}: {error}"
+WARNING_TITLE = "Some Games Were Skipped"
+WARNING_GAMES_SKIPPED = "{count} game(s) could not be read and were left out:\n{details}"
+WARNING_MORE = "… and {count} more"
+BLOCKED_BROWSE = "Moves can be browsed when the game has finished."
+BLOCKED_IN_GAME = "Not available during this game. Switch to Board mode first."
 ERROR_SETTINGS = "Could not save the settings to\n{path}\nThe details are in error.log."
 
 SHORTCUTS_TITLE = "Keyboard Shortcuts"
 SHORTCUTS_TEXT = """\
 ← / →\tMove back / forward
-\t(Learn Openings, Endgame Practice: ← takes your move back)
 Home / End\tGo to start / end
 ↑ / ↓\tSwitch between variations
 F\tFlip board
-Ctrl+Z\tDelete last move
+Ctrl+Z\tDelete last move (Learn Openings, Endgame Practice: take back)
+Ctrl+Y\tRestore deleted moves
 Ctrl+N\tNew game
 Ctrl+O\tOpen
 Ctrl+S\tSave
@@ -126,6 +138,21 @@ Computer opponent: Stockfish by the Stockfish developers (GPL-3.0),
 stockfishchess.org. Stockfish is a separate program in the engines folder.
 Pieces: Cburnett set by Colin M.L. Burnett (CC BY-SA 3.0)."""
 
+# Stockfish location dialog
+ENGINE_PATH_TITLE = "Stockfish Location"
+ENGINE_PATH_CURRENT = "The program uses:\n{path}"
+ENGINE_PATH_DEFAULT = "the default place,\n{folder}"
+ENGINE_PATH_CHOOSE = "Choose File…"
+ENGINE_PATH_RESET = "Use Default"
+FILETYPE_EXE = "Programs"
+
+# Engine analysis in Board mode
+BOARD_ANALYSIS = "Engine analysis"
+BOARD_NO_ENGINE = "(Stockfish was not found)"
+BOARD_ANALYSING = "Analysing…"
+BOARD_ANALYSIS_LINE = "{score}   {line}"
+BOARD_ANALYSIS_ERROR = "Analysis stopped: {error}"
+
 # Engines and levels
 ENGINE_STOCKFISH = "Stockfish"
 ENGINE_RANDOM = "Random moves"
@@ -133,7 +160,7 @@ LEVEL_MAXIMUM = "Maximum"
 LEVEL_RANDOM = ""
 LEVEL_NONE = "–"   # shown in the dialog for a level without a label
 STOCKFISH_MISSING = ("Stockfish was not found. Run Install.bat, or copy stockfish.exe into\n{folder}\n"
-                     "(see INSTALL.txt), or set \"engine_path\" in settings.json.")
+                     "(see INSTALL.txt), or choose its location with View > Stockfish Location.")
 
 # Play vs Computer dialog
 VS_TITLE = "Play vs Computer"
@@ -143,8 +170,11 @@ VS_COLOR = "Your colour"
 VS_START = "Start from"
 VS_COLORS = {"white": "White", "black": "Black", "random": "Random"}
 VS_STARTS = {"initial": "Initial position", "current": "Current position"}
-VS_CLOCK_NOTE = "Clock: {minutes} minutes each, no increment. Moves cannot be taken back."
+VS_NOTE = "Moves cannot be taken back during the game."
 VS_PLAY = "Play"
+VS_TIME = "Time"
+VS_MINUTES = "min, plus"
+VS_INCREMENT = "s per move"
 VS_START_FINISHED = "The current position is already finished. Choose the initial position."
 
 # Play vs Computer game
@@ -171,6 +201,7 @@ LEARN_YOU_PLAY = "You play:"
 LEARN_ROLES = {"opening": "the opening ({color})", "reply": "the reply ({color})"}
 LEARN_VARY = "Vary the computer's replies"
 LEARN_START = "Start"
+LEARN_SUGGEST_UNTIL = "Suggest moves until move"
 LEARN_MAIN_LINE = "Main line ({count} moves):"
 LEARN_NO_BOOK = "No openings were found in\n{folder}"
 LEARN_BOOK_ERRORS = "Some opening files were skipped:\n{errors}"
@@ -189,7 +220,7 @@ LEARN_END_OF_THEORY = "End of theory – the engine takes over."
 # Endgame Practice dialog
 END_TITLE = "Endgame Practice"
 END_DIFFICULTY = "Difficulty:"
-END_LEVEL_COUNT = "({count}, {played} played)"
+END_LEVEL_COUNT = "({count}, {played} played, {solved} solved)"
 END_TIME = "Time:"
 END_MINUTES = "min"
 END_START = "Start"
@@ -203,7 +234,9 @@ END_EVENT = "Endgame practice"
 END_LEVEL = "Level {level}"
 END_CLASSIC = "Classic endgame position"
 END_GOALS = {"win": "Goal: {color} to play and win", "draw": "Goal: {color} to play and draw"}
-END_PLAYED = "Level {level} · {played} of {total} played"
+END_PLAYED = "Level {level} · {played} of {total} played · {solved} solved"
+END_RETRY = "Retry"
+END_NEXT = "Next Position"
 END_COUNTERS = "Hints used: {hints} · Take backs: {take_backs}"
 END_WRONG_TRY = "Missed – a known wrong try"
 END_MISTAKE = "Missed – the engine says the goal is gone"

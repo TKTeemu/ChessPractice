@@ -44,7 +44,7 @@ def test_opera_game_entered_on_board():
     m = GameModel()
     reference = fileio.parse_pgn_games(OPERA_GAME)[0]
     for move in reference.mainline_moves():
-        assert m.make_move(move.from_square, move.to_square, move.promotion) is not None
+        assert m.play(chess.Move(move.from_square, move.to_square, move.promotion)) is not None
     assert m.status() == "Checkmate – White wins"
     moves = normalize(fileio.game_to_pgn(m.game).split("\n\n")[1])
     assert moves == OPERA_GAME[:-4] + " *"
@@ -59,7 +59,7 @@ def test_setup_position_pgn(tmp_path):
     fen = "8/P6k/8/8/8/8/8/K7 w - - 0 1"
     m = GameModel()
     m.new_game(chess.Board(fen))
-    m.make_move(chess.A7, chess.A8, chess.QUEEN)
+    m.play(chess.Move(chess.A7, chess.A8, chess.QUEEN))
     path = tmp_path / "setup.pgn"
     fileio.write_pgn(m.game, path)
     text = path.read_text(encoding="utf-8")
@@ -84,3 +84,72 @@ def test_parse_text():
     for bad in ("", "hello world", "1. e4 e5 2. Ke3"):
         with pytest.raises(ValueError):
             fileio.parse_text(bad)
+
+
+# --- Encodings, atomic saves, bad games ----------------------------------------
+
+def test_latin1_pgn_is_read_correctly(tmp_path):
+    path = tmp_path / "old.pgn"
+    path.write_bytes('[White "Mäkinen"]\n\n1. e4 *\n'.encode("cp1252"))
+    assert fileio.read_pgn_games(path)[0].headers["White"] == "Mäkinen"
+
+
+def test_utf8_with_bom_is_still_read_correctly(tmp_path):
+    path = tmp_path / "bom.pgn"
+    path.write_text('[White "Mäkinen"]\n\n1. e4 *\n', encoding="utf-8-sig")
+    assert fileio.read_pgn_games(path)[0].headers["White"] == "Mäkinen"
+
+
+def test_failed_save_keeps_the_old_file_and_leaves_no_temporary_file(tmp_path, monkeypatch):
+    path = tmp_path / "game.pgn"
+    path.write_text("old", encoding="utf-8")
+    game = fileio.parse_pgn_games(PGN)[0]
+
+    def fail(*args):
+        raise OSError("disk full")
+
+    monkeypatch.setattr("os.replace", fail)
+    with pytest.raises(OSError):
+        fileio.write_pgn(game, path)
+    assert path.read_text(encoding="utf-8") == "old"
+    assert [p.name for p in tmp_path.iterdir()] == ["game.pgn"]
+
+
+def test_save_replaces_the_file_and_leaves_no_temporary_file(tmp_path):
+    path = tmp_path / "game.pgn"
+    path.write_text("old", encoding="utf-8")
+    fileio.write_pgn(fileio.parse_pgn_games(PGN)[0], path)
+    assert "Morphy Defence" in path.read_text(encoding="utf-8")
+    assert [p.name for p in tmp_path.iterdir()] == ["game.pgn"]
+
+
+NO_KINGS = "8/8/8/8/8/8/8/8 w - - 0 1"
+
+
+def test_invalid_positions_are_rejected(tmp_path):
+    with pytest.raises(ValueError):
+        fileio.board_from_fen(NO_KINGS)
+    with pytest.raises(ValueError):
+        fileio.parse_text(NO_KINGS)
+    path = tmp_path / "bad.fen"
+    path.write_text(NO_KINGS, encoding="utf-8")
+    with pytest.raises(ValueError):
+        fileio.read_fen(path)
+
+
+def test_one_bad_game_does_not_reject_the_others():
+    bad_move = "1. e4 e5 2. Ke3 *"
+    bad_fen = f'[SetUp "1"]\n[FEN "{NO_KINGS}"]\n\n*'
+    games = fileio.parse_pgn_games("\n\n".join(["1. d4 *", bad_move, bad_fen, "1. c4 *"]))
+    assert [g.next().move.uci() for g in games] == ["d2d4", "c2c4"]
+    assert len(games.skipped) == 2 and "Game 2" in games.skipped[0] and "Game 3" in games.skipped[1]
+
+
+def test_pasted_text_reports_skipped_games_too():
+    kind, games = fileio.parse_text("1. d4 *\n\n1. e4 e5 2. Ke3 *")
+    assert kind == "pgn" and len(games) == 1 and len(games.skipped) == 1
+
+
+def test_only_bad_games_is_an_error():
+    with pytest.raises(ValueError):
+        fileio.parse_pgn_games("1. e4 e5 2. Ke3 *")

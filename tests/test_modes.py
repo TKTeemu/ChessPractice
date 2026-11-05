@@ -3,6 +3,7 @@ from pathlib import Path
 
 import chess
 
+from app.assets import Assets
 from app.commands import ALL_COMMANDS
 from app.model import GameModel
 from app.modes import MODES, ModeContext, mode_class, mode_settings
@@ -10,6 +11,10 @@ from app.modes.board import BoardMode
 from app.settings import DEFAULTS, Settings
 
 ROOT = Path(__file__).resolve().parent.parent
+VS_WHITE = {"engine": "random", "level": "random", "color": "white", "start": "initial",
+            "minutes": 30, "increment": 0}
+LEARN_REPLY = {"opening": "reti", "role": "reply", "engine": "random", "level": "random", "vary": False,
+               "suggest_moves": 12}
 
 
 class FakeRoot:
@@ -41,13 +46,14 @@ def fake_context(tmp_path):
 
     model = GameModel()
 
-    def new_game(board=None):
-        model.new_game(board)
+    def new_game(board=None, headers=None, intro=""):
+        model.new_game(board, headers, intro)
         calls.append(("new_game", (board,)))
 
     ctx = ModeContext(root=FakeRoot(), model=model, settings=Settings(tmp_path / "settings.json", mode_settings()),
-                      app_dir=ROOT, play_move=record("play_move"), new_game=new_game,
-                      refresh=record("refresh"), set_flipped=record("set_flipped"), set_mode=record("set_mode"),
+                      app_dir=ROOT, assets=Assets(ROOT), play_move=record("play_move"), new_game=new_game,
+                      update_status=record("update_status"), set_flipped=record("set_flipped"),
+                      set_mode=record("set_mode"),
                       set_clocks=record("set_clocks"), play_sound=record("play_sound"),
                       take_back=record("take_back"))
     return ctx, calls
@@ -126,7 +132,7 @@ def test_default_mode_hooks(tmp_path):
     ctx, _ = fake_context(tmp_path)
     mode = BoardMode(ctx)
     assert mode.hint_arrows() == [] and mode.show_details and mode.allows("take_back")
-    assert not mode.takes_back and not mode.can_take_back()   # ← browses back in Board mode
+    assert not mode.takes_back and not mode.can_take_back()   # no Take Back button in Board mode
     assert not mode_class("vs_computer").takes_back
     assert not mode_class("vs_computer").show_details and not mode_class("learn_openings").show_details
 
@@ -136,7 +142,7 @@ def test_default_mode_hooks(tmp_path):
 def test_vs_computer_start_as_white_waits_for_the_user(tmp_path):
     ctx, calls = fake_context(tmp_path)
     mode = mode_class("vs_computer")(ctx)
-    mode.start({"engine": "random", "level": "random", "color": "white", "start": "initial"})
+    mode.start(VS_WHITE)
     try:
         assert ctx.settings["vs_engine"] == "random" and ctx.settings["vs_color"] == "white"
         assert ctx.model.headers["White"] == "You" and ctx.model.headers["Event"] == "vs Computer"
@@ -150,7 +156,7 @@ def test_vs_computer_start_as_white_waits_for_the_user(tmp_path):
 def test_vs_computer_start_as_black_gets_an_engine_move(tmp_path):
     ctx, calls = fake_context(tmp_path)
     mode = mode_class("vs_computer")(ctx)
-    mode.start({"engine": "random", "level": "random", "color": "black", "start": "initial"})
+    mode.start({**VS_WHITE, "color": "black"})
     try:
         assert ("set_flipped", (True,)) in calls and not mode.can_move(chess.BLACK)
         deadline = time.monotonic() + 5
@@ -166,7 +172,7 @@ def test_vs_computer_start_as_black_gets_an_engine_move(tmp_path):
 def test_vs_computer_leave_resigns_a_running_game(tmp_path):
     ctx, calls = fake_context(tmp_path)
     mode = mode_class("vs_computer")(ctx)
-    mode.start({"engine": "random", "level": "random", "color": "white", "start": "initial"})
+    mode.start(VS_WHITE)
     try:
         mode.leave()
         assert mode.game.over and ctx.model.headers["Result"] == "0-1"
@@ -178,7 +184,7 @@ def test_vs_computer_leave_resigns_a_running_game(tmp_path):
 def test_learn_openings_start_plays_the_book_move_for_the_computer(tmp_path):
     ctx, calls = fake_context(tmp_path)
     mode = mode_class("learn_openings")(ctx)
-    mode.start({"opening": "reti", "role": "reply", "engine": "random", "level": "random", "vary": False})
+    mode.start(LEARN_REPLY)
     try:
         assert ctx.model.headers["Opening"] and ctx.settings["learn_role"] == "reply"
         assert ("set_flipped", (True,)) in calls
@@ -192,7 +198,7 @@ def test_learn_openings_start_plays_the_book_move_for_the_computer(tmp_path):
 def test_deactivate_cancels_pending_computer_moves(tmp_path):
     ctx, calls = fake_context(tmp_path)
     mode = mode_class("learn_openings")(ctx)
-    mode.start({"opening": "reti", "role": "reply", "engine": "random", "level": "random", "vary": False})
+    mode.start(LEARN_REPLY)
     mode.deactivate()
     ctx.root.run_timers()
     assert not played_moves(calls) and not ctx.root.timers
@@ -206,8 +212,7 @@ def endgame_mode(tmp_path, monkeypatch, key="saavedra"):
     ctx, calls = fake_context(tmp_path)
     mode = EndgameMode(ctx)
     monkeypatch.setattr(EndgameMode, "_engine", lambda self: RandomEngine(seed=1))
-    mode._load()
-    monkeypatch.setattr(EndgameMode._deck, "draw", lambda difficulty: EndgameMode._collection.sample(key))
+    monkeypatch.setattr(ctx.assets.endgame_deck(), "draw", lambda difficulty: ctx.assets.endgames().sample(key))
     return mode, ctx, calls
 
 
@@ -240,7 +245,7 @@ def test_endgame_start_sets_up_the_position(tmp_path, monkeypatch):
         assert ctx.model.board.fen() == mode.game.sample.fen and ("set_flipped", (False,)) in calls
         assert mode.can_move(chess.WHITE) and not mode.can_move(chess.BLACK)
         assert mode.light() == "pending" and "Saavedra" in mode.title() and "1895" in mode.subtitle()
-        assert mode.allows("take_back") and not mode.allows("navigate")
+        assert mode.allows("take_back") and mode.allows("navigate")
         assert mode.score_text() is None
     finally:
         mode.deactivate()
@@ -264,7 +269,10 @@ def test_endgame_suggestions_and_take_back(tmp_path, monkeypatch):
     ctx.settings["end_suggest"] = True
     mode.start({"difficulty": 5, "minutes": 10})
     try:
-        assert mode.hint_arrows() == [(chess.C6, chess.C7, "main")] and mode.game.hints_used == 1
+        hints = mode.hint_arrows()
+        assert hints == [(chess.C6, chess.C7, "main")] and mode.game.hints_used == 0   # only a question
+        mode.hints_shown(hints)
+        assert mode.game.hints_used == 1
         user_plays(mode, ctx, "Kb7")   # off the solution; no engine to judge it
         assert mode.game.light == "pending" and "No engine" in mode.status_text()
         assert mode.can_take_back()
@@ -283,3 +291,14 @@ def test_endgame_leave_resigns_and_the_light_turns_red(tmp_path, monkeypatch):
         assert not mode.allows("take_back") and not mode.can_take_back()
     finally:
         mode.deactivate()
+
+
+# --- Registry of engines, shared logic ---------------------------------------
+
+def test_endgame_engine_comes_from_the_registry(tmp_path):
+    from app.engines import ENGINES
+    from app.modes.endgames import EndgameMode
+    ctx, _ = fake_context(tmp_path)
+    available = [cls for cls in ENGINES if cls.available(ctx.settings, ctx.app_dir)]
+    expected = next((cls for cls in available if cls.can_analyse), available[0])
+    assert type(EndgameMode(ctx)._engine()) is expected

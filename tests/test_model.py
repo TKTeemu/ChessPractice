@@ -11,7 +11,7 @@ def play(m, *ucis):
     events = []
     for uci in ucis:
         move = chess.Move.from_uci(uci)
-        events.append(m.make_move(move.from_square, move.to_square, move.promotion))
+        events.append(m.play(chess.Move(move.from_square, move.to_square, move.promotion)))
     return events
 
 
@@ -37,7 +37,7 @@ def test_perft(fen, depth, expected):
 
 def test_illegal_move_rejected():
     m = GameModel()
-    assert m.make_move(SQ("e2"), SQ("e5")) is None
+    assert m.play(chess.Move(SQ("e2"), SQ("e5"))) is None
     assert m.node is m.game
 
 
@@ -63,7 +63,7 @@ def test_promotion():
     m = GameModel()
     m.new_game(chess.Board("8/P6k/7p/8/8/8/8/K7 w - - 0 1"))
     assert m.needs_promotion(SQ("a7"), SQ("a8"))
-    assert m.make_move(SQ("a7"), SQ("a8")) is None  # promotion piece required
+    assert m.play(chess.Move(SQ("a7"), SQ("a8"))) is None  # promotion piece required
     assert play(m, "a7a8n") == [M.PROMOTE]
     assert m.board.piece_at(SQ("a8")) == chess.Piece(chess.KNIGHT, chess.WHITE)
 
@@ -183,3 +183,65 @@ def test_take_back_works_from_an_earlier_position():
     m.go_start()
     assert m.take_back(chess.WHITE)
     assert len(list(m.game.mainline_moves())) == 2 and m.node.turn() == chess.WHITE
+
+
+# --- Restoring deleted moves, headers ----------------------------------------
+
+def play_all(m, *sans):
+    for san in sans:
+        m.play(m.board.parse_san(san))
+
+
+def test_restore_puts_a_variation_back_in_its_place():
+    m = GameModel()
+    play_all(m, "e4", "e5")
+    m.back()
+    play_all(m, "c5")
+    m.back()
+    play_all(m, "e6")
+    parent = m.node.parent
+    second = parent.variations[1]
+    m.goto(second)
+    assert m.delete_from_here(second) and len(parent.variations) == 2
+    assert m.restore_deleted()
+    assert parent.variations[1] is second and m.node is second and not m.restore_deleted()
+
+
+def test_restore_undoes_deletions_in_reverse_order():
+    m = GameModel()
+    play_all(m, "e4", "e5", "Nf3")
+    assert m.delete_last() and m.delete_last() and len(list(m.game.mainline_moves())) == 1
+    assert m.restore_deleted() and m.restore_deleted()
+    assert len(list(m.game.mainline_moves())) == 3 and m.at_end()
+
+
+def test_a_new_move_or_game_ends_what_can_be_restored():
+    m = GameModel()
+    play_all(m, "e4")
+    m.delete_last()
+    assert m.can_restore()
+    play_all(m, "e4")      # the same move again: restoring would give two of them
+    assert not m.can_restore() and len(m.game.variations) == 1
+    m.delete_last()
+    m.new_game()
+    assert not m.can_restore()
+
+
+def test_set_headers_marks_the_game_modified_only_on_a_change():
+    m = GameModel()
+    m.set_headers({"Result": "*"})
+    assert not m.modified
+    m.set_headers({"Result": "1-0", "Termination": "normal"})
+    assert m.modified and m.headers["Result"] == "1-0"
+    m.mark_saved()
+    m.clear_result()
+    assert m.modified and m.headers["Result"] == "*" and "Termination" not in m.headers
+    m.mark_saved()
+    m.clear_result()
+    assert not m.modified
+
+
+def test_new_game_with_headers_and_intro_is_not_modified():
+    m = GameModel()
+    m.new_game(None, {"Event": "Test"}, "Hello")
+    assert m.headers["Event"] == "Test" and m.game.comment == "Hello" and not m.modified

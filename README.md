@@ -19,9 +19,9 @@ The first part of this file is for **using** the program; the second part, from 
 
 ## Running
 
-Double-click `Chessboard.bat`. It starts the program with the Python launcher (`pyw -3.15`) if it is installed, otherwise with `pythonw` from PATH, so no console window opens.
+Double-click `Chessboard.bat`. It finds Python 3.15 in the same places as `Install.bat` (the Python launcher, PATH, the folders the python.org installer uses) and starts the program without a console window.
 
-If something the program needs is missing (Tk, Pillow, python-chess), a message box says what and how to fix it. Other errors are written to `error.log` in the program folder. To see errors directly, run it from a console:
+If something the program needs is missing (Tk, Pillow, python-chess, or the right Python version), a message box says what and how to fix it. Other errors show a message and are written to `error.log` in the program folder (`chessboard-error.log` in the temp folder if the program folder is read-only). To see errors directly, run it from a console:
 
 ```
 py -3.15 chessboard.pyw
@@ -31,10 +31,10 @@ py -3.15 chessboard.pyw
 
 | Mode | Use |
 | --- | --- |
-| **Board** | The free board: move both sides, variations, comments. The program always starts in this mode. |
-| **Play vs Computer** | Game > Play vs Computer… asks for the engine, level, your colour and the start position. 30 minutes each on the clock (setting `vs_minutes`), no take-backs. Resign ends the game; Open in Board Mode (after the game) lets you analyse it. Clock times are saved in the PGN as `[%clk]` comments. |
-| **Learn Openings** | Game > Learn Openings… asks for an opening (21 openings in three groups, with search), whether you play the opening or the reply, and the engine level. The computer answers from the opening book while the position is in it, then the engine takes over. *Suggest next move* shows the book moves as blue arrows during the opening phase (until move 12, setting `learn_suggest_moves`, 10–15). ← (or the ◀ button, or Game > Take Back) removes your last move and the reply. |
-| **Endgame Practice** | Game > Endgame Practice… asks only for a difficulty level (1 Basic mates … 5 Studies) and the clock (15 minutes, setting `end_minutes`). The program draws a position of that level that you have not played since the program was started, and you play the side to move against Stockfish at full strength: the computer first defends as stored in the position's solution, then with the engine. The light above the board turns green when you solve the position (play the solution out, or reach the goal) and red when you miss it (a known wrong try, a move the engine judges to give the goal away, or the wrong result); the game goes on either way. *Suggest next move* shows the solution's moves (or the engine's best move) as arrows. ← (or the ◀ button) takes your move back, also after mate or stalemate, but the clock is not wound back. Without Stockfish the computer plays the stored defence and then random moves, and moves off the solution are not judged. |
+| **Board** | The free board: move both sides, variations, comments. The program always starts in this mode. Tick *Engine analysis* and Stockfish analyses the position shown: the score from White's point of view, the expected line and a blue arrow for the best move. Stockfish runs only while the box is ticked. Deleted moves can be restored with Ctrl+Y (Edit > Restore Deleted Moves) until a new move is played. |
+| **Play vs Computer** | Game > Play vs Computer… asks for the engine, level, your colour, the start position and the clock (minutes each and an optional increment per move). No take-backs. Moves can be browsed once the game has finished. Resign ends the game; Open in Board Mode (after the game) lets you analyse it. Clock times are saved in the PGN as `[%clk]` comments. |
+| **Learn Openings** | Game > Learn Openings… asks for an opening (21 openings in three groups, with search), whether you play the opening or the reply, and the engine level. The computer answers from the opening book while the position is in it, then the engine takes over. *Suggest next move* shows the book moves as blue arrows during the opening phase (until the move you choose in the dialog, 10–15). The Take Back button (or Ctrl+Z) removes your last move and the reply; ← and the ◀ button browse the moves. |
+| **Endgame Practice** | Game > Endgame Practice… asks only for a difficulty level (1 Basic mates … 5 Studies) and the clock (15 minutes, setting `end_minutes`). The program draws a position of that level that you have not played yet (what you have played and solved is remembered between runs, in `settings.json`), and you play the side to move against Stockfish at full strength: the computer first defends as stored in the position's solution, then with the engine. The light above the board turns green when you solve the position (play the solution out, or reach the goal) and red when you miss it (a known wrong try, a move the engine judges to give the goal away, or the wrong result); the game goes on either way. *Suggest next move* shows the solution's moves (or the engine's best move) as arrows. The Take Back button (or Ctrl+Z) takes your move back, also after mate or stalemate, but the clock is not wound back; ← and the ◀ button browse the moves. Retry plays the same position again and Next Position draws another of the same level; neither asks to save the attempt. Without Stockfish the computer plays the stored defence and then random moves, and moves off the solution are not judged. |
 
 The **New Game** button at the top of the right-hand panel starts a new game in any mode (in the game modes it opens the mode's dialog again). The Comment & FEN section at the bottom can be folded away; it is open in Board mode by default.
 
@@ -50,7 +50,7 @@ The program runs without Stockfish (the dialogs then offer only *Random moves*).
 
 Optional: Syzygy endgame tablebases (3–5 pieces, the `*.rtbw` and `*.rtbz` files) in `engines\syzygy\` make Stockfish's judgement of small endgames exact in Endgame Practice. The program works without them.
 
-Another location can be set in `settings.json` with `"engine_path"`. Stockfish never uses the network; the program talks to it only through pipes, and closes it when you leave the mode or exit.
+Another location can be chosen with View > Stockfish Location. Stockfish never uses the network; the program talks to it only through pipes, and closes it when you leave the mode or exit.
 
 ## Licences and sharing
 

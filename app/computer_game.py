@@ -10,23 +10,23 @@ import chess
 
 from . import strings as S
 from .clock import ChessClock
-from .commands import EDIT_COMMENT
+from .commands import EDIT_COMMENT, NAVIGATE
 from .engine_game import EngineGame
 from .model import material_balance, outcome_text
 
 
 class ComputerGame(EngineGame):
     EVENT = S.VS_EVENT
-    # Never NAVIGATE: browsing earlier moves would look like taking moves back. Only Board mode
-    # allows it; a finished game is reviewed there (Open in Board Mode).
+    # Moves can be browsed only once the game has finished.
     ALLOWED_DURING_GAME = frozenset()
-    ALLOWED_AFTER_GAME = frozenset({EDIT_COMMENT})
+    ALLOWED_AFTER_GAME = frozenset({EDIT_COMMENT, NAVIGATE})
 
-    def __init__(self, user_color, engine_name, level, minutes=30, now=time.monotonic):
+    def __init__(self, user_color, engine_name, level, minutes=30, now=time.monotonic, increment=0):
         super().__init__(user_color, f"{engine_name} {level.label}".strip())
         self.level = level
         self.seconds = round(minutes * 60)
-        self.clock = ChessClock(self.seconds, self.seconds, now)
+        self.increment = increment
+        self.clock = ChessClock(self.seconds, self.seconds, now, increment)
         self.started = False     # the clock starts with the first move
 
     # --- Queries ----------------------------------------------------------
@@ -44,7 +44,7 @@ class ComputerGame(EngineGame):
 
     def write_headers(self, headers):
         super().write_headers(headers)
-        headers["TimeControl"] = str(self.seconds)
+        headers["TimeControl"] = f"{self.seconds}+{self.increment}" if self.increment else str(self.seconds)
         if self.level.elo is not None:
             headers["WhiteElo" if self.computer_color == chess.WHITE else "BlackElo"] = str(self.level.elo)
 
@@ -54,12 +54,12 @@ class ComputerGame(EngineGame):
         """Call after each move with the board after it. Returns the mover's remaining
         seconds (for the [%clk] comment); ends the game if the position is final."""
         mover = not board.turn
-        left = self.clock.remaining(mover)
         if self.started:
             self.clock.switch()
         else:
             self.started = True
             self.clock.start(board.turn)
+        left = self.clock.remaining(mover)
         outcome = board.outcome(claim_draw=True)
         if outcome is not None:
             self._finish(outcome.result(), outcome_text(outcome), "normal")

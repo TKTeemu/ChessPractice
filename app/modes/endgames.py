@@ -1,9 +1,10 @@
 """EndgameMode: the user plays a stored endgame position against the computer.
 
 The rules live in EndgameGame and the positions in endgames.py; this class connects them to
-the window: the level dialog, drawing a position, the computer's stored defence after a short
-pause, engine analyses (they judge the user's moves and give the computer's reply), the
-success light, suggestion arrows and the panel. The clock and Resign come from TimedGameMode.
+the window: the level dialog, drawing a position, Retry and Next Position, the progress kept in
+settings, the computer's stored defence after a short pause, engine analyses (they judge the
+user's moves and give the computer's reply), the success light, suggestion arrows and the
+panel. The clock and Resign come from TimedGameMode.
 """
 
 import tkinter as tk
@@ -13,11 +14,9 @@ import chess
 
 from .. import strings as S
 from .. import widgets
-from ..commands import TAKE_BACK
 from ..dialogs import choose_endgame
 from ..endgame_game import LEVEL, EndgameGame
-from ..endgames import EndgameCollection, EndgameDeck
-from ..engines import Analysis, RandomEngine, StockfishEngine
+from ..engines import Analysis
 from ..model import visible_comment
 from .base import MenuItem
 from .timed_mode import TimedGameMode
@@ -28,6 +27,7 @@ TREE_DELAY_MS = 400   # a stored reply waits a moment, so that it is seen as a s
 # known), the score after it together with the computer's reply, and the user's best move
 # for the suggestion arrow.
 BASELINE, REPLY, HINT = "baseline", "reply", "hint"
+PLAYED, SOLVED = "played", "solved"   # settings["end_progress"]: position key -> one of these
 
 
 class EndgameMode(TimedGameMode):
@@ -38,11 +38,8 @@ class EndgameMode(TimedGameMode):
         "end_difficulty": 1,
         "end_minutes": 15,
         "end_suggest": False,
+        "end_progress": {},
     }
-    # Kept on the class, not the instance: set_mode creates a new mode object each time, and
-    # the positions drawn must not repeat until the program is restarted.
-    _collection = None
-    _deck = None
 
     def __init__(self, ctx):
         super().__init__(ctx)
@@ -52,49 +49,42 @@ class EndgameMode(TimedGameMode):
 
     # --- Life cycle -------------------------------------------------------
 
-    def folder(self):
-        return self.ctx.app_dir / "assets" / "endgames"
-
-    def _load(self):
-        cls = type(self)
-        if cls._collection is None:
-            cls._collection = EndgameCollection.load(self.folder())
-            cls._deck = EndgameDeck(cls._collection)
-        return cls._collection
-
     def _engine(self):
-        """Stockfish if it is installed, else random moves."""
-        settings, app_dir = self.ctx.settings, self.ctx.app_dir
-        if StockfishEngine.available(settings, app_dir):
-            return StockfishEngine(settings, app_dir)
-        return RandomEngine(settings, app_dir)
+        """The first installed engine that can judge moves, else the first one that can play."""
+        available, _ = self.engine_choices()
+        cls = next((cls for cls in available if cls.can_analyse), available[0])
+        return cls(self.ctx.settings, self.ctx.app_dir)
 
     def choose(self):
         ctx = self.ctx
-        collection = self._load()
+        collection = ctx.assets.endgames()
         if not collection.all:
-            messagebox.showerror(S.END_TITLE, S.END_NO_POSITIONS.format(folder=self.folder()), parent=ctx.root)
+            messagebox.showerror(S.END_TITLE, S.END_NO_POSITIONS.format(folder=ctx.assets.endgame_folder),
+                                 parent=ctx.root)
             return None
-        notes = [] if StockfishEngine.available(ctx.settings, ctx.app_dir) else [S.END_NO_ENGINE]
+        available, _ = self.engine_choices()
+        notes = [] if any(cls.can_analyse for cls in available) else [S.END_NO_ENGINE]
         if collection.errors:
             notes.append(S.END_FILE_ERRORS.format(
                 errors="\n".join(f"{name}: {error}" for name, error in collection.errors[:5])))
         levels = collection.levels()
-        played = {d: self._deck.played(d) for d, _, _ in levels}
-        return choose_endgame(ctx.root, levels, played, notes, ctx.settings)
+        deck = ctx.assets.endgame_deck()
+        played = {d: deck.played(d) for d, _, _ in levels}
+        solved = {d: self._solved(d) for d, _, _ in levels}
+        return choose_endgame(ctx.root, levels, played, solved, notes, ctx.settings)
 
     def start(self, config):
         ctx = self.ctx
         ctx.settings["end_difficulty"] = config["difficulty"]
         ctx.settings["end_minutes"] = config["minutes"]
-        self._load()
-        sample = self._deck.draw(config["difficulty"])
+        key = config.get("sample")   # Retry: the same position again; otherwise draw one
+        sample = (ctx.assets.endgames().sample(key) if key
+                  else ctx.assets.endgame_deck().draw(config["difficulty"]))
         engine = self._engine()
         self.game = EndgameGame(sample, engine.name, engine.can_analyse, config["minutes"])
+        self._record_progress(PLAYED)
 
-        ctx.new_game(chess.Board(sample.fen))
-        ctx.model.game.comment = sample.game.comment.strip()   # the position's introduction
-        self.game.write_headers(ctx.model.headers)
+        self.start_game(chess.Board(sample.fen), intro=sample.game.comment.strip())
         ctx.set_flipped(self.game.user_color == chess.BLACK)
         self.start_engine(engine, LEVEL)
         self.start_clock()
@@ -123,11 +113,45 @@ class EndgameMode(TimedGameMode):
     def hint_arrows(self):
         if self.game is None or not self._suggest() or not self.ctx.model.at_end():
             return []
-        board = self._tip()
-        hints = self.game.hints(board)
-        self.game.note_hints(board, hints)
-        self._update_panel()
-        return hints
+        return self.game.hints(self._tip())
+
+    def hints_shown(self, hints):
+        if self.game is not None:
+            self.game.note_hints(self._tip(), hints)
+            self._update_panel()
+
+    # --- Progress ---------------------------------------------------------
+
+    def _record_progress(self, state):
+        """Remember in settings how far the position has got; solved stays solved."""
+        settings, key = self.ctx.settings, self.game.sample.key
+        progress = settings["end_progress"]
+        if progress.get(key) != SOLVED and progress.get(key) != state:
+            settings["end_progress"] = {**progress, key: state}
+
+    def _solved(self, difficulty):
+        progress = self.ctx.settings["end_progress"]
+        return sum(progress.get(s.key) == SOLVED for s in self.ctx.assets.endgames().samples(difficulty))
+
+    def _note_solved(self):
+        if self.game.light == "success":
+            self._record_progress(SOLVED)
+
+    # --- Retry and Next Position ------------------------------------------
+
+    def _restart(self, sample_key=None):
+        """A practice attempt is replaced without asking to save it (a running one is resigned
+        first, with the usual question), because these buttons are pressed again and again."""
+        config = {"difficulty": self.game.sample.difficulty, "minutes": self.ctx.settings["end_minutes"]}
+        if sample_key:
+            config["sample"] = sample_key
+        self.ctx.set_mode(self.key, config=config, discard=True)
+
+    def retry(self):
+        self._restart(self.game.sample.key)
+
+    def next_position(self):
+        self._restart()
 
     # --- Moves ------------------------------------------------------------
 
@@ -136,6 +160,7 @@ class EndgameMode(TimedGameMode):
         model = self.ctx.model
         if self.game.last_comment and not visible_comment(model.node.comment):
             model.set_comment(model.node, self.game.last_comment)
+        self._note_solved()
         self._update_panel()
 
     def _next_turn(self):
@@ -182,24 +207,7 @@ class EndgameMode(TimedGameMode):
         elif kind == REPLY:
             self.ctx.play_move(result.move, from_end=True)
         else:
-            self.ctx.refresh()   # the suggestion arrow
-
-    def take_back(self):
-        if self.game is None or not self.can_take_back():
-            return
-        self.cancel_computer_move()
-        if self.ctx.take_back(self.game.user_color):
-            self.game.took_back(self._tip())
-            headers = self.ctx.model.headers
-            headers["Result"] = "*"
-            headers.pop("Termination", None)
-            self._next_turn()
-            self._update_clocks()
-            self.ctx.refresh()
-
-    def can_take_back(self):
-        return self.game is not None and self.game.allows(TAKE_BACK) and any(
-            node.parent.turn() == self.game.user_color for node in self.ctx.model.game.mainline())
+            self.ctx.update_status()   # the suggestion arrow
 
     # --- UI ---------------------------------------------------------------
 
@@ -214,13 +222,9 @@ class EndgameMode(TimedGameMode):
         self._suggest_var = tk.BooleanVar(value=self._suggest())
         widgets.checkbox(frame, S.LEARN_SUGGEST, self._suggest_var, self._suggest_changed).grid(
             row=3, column=0, columnspan=2, sticky="w", pady=(2, 4))
-        self._buttons = {
-            "resign": widgets.button(frame, S.MODE_RESIGN, self.resign),
-            "open": widgets.button(frame, S.MODE_OPEN_IN_BOARD, self.open_in_board_mode),
-        }
-        self._buttons["resign"].grid(row=4, column=0, sticky="ew", padx=2)
-        self._buttons["open"].grid(row=4, column=1, sticky="ew", padx=2)
-        self._update_buttons()
+        self._grid_game_buttons(frame, 4)
+        widgets.button(frame, S.END_RETRY, self.retry).grid(row=5, column=0, sticky="ew", padx=2, pady=(4, 0))
+        widgets.button(frame, S.END_NEXT, self.next_position).grid(row=5, column=1, sticky="ew", padx=2, pady=(4, 0))
         self._update_panel()
         return frame
 
@@ -228,21 +232,23 @@ class EndgameMode(TimedGameMode):
         self.ctx.settings["end_suggest"] = self._suggest_var.get()
         if self._running() and not self.game.is_computer_turn(self._tip()):
             self._user_turn()
-        self.ctx.refresh()
+        self.ctx.update_status()
 
     def _game_over(self):
         super()._game_over()
+        self._note_solved()
         self._update_panel()
 
     def _update_panel(self):
-        if not self._labels or not self._labels["goal"].winfo_exists() or self.game is None:
+        if not self._labels or self.game is None:
             return
         game = self.game
         difficulty = game.sample.difficulty
         self._labels["goal"].configure(text=game.goal_text())
-        total = next((count for d, _, count in self._collection.levels() if d == difficulty), 0)
+        assets = self.ctx.assets
         self._labels["level"].configure(text=S.END_PLAYED.format(
-            level=difficulty, played=self._deck.played(difficulty), total=total))
+            level=difficulty, played=assets.endgame_deck().played(difficulty),
+            total=len(assets.endgames().samples(difficulty)), solved=self._solved(difficulty)))
         self._labels["counters"].configure(text=S.END_COUNTERS.format(
             hints=game.hints_used, take_backs=game.take_backs))
         self._update_buttons()
@@ -251,6 +257,8 @@ class EndgameMode(TimedGameMode):
         return [
             MenuItem(S.MODE_TAKE_BACK, self.take_back, self.can_take_back),
             MenuItem(S.MODE_RESIGN, self.resign, self._running),
+            MenuItem(S.END_RETRY, self.retry, lambda: self.game is not None),
+            MenuItem(S.END_NEXT, self.next_position, lambda: self.game is not None),
             MenuItem(S.MODE_OPEN_IN_BOARD, self.open_in_board_mode,
                      lambda: self.game is not None and self.game.over),
         ]

@@ -11,13 +11,12 @@ import tkinter as tk
 import chess
 
 from .. import strings as S
-from .. import widgets
 from ..computer_game import ComputerGame
 from ..dialogs import new_computer_game
 from .base import MenuItem
 from .timed_mode import TimedGameMode
 
-CHOICES = ("engine", "level", "color", "start")   # dialog choices, stored as settings vs_<choice>
+CHOICES = ("engine", "level", "color", "start", "minutes", "increment")   # stored as settings vs_<choice>
 
 
 class VsComputerMode(TimedGameMode):
@@ -25,6 +24,7 @@ class VsComputerMode(TimedGameMode):
     label = S.MODE_VS_COMPUTER
     SETTINGS = {
         "vs_minutes": 30,
+        "vs_increment": 0,
         "vs_engine": "stockfish",
         "vs_level": "1320",
         "vs_color": "white",
@@ -54,10 +54,9 @@ class VsComputerMode(TimedGameMode):
         if color_key == "random":
             color_key = random.choice(("white", "black"))
         user_color = chess.WHITE if color_key == "white" else chess.BLACK
-        self.game = ComputerGame(user_color, engine.name, level, settings["vs_minutes"])
+        self.game = ComputerGame(user_color, engine.name, level, config["minutes"], increment=config["increment"])
 
-        ctx.new_game(self._current_board() if config["start"] == "current" else None)
-        self.game.write_headers(ctx.model.headers)
+        self.start_game(self._current_board() if config["start"] == "current" else None)
         ctx.set_flipped(user_color == chess.BLACK)
         self.start_engine(engine, level)
         self.start_clock()
@@ -77,13 +76,7 @@ class VsComputerMode(TimedGameMode):
     def build_panel(self, parent):
         frame = tk.Frame(parent, bg=parent["bg"])
         frame.columnconfigure((0, 1), weight=1)
-        self._buttons = {
-            "resign": widgets.button(frame, S.MODE_RESIGN, self.resign),
-            "open": widgets.button(frame, S.MODE_OPEN_IN_BOARD, self.open_in_board_mode),
-        }
-        self._buttons["resign"].grid(row=0, column=0, sticky="ew", padx=2)
-        self._buttons["open"].grid(row=0, column=1, sticky="ew", padx=2)
-        self._update_buttons()
+        self._grid_game_buttons(frame, 0)
         return frame
 
     def menu_items(self):

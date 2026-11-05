@@ -18,10 +18,8 @@ def new_game(key="reti", user_color=chess.WHITE, vary=False, suggest_moves=12):
 
 def play(game, board, *sans):
     for san in sans:
-        before = board.copy()
-        move = board.parse_san(san)
-        board.push(move)
-        game.move_played(before, move, board)
+        board.push_san(san)
+        game.move_played(board)
 
 
 def test_computer_follows_the_book_then_asks_the_engine():
@@ -59,9 +57,8 @@ def test_deviation_without_suggestions_is_only_mentioned():
     game = new_game()
     board = chess.Board()
     play(game, board, "Nf3", "d5")
-    before = board.copy()
     board.push_san("b3")
-    game.move_played(before, board.peek(), board, suggest=False)
+    game.move_played(board, suggest=False)
     assert game.notice == "Out of theory"
 
 

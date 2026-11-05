@@ -12,7 +12,7 @@ import time
 import chess
 
 from . import strings as S
-from .commands import EDIT_COMMENT, TAKE_BACK
+from .commands import EDIT_COMMENT, NAVIGATE, TAKE_BACK
 from .computer_game import ComputerGame
 from .endgames import SolutionTree
 from .engines.base import Level
@@ -54,8 +54,8 @@ def is_mistake(goal, before, after):
 
 class EndgameGame(ComputerGame):
     EVENT = S.END_EVENT
-    ALLOWED_DURING_GAME = frozenset({TAKE_BACK})
-    ALLOWED_AFTER_GAME = frozenset({TAKE_BACK, EDIT_COMMENT})   # no TAKE_BACK after time or resign
+    ALLOWED_DURING_GAME = frozenset({TAKE_BACK, NAVIGATE})
+    ALLOWED_AFTER_GAME = frozenset({TAKE_BACK, EDIT_COMMENT, NAVIGATE})   # no TAKE_BACK after time or resign
 
     def __init__(self, sample, engine_name, can_judge, minutes=15, rng=None, now=time.monotonic):
         super().__init__(sample.side(), engine_name, LEVEL, minutes, now)
@@ -71,7 +71,6 @@ class EndgameGame(ComputerGame):
         self.take_backs = 0
         self.hints_used = 0
         self._hinted = set()         # plies at which suggestion arrows were shown
-        self.notice = None           # status line text until the user's next move
         self.last_comment = ""       # explanation of the solution move just played
         self._board_end = False      # the game ended on the board (mate, stalemate, draw)
 
@@ -98,12 +97,6 @@ class EndgameGame(ComputerGame):
         if command == TAKE_BACK and self.over and not self._board_end:
             return False
         return super().allows(command)
-
-    def status_text(self, board):
-        text = super().status_text(board)
-        if self.over or not self.notice:
-            return text
-        return f"{self.notice}\n{text}"
 
     def hints(self, board):
         """Arrows for the user's turn: [(from_sq, to_sq, "main" | "alt")]. The solution's moves
@@ -186,12 +179,10 @@ class EndgameGame(ComputerGame):
                 del table[key]
         if self.solved_ply is not None and self.solved_ply > ply:
             self.solved_ply = None
-        self.result = self.end_text = self.termination = None
+        super().took_back(board)
         self._board_end = False
-        self.notice = None
         self.last_comment = ""
         self.take_backs += 1
-        self.request_id += 1
         if self.started:
             self.clock.start(self.user_color)
 
@@ -208,7 +199,6 @@ class EndgameGame(ComputerGame):
             if value:
                 headers[name] = value
 
-    def write_result(self, headers):
-        super().write_result(headers)
-        headers["HintsUsed"] = str(self.hints_used)
-        headers["TakeBacks"] = str(self.take_backs)
+    def result_headers(self):
+        return {**super().result_headers(), "HintsUsed": str(self.hints_used),
+                "TakeBacks": str(self.take_backs)}

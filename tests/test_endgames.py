@@ -132,3 +132,17 @@ def test_deck_does_not_repeat_until_the_level_is_played():
 def test_deck_with_a_single_position():
     deck = EndgameDeck(deck_collection(1), random.Random(2))
     assert deck.draw(1).key == deck.draw(1).key == "p0" and deck.played(1) == 1
+
+
+def test_deck_prefers_positions_not_played_in_an_earlier_run():
+    collection = deck_collection(4)
+    deck = EndgameDeck(collection, random.Random(3), played=["p0", "p1", "removed since"])
+    assert deck.played(1) == 2
+    assert {deck.draw(1).key for _ in range(2)} == {"p2", "p3"}
+    assert deck.played(1) == 4
+    assert {deck.draw(1).key for _ in range(4)} == {"p0", "p1", "p2", "p3"}   # then all of them again
+
+
+def test_deck_with_everything_played_starts_over():
+    deck = EndgameDeck(deck_collection(2), random.Random(4), played=["p0", "p1"])
+    assert {deck.draw(1).key for _ in range(2)} == {"p0", "p1"}

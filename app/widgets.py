@@ -4,10 +4,13 @@ A mode's panel uses these instead of repeating colours and fonts (see Mode.build
 """
 
 import tkinter as tk
+from tkinter import ttk
 
 from . import strings as S
 from .theme import (BUTTON_ACTIVE, BUTTON_BG, ENTRY_BG, FONT, FONT_BOLD, FONT_LARGE_BOLD, FONT_SMALL,
-                    LIGHT_COLORS, MUTED_FG, PANEL_FG)
+                    LIGHT_COLORS, MUTED_FG, PANEL_BG, PANEL_FG)
+
+SCROLLBAR_STYLE = "Dark.Vertical.TScrollbar"
 
 
 def button(parent, text, command, **kw):
@@ -26,6 +29,21 @@ def label(parent, text="", bold=False, muted=None, wrap=False, **kw):
     if wrap:
         widget.bind("<Configure>", lambda e: widget.configure(wraplength=e.width))
     return widget
+
+
+def scrollbar(parent, command):
+    """A dark vertical scrollbar. tk.Scrollbar ignores colours on Windows, and the "clam" theme
+    is borrowed only for this style's parts, so the dialogs keep the system look."""
+    style = ttk.Style(parent)
+    if "Dark.Scrollbar.trough" not in style.element_names():
+        style.element_create("Dark.Scrollbar.trough", "from", "clam")
+        style.element_create("Dark.Scrollbar.thumb", "from", "clam")
+        style.layout(SCROLLBAR_STYLE, [("Dark.Scrollbar.trough", {"sticky": "ns", "children": [
+            ("Dark.Scrollbar.thumb", {"expand": "1", "sticky": "nswe"})]})])
+        style.configure(SCROLLBAR_STYLE, background=BUTTON_BG, troughcolor=PANEL_BG, bordercolor=PANEL_BG,
+                        lightcolor=BUTTON_BG, darkcolor=BUTTON_BG, gripcount=0)
+        style.map(SCROLLBAR_STYLE, background=[("active", BUTTON_ACTIVE)])
+    return ttk.Scrollbar(parent, orient="vertical", command=command, style=SCROLLBAR_STYLE)
 
 
 def checkbox(parent, text, variable, command, **kw):

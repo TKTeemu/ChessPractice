@@ -25,6 +25,7 @@ class EngineGame:
         self.result = None       # "1-0", "0-1", "1/2-1/2" or "*" once the game is over
         self.end_text = None     # status line text once the game is over
         self.termination = None  # PGN Termination header, if any
+        self.notice = None       # status line text until the user's next move
         self.request_id = 0
 
     # --- Queries ----------------------------------------------------------
@@ -49,12 +50,12 @@ class EngineGame:
     def status_text(self, board):
         if self.over:
             return self.end_text
+        text = S.VS_THINKING
         if board.turn == self.user_color:
             text = S.VS_YOUR_MOVE
             if board.is_check():
                 text += " · " + S.STATUS_CHECK
-            return text
-        return S.VS_THINKING
+        return f"{self.notice}\n{text}" if self.notice else text
 
     # --- Headers ----------------------------------------------------------
 
@@ -67,10 +68,24 @@ class EngineGame:
         headers["Black"] = self.player_name(chess.BLACK)
         headers["Result"] = "*"
 
-    def write_result(self, headers):
-        headers["Result"] = self.result or "*"
+    def result_headers(self):
+        """The PGN headers that record how the game ended."""
+        headers = {"Result": self.result or "*"}
         if self.termination:
             headers["Termination"] = self.termination
+        return headers
+
+    # --- Events -----------------------------------------------------------
+
+    def move_played(self, board):
+        """Call after each move, with the board after it (its move stack holds the game)."""
+        raise NotImplementedError
+
+    def took_back(self, board):
+        """After moves were taken back: the game goes on from `board`."""
+        self.result = self.end_text = self.termination = None
+        self.notice = None
+        self.request_id += 1
 
     # --- Ending -----------------------------------------------------------
 

@@ -10,8 +10,9 @@ import chess
 
 
 class ChessClock:
-    def __init__(self, seconds_white, seconds_black, now=time.monotonic):
+    def __init__(self, seconds_white, seconds_black, now=time.monotonic, increment=0):
         self.now = now
+        self.increment = increment   # seconds added to the mover's time after each move
         self._left = {chess.WHITE: float(seconds_white), chess.BLACK: float(seconds_black)}
         self.running = None      # colour whose clock runs, or None
         self._since = 0.0        # now() when the running clock was last started
@@ -23,8 +24,12 @@ class ChessClock:
         self._since = self.now()
 
     def switch(self):
-        """After a move: the other side's clock runs."""
+        """After a move: the mover gets the increment, unless the flag has already fallen,
+        and the other side's clock runs."""
         if self.running is not None:
+            self._settle()
+            if self._left[self.running] > 0:
+                self._left[self.running] += self.increment
             self.start(not self.running)
 
     def stop(self):

@@ -39,7 +39,7 @@ class LearningGame(EngineGame):
         self.deviation = None           # [BookMove] of the position the user just left the book in
         self.current_line_name = None
         self.opening_phase = True
-        self.notice = None              # status line text until the user's next move
+        self.notice = None
         self.last_comment = ""          # explanation of the book move just played
         self.result = None
         self.end_text = None
@@ -52,12 +52,6 @@ class LearningGame(EngineGame):
     @property
     def opening(self):
         return self.line.opening
-
-    def status_text(self, board):
-        text = super().status_text(board)
-        if self.over or not self.notice:
-            return text
-        return f"{self.notice}\n{text}"
 
     def theory_text(self):
         return S.LEARN_THEORY.format(hits=self.user_book_hits, total=self.user_book_chances)
@@ -83,8 +77,10 @@ class LearningGame(EngineGame):
 
     # --- Events -----------------------------------------------------------
 
-    def move_played(self, board_before, move, board_after, suggest=True):
+    def move_played(self, board_after, suggest=True):
         """Call after each move. `suggest`: the user wants book moves named when leaving the book."""
+        board_before = board_after.copy()
+        move = board_before.pop()
         user_move = board_before.turn == self.user_color
         book = self.line.moves(board_before)
         book_move = next((bm for bm in book if bm.move == move), None)
@@ -133,12 +129,10 @@ class LearningGame(EngineGame):
         self._reset()
         replay = board.root()
         for move in board.move_stack:
-            before = replay.copy(stack=False)
             replay.push(move)
-            self.move_played(before, move, replay)
-        self.notice = None
+            self.move_played(replay)
+        super().took_back(board)
         self.deviation = None
-        self.request_id += 1
 
     # --- Headers ----------------------------------------------------------
 

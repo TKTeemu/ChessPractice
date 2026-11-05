@@ -45,3 +45,21 @@ def test_format_time():
     assert format_time(3900) == "1:05:00"
     assert format_time(42.37) == "0:42.3"
     assert format_time(0) == "0:00.0"
+
+
+def test_increment_is_added_to_the_mover():
+    t = [0.0]
+    clock = ChessClock(100, 100, lambda: t[0], increment=5)
+    clock.start(chess.WHITE)
+    t[0] = 10
+    clock.switch()
+    assert clock.remaining(chess.WHITE) == 95 and clock.running == chess.BLACK
+
+
+def test_no_increment_after_the_flag_has_fallen():
+    t = [0.0]
+    clock = ChessClock(10, 10, lambda: t[0], increment=5)
+    clock.start(chess.WHITE)
+    t[0] = 11
+    clock.switch()
+    assert clock.remaining(chess.WHITE) == 0

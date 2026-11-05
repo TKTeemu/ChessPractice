@@ -62,6 +62,17 @@ def parse_score(line):
     return None
 
 
+def parse_pv(line):
+    """'info depth 20 … pv e2e4 e7e5' -> (Move(e2e4), Move(e7e5)); () if the line has no pv."""
+    words = line.split()
+    if "pv" not in words:
+        return ()
+    try:
+        return tuple(chess.Move.from_uci(word) for word in words[words.index("pv") + 1:])
+    except ValueError:
+        return ()
+
+
 class UciClient:
     """One engine process. Not thread-safe: use it from one thread (close() excepted)."""
 
@@ -141,13 +152,9 @@ class UciClient:
         self.send("ucinewgame")
         self.isready()
 
-    def go(self, board, movetime, stop):
-        """Search `board` for `movetime` seconds; returns the best chess.Move."""
-        return self.search(board, movetime, stop).move
-
     def search(self, board, movetime, stop):
         """Search `board` for `movetime` seconds; returns an Analysis (best move, the last
-        exact score reported, and the ponder move if any)."""
+        exact score reported, the latest line, and the ponder move if any)."""
         root = board.root()
         moves = " ".join(m.uci() for m in board.move_stack)
         self.send(f"position fen {root.fen()}" + (f" moves {moves}" if moves else ""))
@@ -155,6 +162,7 @@ class UciClient:
         deadline = time.monotonic() + movetime + EXTRA_TIMEOUT
         stopped = False
         score = (None, None)
+        pv = ()
         while True:
             if stop.is_set() and not stopped:
                 self.send("stop")
@@ -170,6 +178,7 @@ class UciClient:
                 raise EngineError("engine exited")
             if line.startswith("info "):
                 score = parse_score(line) or score
+                pv = parse_pv(line) or pv
             elif line.startswith("bestmove"):
                 parts = line.split()
                 try:
@@ -184,7 +193,7 @@ class UciClient:
                         ponder = chess.Move.from_uci(parts[3])
                     except ValueError:
                         pass
-                return Analysis(move, *score, ponder=ponder)
+                return Analysis(move, *score, ponder=ponder, pv=pv if pv[:1] == (move,) else (move,))
 
     def close(self):
         with self._lock:

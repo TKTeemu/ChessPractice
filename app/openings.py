@@ -6,13 +6,14 @@ main line; later ones are alternatives with less weight. A comment of the form
 any other comment text explains the move.
 """
 
-import io
 import re
 from dataclasses import dataclass
-from pathlib import Path
 
 import chess
 import chess.pgn
+
+from . import fileio
+from .model import position_key
 
 LINE_RE = re.compile(r"^\s*Line:\s*([^;\n]+?)\s*(?:;\s*|$)")
 SIDES = {"white": chess.WHITE, "black": chess.BLACK}
@@ -45,11 +46,6 @@ def split_comment(text):
     return match.group(1), text[match.end():].strip()
 
 
-def position_key(board):
-    """Positions are compared without move counters, so transpositions are found."""
-    return board.epd()
-
-
 class OpeningBook:
     def __init__(self, openings, group_order, errors=()):
         self.openings = openings            # in file order
@@ -59,24 +55,16 @@ class OpeningBook:
     @classmethod
     def load(cls, folder):
         """All *.pgn files in `folder`. Games with errors are skipped and listed in `errors`."""
-        openings, errors, group_order, keys = [], [], {}, set()
-        for path in sorted(Path(folder).glob("*.pgn")):
-            try:
-                text = path.read_text(encoding="utf-8-sig")
-            except OSError as e:
-                errors.append((path.name, str(e)))
-                continue
-            stream = io.StringIO(text)
-            while (game := chess.pgn.read_game(stream)) is not None:
-                try:
-                    opening = cls._opening(game, keys)
-                except ValueError as e:
-                    errors.append((path.name, str(e)))
-                    continue
-                keys.add(opening.key)
-                openings.append(opening)
-                order = game.headers.get("GroupOrder", "")
-                group_order.setdefault(opening.group, int(order) if order.isdigit() else 999)
+        group_order, keys = {}, set()
+
+        def build(game):
+            opening = cls._opening(game, keys)
+            keys.add(opening.key)
+            order = game.headers.get("GroupOrder", "")
+            group_order.setdefault(opening.group, int(order) if order.isdigit() else 999)
+            return opening
+
+        openings, errors = fileio.load_pgn_folder(folder, build)
         return cls(openings, group_order, errors)
 
     @staticmethod
@@ -133,9 +121,6 @@ class OpeningLine:
         moves = self._index.get(position_key(board), [])
         return sorted(moves, key=lambda bm: -bm.weight)
 
-    def book_move(self, board, move):
-        return next((bm for bm in self.moves(board) if bm.move == move), None)
-
     def pick(self, board, rng, vary):
         """A book move for the computer: the main line, or weighted at random if `vary`."""
         moves = self.moves(board)
@@ -144,6 +129,3 @@ class OpeningLine:
         if not vary:
             return moves[0].move
         return rng.choices([bm.move for bm in moves], weights=[bm.weight for bm in moves])[0]
-
-    def main_line(self):
-        return list(self.opening.game.mainline_moves())

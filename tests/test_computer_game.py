@@ -38,7 +38,7 @@ def test_commands_blocked_during_game():
     for command in ("delete_last", "edit_tree", "paste", "open", "edit_comment", "navigate"):
         assert not game.allows(command)
     game.resign()
-    assert game.allows("edit_comment") and not game.allows("navigate") and not game.allows("delete_last")
+    assert game.allows("edit_comment") and game.allows("navigate") and not game.allows("delete_last")
 
 
 def test_headers():
@@ -115,7 +115,7 @@ def test_engine_failure_stops_game():
 
 def test_clock_comment_is_hidden_and_kept():
     m = GameModel()
-    m.make_move(chess.E2, chess.E4)
+    m.play(chess.Move(chess.E2, chess.E4))
     m.set_clock(m.node, 1781.4)
     assert "[%clk 0:29:41]" in m.node.comment
     assert m.set_comment(m.node, "good move")
@@ -133,3 +133,22 @@ def test_score_text_from_users_point_of_view():
     board = chess.Board("rnb1kbnr/pppp1ppp/8/4p3/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")   # black has no queen
     assert white.score_text(board) == "Material: you +9"
     assert black.score_text(board) == "Material: you −9"
+
+
+def test_browsing_is_allowed_only_after_the_game():
+    game, _ = new_game()
+    assert not game.allows("navigate")
+    game.resign()
+    assert game.allows("navigate") and game.allows("edit_comment")
+
+
+def test_increment_in_the_clock_comment_and_the_header():
+    game = ComputerGame(chess.WHITE, "Stockfish", LEVEL, 10, FakeTime(), increment=5)
+    headers = {}
+    game.write_headers(headers)
+    assert headers["TimeControl"] == "600+5"
+    board = chess.Board()
+    board.push_san("e4")
+    assert game.move_played(board) == 600     # the first move starts the clock: no increment yet
+    board.push_san("e5")
+    assert game.move_played(board) == 605

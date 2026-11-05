@@ -3,13 +3,14 @@
 It owns the engine worker, the timer that polls it, delayed computer moves and the
 request ids that make stale replies harmless, and answers the questions MainWindow asks
 from `self.game`, an EngineGame (app/engine_game.py). A subclass implements choose() and
-start(config), which creates `self.game` and calls start_engine(), and decides in
-computer_turn() how the computer chooses its move.
+start(config), which creates `self.game`, calls start_game() and start_engine(), and decides
+in computer_turn() how the computer chooses its move.
 """
 
 from tkinter import messagebox
 
 from .. import strings as S
+from ..commands import TAKE_BACK
 from ..engines import ENGINES, EngineError, engine_class
 from ..engines.worker import EngineWorker
 from .base import Mode
@@ -26,7 +27,6 @@ class EngineGameMode(Mode):
         self.game = None
         self.level = None
         self.worker = None
-        self._after_ids = {}
 
     # --- Choosing the engine ----------------------------------------------
 
@@ -43,6 +43,12 @@ class EngineGameMode(Mode):
 
     # --- Life cycle -------------------------------------------------------
 
+    def start_game(self, board=None, intro=""):
+        """Replace the game on the board with self.game, which has just been created."""
+        headers = {}
+        self.game.write_headers(headers)
+        self.ctx.new_game(board, headers=headers, intro=intro)
+
     def start_engine(self, engine, level):
         """The engine process starts only with the first request (EngineWorker)."""
         self.level = level
@@ -50,9 +56,7 @@ class EngineGameMode(Mode):
         self._schedule("poll", POLL_MS, self._poll)
 
     def deactivate(self):
-        for after_id in self._after_ids.values():
-            self.ctx.root.after_cancel(after_id)
-        self._after_ids.clear()
+        super().deactivate()
         if self.worker is not None:
             self.worker.close()
             self.worker = None
@@ -79,6 +83,29 @@ class EngineGameMode(Mode):
 
     def status_text(self):
         return self.game.status_text(self._tip()) if self.game else None
+
+    def can_take_back(self):
+        return self.takes_back and self.game is not None and self.game.allows(TAKE_BACK) and any(
+            node.parent.turn() == self.game.user_color for node in self.ctx.model.game.mainline())
+
+    # --- Moves ------------------------------------------------------------
+
+    def _next_turn(self):
+        """It is the next player's turn in self._tip()."""
+        if self.game.is_computer_turn(self._tip()):
+            self.computer_turn()
+
+    def take_back(self):
+        """Remove the user's last move and the reply. Asked first, because cancelling the
+        computer's move with nothing to take back would leave it never moving again."""
+        if not self.can_take_back():
+            return
+        self.cancel_computer_move()
+        if self.ctx.take_back(self.game.user_color):
+            self.game.took_back(self._tip())
+            self.ctx.model.clear_result()
+            self._next_turn()
+            self.ctx.update_status()
 
     # --- Computer moves ---------------------------------------------------
 
@@ -123,24 +150,16 @@ class EngineGameMode(Mode):
     def engine_failed(self, error):
         self.game.engine_failed(error)
         self._game_over()
-        self.ctx.refresh()
+        self.ctx.update_status()
         messagebox.showerror(S.VS_ENGINE_ERROR_TITLE, str(error), parent=self.ctx.root)
 
     # --- Ending -----------------------------------------------------------
 
     def _game_over(self):
         """The game has just ended: write the result. Subclasses also update their panel."""
-        self.game.write_result(self.ctx.model.headers)
+        self.ctx.model.set_headers(self.game.result_headers())
         if self.worker is not None:
             self.worker.cancel()
 
     def open_in_board_mode(self):
         self.ctx.set_mode("board")
-
-    # --- Timers -----------------------------------------------------------
-
-    def _schedule(self, name, ms, callback):
-        old = self._after_ids.get(name)
-        if old is not None:
-            self.ctx.root.after_cancel(old)
-        self._after_ids[name] = self.ctx.root.after(ms, callback)

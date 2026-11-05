@@ -140,22 +140,33 @@ class BoardView(BoardCanvas):
     # --- Public -----------------------------------------------------------
 
     def position_changed(self):
-        """Call after the current position changes: drops selection and annotations.
-        A single move forward (played or stepped through) slides the piece to its square."""
-        self.selected = None
-        self.targets = set()
-        self.drag = None
-        self.promotion = None
-        self.marks.clear()
-        self.arrows.clear()
+        """Call after the current position may have changed. If it has, this drops the selection
+        and annotations, and a single move forward (played or stepped through) slides the piece
+        to its square. If not, a piece being moved and the user's arrows stay as they are."""
         node = self.model.node
         if node is not self._shown_node:
+            self._drop_pick_up()
+            self.marks.clear()
+            self.arrows.clear()
             self._stop_animation()
             if node.parent is not None and node.parent is self._shown_node and not self._dropped:
                 self._start_animation(node.parent.board(), node.move)
             self._shown_node = node
         self._dropped = False
         self.redraw()
+
+    def _drop_pick_up(self):
+        self.selected = None
+        self.targets = set()
+        self.drag = None
+        self.promotion = None
+
+    def rules_changed(self):
+        """Call when what the user may move can have changed (e.g. the game just ended): a piece
+        that is picked up but may no longer be moved is put back."""
+        if (self.selected is not None or self.promotion) and not self.can_move(self.model.board.turn):
+            self._drop_pick_up()
+            self.redraw()
 
     def set_hints(self, hints):
         """Suggestion arrows: [(from_sq, to_sq, "main" | "alt")]. Redraws only if they changed."""

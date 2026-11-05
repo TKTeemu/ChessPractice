@@ -5,6 +5,7 @@ import tkinter as tk
 import chess
 
 from . import strings as S
+from . import widgets
 from .model import visible_comment
 from .theme import (FONT as VARIATION_FONT, FONT_ITALIC, FONT_LARGE, MOVE_COMMENT_FG, MOVE_CURRENT_BG,
                     MOVE_CURRENT_FG, MOVE_NUMBER_FG, MUTED_FG as VARIATION_FG, PANEL_BG as BG, PANEL_FG as FG)
@@ -13,18 +14,19 @@ INDENT_POINTS = 13
 
 
 class MoveListView(tk.Frame):
-    def __init__(self, master, model, on_select, on_edit):
+    def __init__(self, master, model, on_select, on_edit, can_edit=lambda: True):
         super().__init__(master, bg=BG)
         self.model = model
         self.on_select = on_select    # on_select(node)
         self.on_edit = on_edit        # on_edit(action, node), action in promote/delete_variation/delete_from_here
+        self.can_edit = can_edit      # can_edit(): are the actions of the right-click menu allowed now?
         self.nodes = {}               # tag name -> node
         self.tags = {}                # id(node) -> tag name
 
         self.text = tk.Text(self, bg=BG, fg=FG, font=FONT_LARGE, wrap="word", relief="flat", bd=0,
                             padx=10, pady=8, cursor="arrow", insertwidth=0, takefocus=0,
                             tabs=("33p", "98p"), highlightthickness=0)
-        scroll = tk.Scrollbar(self, command=self.text.yview)
+        scroll = widgets.scrollbar(self, self.text.yview)
         self.text.configure(yscrollcommand=scroll.set)
         scroll.pack(side="right", fill="y")
         self.text.pack(side="left", fill="both", expand=True)
@@ -42,6 +44,7 @@ class MoveListView(tk.Frame):
 
         self.text.bind("<Button-1>", self._click)
         self.text.bind("<Button-3>", self._right_click)
+        self.text.bind("<Configure>", lambda e: self._see_current())   # e.g. the panel above grew
         self.text.configure(state="disabled")
 
     # --- Rendering --------------------------------------------------------
@@ -70,6 +73,11 @@ class MoveListView(tk.Frame):
                 self.text.see(ranges[0])
         elif self.model.node is self.model.game:
             self.text.see("1.0")
+
+    def _see_current(self):
+        ranges = self.text.tag_ranges("current")
+        if ranges:
+            self.text.see(ranges[0])
 
     def _insert(self, text, *tags):
         self.text.insert("end", text, tags)
@@ -166,6 +174,7 @@ class MoveListView(tk.Frame):
         return None
 
     def _click(self, event):
+        self.text.focus_set()   # the arrow keys and F no longer go to the comment field
         node = self._node_at(event)
         if node is not None:
             self.on_select(node)
@@ -178,9 +187,11 @@ class MoveListView(tk.Frame):
         self._menu_node = node
         is_variation = any(n.parent is not None and n.parent.variations[0] is not n
                            for n in _ancestors(node))
-        state = "normal" if is_variation else "disabled"
+        can_edit = self.can_edit()
+        state = "normal" if can_edit and is_variation else "disabled"
         self.menu.entryconfigure(0, state=state)
         self.menu.entryconfigure(1, state=state)
+        self.menu.entryconfigure(2, state="normal" if can_edit else "disabled")
         self.menu.tk_popup(event.x_root, event.y_root)
         return "break"
 

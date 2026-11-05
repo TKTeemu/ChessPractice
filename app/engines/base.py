@@ -24,6 +24,17 @@ class Analysis:
     cp: int | None = None    # centipawns
     mate: int | None = None  # mate in n moves; negative: the side to move is mated
     ponder: object = None    # the expected reply (chess.Move), if the engine gave one
+    pv: tuple = ()           # the expected line (chess.Moves), starting with `move`
+
+
+def format_score(analysis, white_to_move):
+    """The score from White's point of view: "+0.35", "-1.20", "#3" (White mates), "#-3"; "" if unknown."""
+    sign = 1 if white_to_move else -1
+    if analysis.mate is not None:
+        return f"#{sign * analysis.mate}"
+    if analysis.cp is not None:
+        return f"{sign * analysis.cp / 100:+.2f}"
+    return ""
 
 
 class Engine:

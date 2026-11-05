@@ -8,15 +8,14 @@ alternative, and a variation whose first move has a ? or ?? NAG is a known wrong
 Variations on the computer's side are alternative defences.
 """
 
-import io
 import random
 from dataclasses import dataclass
-from pathlib import Path
 
 import chess
 import chess.pgn
 
-from .openings import position_key
+from . import fileio
+from .model import position_key
 
 GOALS = ("win", "draw")
 DIFFICULTIES = range(1, 6)
@@ -61,25 +60,17 @@ class EndgameCollection:
     @classmethod
     def load(cls, folder):
         """All *.pgn files in `folder`. Games with errors are skipped and listed in `errors`."""
-        samples, errors, names, keys = [], [], {}, set()
-        for path in sorted(Path(folder).glob("*.pgn")):
-            try:
-                text = path.read_text(encoding="utf-8-sig")
-            except OSError as e:
-                errors.append((path.name, str(e)))
-                continue
-            stream = io.StringIO(text)
-            while (game := chess.pgn.read_game(stream)) is not None:
-                try:
-                    sample = cls._sample(game, keys)
-                except ValueError as e:
-                    errors.append((path.name, str(e)))
-                    continue
-                keys.add(sample.key)
-                samples.append(sample)
-                name = game.headers.get("DifficultyName", "")
-                if name:
-                    names.setdefault(sample.difficulty, name)
+        names, keys = {}, set()
+
+        def build(game):
+            sample = cls._sample(game, keys)
+            keys.add(sample.key)
+            name = game.headers.get("DifficultyName", "")
+            if name:
+                names.setdefault(sample.difficulty, name)
+            return sample
+
+        samples, errors = fileio.load_pgn_folder(folder, build)
         return cls(samples, names, errors)
 
     @staticmethod
@@ -173,21 +164,29 @@ class SolutionTree:
 
 class EndgameDeck:
     """Draws positions of a level without repeating one before the whole level has been played
-    ("shuffle bag"). Lives as long as the program runs."""
+    ("shuffle bag"). `played`: keys of the positions played earlier (they come last)."""
 
-    def __init__(self, collection, rng=None):
+    def __init__(self, collection, rng=None, played=()):
         self.collection = collection
         self.rng = rng or random.Random()
         self._bags = {}       # difficulty -> keys still to draw, next one last
-        self._played = {}     # difficulty -> keys drawn so far this run
+        self._played = {}     # difficulty -> keys drawn so far
         self._last = {}       # difficulty -> the key drawn last
+        for key in played:
+            sample = collection.sample(key)
+            if sample is not None:   # a position may have been removed since
+                self._played.setdefault(sample.difficulty, set()).add(key)
 
     def draw(self, difficulty):
         bag = self._bags.get(difficulty)
         if not bag:
+            first_bag = difficulty not in self._bags
             bag = [s.key for s in self.collection.samples(difficulty)]
             if not bag:
                 raise ValueError(f"no positions on level {difficulty}")
+            if first_bag:   # go on where the previous run stopped
+                played = self._played.get(difficulty, ())
+                bag = [key for key in bag if key not in played] or bag
             self.rng.shuffle(bag)
             last = self._last.get(difficulty)
             if len(bag) > 1 and bag[-1] == last:   # the one just played does not come first again
@@ -199,5 +198,5 @@ class EndgameDeck:
         return self.collection.sample(key)
 
     def played(self, difficulty):
-        """How many different positions of the level have been drawn this run."""
+        """How many different positions of the level have been drawn."""
         return len(self._played.get(difficulty, ()))

@@ -15,7 +15,6 @@ DEFAULTS = {
     "board_theme": "green",
     "window_geometry": "",
     "last_directory": "",
-    "mode": "board",
     "engine_path": "",
     "details_open": {},   # mode key -> bool; a mode not listed uses Mode.show_details
 }
