@@ -1,6 +1,7 @@
 @echo off
 rem Sets up Chessboard after unpacking. Safe to run again: it only does what is still missing.
-rem   1. checks that Python 3.15 is installed (opens its download if not)
+rem   1. checks that Python 3.15 is installed; if not, downloads its installer, opens it and
+rem      explains what to do (the browser is the fallback if the download does not work)
 rem   2. installs Pillow into Python, from the wheels folder if there is one, otherwise from PyPI
 rem   3. installs python-chess into the vendor folder, unless it is already there
 rem   4. puts Stockfish at engines\stockfish\stockfish.exe: fixes a wrong name or subfolder,
@@ -10,6 +11,8 @@ cd /d "%~dp0"
 title Chessboard setup
 
 set "PY_URL=https://www.python.org/ftp/python/3.15.2/python-3.15.2-amd64.exe"
+set "PY_SHA256=06e225a228191b0f4d1dcf6905fbb21bf9f6970d13a2ec63137ab9bee76f15aa"
+set "PY_SETUP=%TEMP%\python-3.15.2-amd64.exe"
 set "SF_URL=https://github.com/official-stockfish/Stockfish/releases/download/sf_19/stockfish-windows-x86-64-universal.zip"
 set "SF_SHA256=3c8bf1f9ea66a09350a40df4f632288285ac206d99f33ab5842c408fc30b48a7"
 set "SF_EXE=engines\stockfish\stockfish.exe"
@@ -30,6 +33,7 @@ set "PY=python"
 python -c "import sys; sys.exit(sys.version_info[:2] != (3, 15))" >nul 2>nul && goto python_ok
 goto no_python
 :python_ok
+if exist "%PY_SETUP%" del "%PY_SETUP%" >nul 2>nul
 echo       Found.
 echo.
 
@@ -107,17 +111,62 @@ exit /b 1
 :no_python
 echo.
 echo Python 3.15 is not installed. Chessboard needs it to run.
+echo If you have just installed it and still see this, restart the computer.
 echo.
-echo Your web browser will now download the Python installer. Then:
-echo   1. Open the downloaded file (python-3.15.2-amd64.exe).
-echo   2. Tick "Add python.exe to PATH" at the bottom of the first screen.
-echo   3. Click "Install Now". When it has finished, click "Close".
-echo   4. Double-click Install.bat again.
+echo Downloading the Python installer (about 40 MB)...
+"%SystemRoot%\System32\curl.exe" -L --fail --retry 2 --ssl-revoke-best-effort --progress-bar -o "%PY_SETUP%" "%PY_URL%"
+if errorlevel 1 goto python_browser
+certutil -hashfile "%PY_SETUP%" SHA256 | findstr /i /c:"%PY_SHA256%" >nul
+if errorlevel 1 goto python_browser
 echo.
-echo If you have just installed Python and still see this, restart the computer.
+echo ================================================================
+echo  The download is finished. Next, the Python installer will open.
 echo.
-pause
+echo  In the Python installer:
+echo    1. Tick "Add python.exe to PATH" at the bottom of the first screen.
+echo    2. Click "Install Now". If Windows asks for permission, click "Yes".
+echo    3. When it says "Setup was successful", click "Close".
+echo.
+echo  This window stays open and tells you what to do after that.
+echo ================================================================
+echo.
+echo Press any key to open the Python installer.
+pause >nul
+echo.
+echo Waiting for the Python installer to close...
+start "" /wait "%PY_SETUP%"
+echo.
+echo ================================================================
+echo  The Python installer has closed. One more step:
+echo.
+echo    1. Press any key. This window closes.
+echo    2. Double-click Install.bat again to finish the setup.
+echo ================================================================
+echo.
+pause >nul
+exit /b 1
+
+:python_browser
+if exist "%PY_SETUP%" del "%PY_SETUP%" >nul 2>nul
+echo.
+echo ================================================================
+echo  The installer could not be downloaded here, so your web browser
+echo  will download it instead. Check your internet connection if
+echo  that does not work either.
+echo.
+echo  When the browser has finished:
+echo    1. Open python-3.15.2-amd64.exe from your Downloads folder.
+echo    2. Tick "Add python.exe to PATH" at the bottom of the first screen.
+echo    3. Click "Install Now". If Windows asks for permission, click "Yes".
+echo    4. When it says "Setup was successful", click "Close".
+echo    5. Double-click Install.bat again to finish the setup.
+echo.
+echo  This window stays open so that you can read these steps.
+echo ================================================================
+echo.
 start "" "%PY_URL%"
+echo When you have read the steps, you can close this window.
+pause >nul
 exit /b 1
 
 :install_failed

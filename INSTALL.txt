@@ -84,8 +84,12 @@ correct name and puts it in the correct folder for you.
   4. When you see "Everything is ready", press any key on the keyboard.
      The window closes.
 
-If you see a message instead of "Everything is ready", read what it says
-and follow it. See also "If something goes wrong" below.
+If Python is still missing, the window downloads the Python installer,
+opens it and tells you what to do. Follow the steps in the window, then
+double-click "Install.bat" again.
+
+If you see any other message instead of "Everything is ready", read what
+it says and follow it. See also "If something goes wrong" below.
 
 
 STEP 4: START CHESSBOARD
