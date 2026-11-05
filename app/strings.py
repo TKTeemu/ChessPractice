@@ -236,7 +236,6 @@ END_CLASSIC = "Classic endgame position"
 END_GOALS = {"win": "Goal: {color} to play and win", "draw": "Goal: {color} to play and draw"}
 END_PLAYED = "Level {level} · {played} of {total} played · {solved} solved"
 END_RETRY = "Retry"
-END_NEXT = "Next Position"
 END_COUNTERS = "Hints used: {hints} · Take backs: {take_backs}"
 END_WRONG_TRY = "Missed – a known wrong try"
 END_MISTAKE = "Missed – the engine says the goal is gone"

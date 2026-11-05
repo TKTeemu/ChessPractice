@@ -649,7 +649,7 @@ class MainWindow:
 
     def _leave_mode(self, keep_game):
         """Ask before leaving the active mode, then leave it (e.g. resign). keep_game=False:
-        the game will be replaced or the program closed, so offer to save it first.
+        the game will be replaced, so offer to save it first.
         False = the user cancelled, and nothing has changed (unless the disk failed while
         saving; the user was told, and the game is still there to save again)."""
         if not self.mode.confirm_leave():
@@ -707,8 +707,8 @@ class MainWindow:
         self.root.after(AUTOSAVE_MS, self._autosave)
 
     def exit(self):
-        if not self._leave_mode(keep_game=False):
-            return
+        """Close at once, without questions: an unsaved game is not kept, and a running one is
+        not resigned."""
         self.mode.deactivate()   # stops engine processes and timers
         if self.root.state() == "normal":
             self.settings["window_geometry"] = self.root.geometry()

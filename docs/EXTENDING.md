@@ -54,7 +54,7 @@ class Mode:
     # Life cycle
     def choose(self) -> dict | None: return {}   # the mode's dialog; None = stay in the previous mode. No side effects.
     def start(self, config: dict): pass          # begin with what choose() returned; the old mode is closed
-    def confirm_leave(self) -> bool: return True # before leaving, a new game or exit; only asks
+    def confirm_leave(self) -> bool: return True # before leaving or a new game (not exit); only asks
     def leaving_changes_game(self) -> bool: return False  # leave() will change the game: offer to save it
     def leave(self): pass                        # leaving was confirmed, e.g. resign the game
     def deactivate(self): ...                    # release engines, timers, threads (call super)
@@ -118,7 +118,7 @@ File > New Game (and the New Game button above the status line) is not a command
 | Game menu (rebuilt when opened) | one radio item per `MODES` entry, then `mode.menu_items()` |
 | Game menu → other mode, or `ctx.set_mode(key)` | `set_mode(key)`, see below |
 | Game menu → the active mode | `mode.new_game()` |
-| `exit()` | `mode.confirm_leave()`, the save prompt, `mode.leave()`, the save, then `mode.deactivate()` before `root.destroy()` |
+| `exit()` | no questions and no `mode.leave()`: `mode.deactivate()`, the settings are saved, then `root.destroy()` |
 
 `set_mode(key)` runs in this order, so that nothing of the new mode happens before the old one is closed:
 

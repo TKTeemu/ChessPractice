@@ -1,10 +1,11 @@
 """EndgameMode: the user plays a stored endgame position against the computer.
 
 The rules live in EndgameGame and the positions in endgames.py; this class connects them to
-the window: the level dialog, drawing a position, Retry and Next Position, the progress kept in
-settings, the computer's stored defence after a short pause, engine analyses (they judge the
-user's moves and give the computer's reply), the success light, suggestion arrows and the
-panel. The clock and Resign come from TimedGameMode.
+the window: the level dialog, drawing a position, Retry, the progress kept in settings, the
+computer's stored defence after a short pause, engine analyses (they judge the user's moves
+and give the computer's reply), the success light, suggestion arrows and the panel. The clock
+comes from TimedGameMode. This is practice, not a game to give up, so there is no Resign
+command and no question about it; a running attempt is simply resigned when it is left.
 """
 
 import tkinter as tk
@@ -90,6 +91,9 @@ class EndgameMode(TimedGameMode):
         self.start_clock()
         self._next_turn()
 
+    def confirm_leave(self):
+        return True
+
     # --- Questions --------------------------------------------------------
 
     def _suggest(self):
@@ -137,21 +141,14 @@ class EndgameMode(TimedGameMode):
         if self.game.light == "success":
             self._record_progress(SOLVED)
 
-    # --- Retry and Next Position ------------------------------------------
-
-    def _restart(self, sample_key=None):
-        """A practice attempt is replaced without asking to save it (a running one is resigned
-        first, with the usual question), because these buttons are pressed again and again."""
-        config = {"difficulty": self.game.sample.difficulty, "minutes": self.ctx.settings["end_minutes"]}
-        if sample_key:
-            config["sample"] = sample_key
-        self.ctx.set_mode(self.key, config=config, discard=True)
+    # --- Retry --------------------------------------------------------------
 
     def retry(self):
-        self._restart(self.game.sample.key)
-
-    def next_position(self):
-        self._restart()
+        """The same position again. The attempt is replaced without any question, because Retry
+        is pressed again and again."""
+        config = {"difficulty": self.game.sample.difficulty, "minutes": self.ctx.settings["end_minutes"],
+                  "sample": self.game.sample.key}
+        self.ctx.set_mode(self.key, config=config, discard=True)
 
     # --- Moves ------------------------------------------------------------
 
@@ -222,9 +219,9 @@ class EndgameMode(TimedGameMode):
         self._suggest_var = tk.BooleanVar(value=self._suggest())
         widgets.checkbox(frame, S.LEARN_SUGGEST, self._suggest_var, self._suggest_changed).grid(
             row=3, column=0, columnspan=2, sticky="w", pady=(2, 4))
-        self._grid_game_buttons(frame, 4)
-        widgets.button(frame, S.END_RETRY, self.retry).grid(row=5, column=0, sticky="ew", padx=2, pady=(4, 0))
-        widgets.button(frame, S.END_NEXT, self.next_position).grid(row=5, column=1, sticky="ew", padx=2, pady=(4, 0))
+        widgets.button(frame, S.END_RETRY, self.retry).grid(row=4, column=0, sticky="ew", padx=2)
+        self._buttons = {"open": widgets.button(frame, S.MODE_OPEN_IN_BOARD, self.open_in_board_mode)}
+        self._buttons["open"].grid(row=4, column=1, sticky="ew", padx=2)
         self._update_panel()
         return frame
 
@@ -256,9 +253,7 @@ class EndgameMode(TimedGameMode):
     def menu_items(self):
         return [
             MenuItem(S.MODE_TAKE_BACK, self.take_back, self.can_take_back),
-            MenuItem(S.MODE_RESIGN, self.resign, self._running),
             MenuItem(S.END_RETRY, self.retry, lambda: self.game is not None),
-            MenuItem(S.END_NEXT, self.next_position, lambda: self.game is not None),
             MenuItem(S.MODE_OPEN_IN_BOARD, self.open_in_board_mode,
                      lambda: self.game is not None and self.game.over),
         ]

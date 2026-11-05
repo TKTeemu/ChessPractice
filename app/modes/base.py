@@ -62,7 +62,7 @@ class Mode:
         mode's panel exists."""
 
     def confirm_leave(self):
-        """Before the mode is left, a new game starts or the program exits. Only asks; False = cancel."""
+        """Before the mode is left or a new game starts (not when the program exits). Only asks; False = cancel."""
         return True
 
     def leaving_changes_game(self):
