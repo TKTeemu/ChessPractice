@@ -6,6 +6,7 @@ import chess
 import chess.pgn
 
 from app.endgames import DIFFICULTIES, GOALS, EndgameCollection, EndgameDeck, SolutionTree
+from app.model import game_outcome
 
 FOLDER = Path(__file__).resolve().parent.parent / "assets" / "endgames"
 COLLECTION = EndgameCollection.load(FOLDER)
@@ -54,7 +55,7 @@ def test_positions_are_playable_and_solutions_legal():
     for sample in COLLECTION.all:
         assert sample.goal in GOALS and sample.difficulty in DIFFICULTIES
         board = chess.Board(sample.fen)
-        assert board.is_valid() and not board.is_game_over(claim_draw=True), sample.key
+        assert board.is_valid() and game_outcome(board) is None, sample.key
         assert sample.game.errors == [], sample.key   # illegal moves would be listed here
         assert sample.name and sample.name != "?", sample.key
 

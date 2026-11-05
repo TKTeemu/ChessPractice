@@ -22,13 +22,30 @@ def default_headers(game):
     game.headers["Result"] = "*"
 
 
+def game_outcome(board):
+    """How the game ends at `board`, or None if it goes on.
+
+    Threefold repetition and the fifty-move rule end the game only once they have happened.
+    board.outcome(claim_draw=True) would also end it when the next move could bring them
+    about, which takes the choice away from the player to move.
+    """
+    outcome = board.outcome()
+    if outcome is not None:
+        return outcome
+    if board.is_fifty_moves():
+        return chess.Outcome(chess.Termination.FIFTY_MOVES, None)
+    if board.is_repetition(3):
+        return chess.Outcome(chess.Termination.THREEFOLD_REPETITION, None)
+    return None
+
+
 def event_for(node):
     """Classify the move that led to `node` (for sounds)."""
     before = node.parent.board()
     move = node.move
     after = before.copy(stack=True)
     after.push(move)
-    if after.is_game_over(claim_draw=True):
+    if game_outcome(after) is not None:
         return END
     if after.is_check():
         return CHECK
@@ -154,7 +171,7 @@ class GameModel:
 
     def status(self):
         board = self.board
-        outcome = board.outcome(claim_draw=True)
+        outcome = game_outcome(board)
         if outcome is None:
             text = S.STATUS_WHITE_TO_MOVE if board.turn == chess.WHITE else S.STATUS_BLACK_TO_MOVE
             if board.is_check():

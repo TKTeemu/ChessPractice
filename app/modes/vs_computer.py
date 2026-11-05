@@ -13,6 +13,7 @@ import chess
 from .. import strings as S
 from ..computer_game import ComputerGame
 from ..dialogs import new_computer_game
+from ..model import game_outcome
 from .base import MenuItem
 from .timed_mode import TimedGameMode
 
@@ -40,7 +41,7 @@ class VsComputerMode(TimedGameMode):
     def choose(self):
         available, notes = self.engine_choices()
         return new_computer_game(self.ctx.root, available, notes, self.ctx.settings,
-                                 self._current_board().is_game_over(claim_draw=True))
+                                 game_outcome(self._current_board()) is not None)
 
     def start(self, config):
         ctx = self.ctx

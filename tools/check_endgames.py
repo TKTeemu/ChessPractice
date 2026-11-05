@@ -29,6 +29,7 @@ from app.endgame_game import LOSS_CP, MATE, MATE_BAND, WIN_LOST_CP, is_mistake, 
 from app.endgames import WRONG_NAGS, EndgameCollection
 from app.engines.base import Level
 from app.engines.stockfish import StockfishEngine
+from app.model import game_outcome
 from app.settings import Settings
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -47,7 +48,7 @@ class Checker:
         if key not in self.cache:
             if board.is_checkmate():
                 self.cache[key] = (-MATE, board.turn)
-            elif board.is_game_over(claim_draw=True):
+            elif game_outcome(board) is not None:
                 self.cache[key] = (0, board.turn)
             else:
                 analysis = self.engine.analyse(board, self.level, threading.Event())

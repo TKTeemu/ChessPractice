@@ -42,7 +42,7 @@ class PuzzleGame(EngineGame):
     ALLOWED_AFTER_GAME = frozenset({NAVIGATE, EDIT_COMMENT})
 
     def move_played(self, board):
-        outcome = board.outcome(claim_draw=True)
+        outcome = game_outcome(board)
         if outcome is not None:
             self._finish(outcome.result(), outcome_text(outcome), "normal")
 ```

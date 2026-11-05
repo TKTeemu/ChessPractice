@@ -82,6 +82,25 @@ def test_threefold_repetition():
     assert m.status() == "Draw – threefold repetition"
 
 
+def test_possible_repetition_does_not_end_the_game():
+    """From a real game: after Kc8 Black could repeat with Ke6, but need not."""
+    m = GameModel()
+    m.new_game(chess.Board("2K5/7r/4k3/8/8/8/8/8 w - - 0 1"))
+    play(m, "c8b8", "e6d6", "b8c8", "d6e6", "c8d8", "e6f5", "d8c8")
+    assert m.status() == "Black to move"
+    assert M.game_outcome(m.board) is None
+    assert play(m, "f5e6") == [M.END]     # the third occurrence
+    assert m.status() == "Draw – threefold repetition"
+
+
+def test_fifty_moves_end_the_game_only_once_played():
+    m = GameModel()
+    m.new_game(chess.Board("2K5/7r/8/5k2/8/8/8/8 b - - 99 80"))
+    assert M.game_outcome(m.board) is None
+    assert play(m, "f5f4") == [M.END]
+    assert M.game_outcome(m.board).termination == chess.Termination.FIFTY_MOVES
+
+
 def test_variations_created_and_reused():
     m = GameModel()
     play(m, "e2e4", "e7e5")

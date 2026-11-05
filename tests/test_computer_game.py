@@ -73,6 +73,18 @@ def test_checkmate_ends_game():
     assert game.over and game.result == "0-1" and game.termination == "normal"
 
 
+def test_game_goes_on_until_third_occurrence_is_played():
+    game, _ = new_game(chess.BLACK)
+    board = chess.Board("2K5/7r/4k3/8/8/8/8/8 w - - 0 1")
+    for san in ("Kb8", "Kd6", "Kc8", "Ke6", "Kd8", "Kf5", "Kc8"):
+        board.push_san(san)
+        game.move_played(board)
+    assert not game.over             # Black may play Ke6, but has not yet
+    board.push_san("Ke6")
+    game.move_played(board)
+    assert game.over and game.result == "1/2-1/2" and game.end_text == "Draw – threefold repetition"
+
+
 def test_time_forfeit():
     game, now = new_game(minutes=1)
     board = chess.Board()

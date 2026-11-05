@@ -12,7 +12,7 @@ from . import strings as S
 from .clock import ChessClock
 from .commands import EDIT_COMMENT, NAVIGATE
 from .engine_game import EngineGame
-from .model import material_balance, outcome_text
+from .model import game_outcome, material_balance, outcome_text
 
 
 class ComputerGame(EngineGame):
@@ -60,7 +60,7 @@ class ComputerGame(EngineGame):
             self.started = True
             self.clock.start(board.turn)
         left = self.clock.remaining(mover)
-        outcome = board.outcome(claim_draw=True)
+        outcome = game_outcome(board)
         if outcome is not None:
             self._finish(outcome.result(), outcome_text(outcome), "normal")
         return left

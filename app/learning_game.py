@@ -11,7 +11,7 @@ import random
 from . import strings as S
 from .commands import EDIT_COMMENT, NAVIGATE, TAKE_BACK
 from .engine_game import EngineGame
-from .model import outcome_text
+from .model import game_outcome, outcome_text
 
 ALLOWED = frozenset({NAVIGATE, EDIT_COMMENT, TAKE_BACK})
 OUT_OF_BOOK_USER_MOVES = 2   # the opening phase ends after this many user moves outside the book
@@ -120,7 +120,7 @@ class LearningGame(EngineGame):
                 self.notice = S.LEARN_END_OF_THEORY
             self._announced = True
 
-        outcome = board_after.outcome(claim_draw=True)
+        outcome = game_outcome(board_after)
         if outcome is not None:
             self._finish(outcome.result(), outcome_text(outcome))
 

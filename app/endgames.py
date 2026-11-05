@@ -15,7 +15,7 @@ import chess
 import chess.pgn
 
 from . import fileio
-from .model import position_key
+from .model import game_outcome, position_key
 
 GOALS = ("win", "draw")
 DIFFICULTIES = range(1, 6)
@@ -95,7 +95,7 @@ class EndgameCollection:
             board = chess.Board(fen)
         except ValueError as e:
             raise ValueError(f"{name}: {e}") from None
-        if not board.is_valid() or board.is_game_over(claim_draw=True):
+        if not board.is_valid() or game_outcome(board) is not None:
             raise ValueError(f"{name}: the FEN is not a playable position")
         return EndgameSample(key, name, int(difficulty), goal, board.fen(), h.get("Composer", ""),
                              h.get("Source", ""), h.get("Year", ""), game)
