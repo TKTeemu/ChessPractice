@@ -6,7 +6,6 @@ A mode's panel uses these instead of repeating colours and fonts (see Mode.build
 import tkinter as tk
 from tkinter import ttk
 
-from . import strings as S
 from .theme import (BUTTON_ACTIVE, BUTTON_BG, ENTRY_BG, FONT, FONT_BOLD, FONT_LARGE_BOLD, FONT_SMALL,
                     LIGHT_COLORS, MUTED_FG, PANEL_BG, PANEL_FG)
 
@@ -64,14 +63,11 @@ class Light(tk.Frame):
         self.lamp = self.canvas.create_oval(1, 1, size - 1, size - 1, outline="")
         self.text = tk.Label(self, bg=parent["bg"], fg=PANEL_FG, font=FONT_BOLD)
         self.text.pack(side="left")
-        self.state = None
 
-    def set_state(self, state):
-        """state: "pending", "success" or "fail"."""
-        if state != self.state:
-            self.state = state
-            self.canvas.itemconfigure(self.lamp, fill=LIGHT_COLORS[state])
-            self.text.configure(text=S.LIGHT_TEXTS[state])
+    def set_state(self, state, text):
+        """state: "pending", "success" or "fail"; text: the words next to the lamp."""
+        self.canvas.itemconfigure(self.lamp, fill=LIGHT_COLORS[state])
+        self.text.configure(text=text)
 
 
 def light(parent, size=14):

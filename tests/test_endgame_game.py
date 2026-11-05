@@ -134,6 +134,37 @@ def test_stalemate_misses_the_win_goal():
     assert game.over and game.result == "1/2-1/2" and game.light == "fail"
 
 
+def test_light_text_stops_saying_keep_playing_when_the_game_is_over():
+    game, _ = new_game()
+    board = start_board(game)
+    assert game.light_text == "In progress"
+    play(game, board, *SAAVEDRA_MAIN[:10], "c8=Q")
+    assert game.light_text == "Missed – keep playing"
+
+    game, _ = new_game(NO_TREE.format(goal="win", fen="k7/8/2K5/8/8/8/8/1Q6 w - - 0 1"))
+    play(game, start_board(game), "Qb6")
+    assert game.light_text == "Missed · Stalemate – Draw"
+
+
+def test_light_text_names_the_result_of_a_solved_game():
+    game, _ = new_game(STALEMATE_TRAP)
+    play(game, start_board(game), "Qb7#")
+    assert game.light_text == "Solved · Checkmate – White wins"
+
+
+def test_light_text_after_time_out_and_engine_error():
+    game, now = new_game()
+    board = start_board(game)
+    play(game, board, "c7", "Rd6+")
+    now.t += 15 * 60 + 1
+    game.check_time(board)
+    assert game.light_text == "Missed · Time out – Stockfish wins"
+
+    game, _ = new_game()
+    game.engine_failed("it crashed")
+    assert game.light_text == "Stopped"
+
+
 def test_a_draw_reaches_the_draw_goal():
     game, _ = new_game(NO_TREE.format(goal="draw", fen="4k3/8/8/8/8/8/4p3/4K3 w - - 0 1"))
     board = start_board(game)

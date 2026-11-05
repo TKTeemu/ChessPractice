@@ -114,6 +114,9 @@ class EndgameMode(TimedGameMode):
     def light(self):
         return self.game.light if self.game else None
 
+    def light_text(self):
+        return self.game.light_text if self.game else ""
+
     def hint_arrows(self):
         if self.game is None or not self._suggest() or not self.ctx.model.at_end():
             return []

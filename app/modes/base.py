@@ -105,6 +105,10 @@ class Mode:
         """A success light above the board on the right: "pending", "success" or "fail". None = hidden."""
         return None
 
+    def light_text(self):
+        """The words next to the light."""
+        return ""
+
     def new_game(self):
         """File > New Game and the New Game button. Return True if the mode handled it."""
         return False

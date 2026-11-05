@@ -106,7 +106,7 @@ Add the class to `MODES` in `app/modes/__init__.py`. Put its text in `strings.py
 | `confirm_leave` | Before leaving | Only asks. False cancels. |
 | `leaving_changes_game`, `leave` | Before leaving | `leave` may change the game (a resignation); say so in `leaving_changes_game`, so that the save prompt is offered. |
 | `deactivate` | Leaving, exit | Call `super()`. Release workers. Not preceded by `leave` at exit. |
-| `can_move`, `allows`, `title`, `subtitle`, `status_text`, `score_text`, `light`, `hint_arrows` | Any time | No side effects. `hint_arrows` runs on every status update, so keep it cheap. |
+| `can_move`, `allows`, `title`, `subtitle`, `status_text`, `score_text`, `light`, `light_text`, `hint_arrows` | Any time | No side effects. `hint_arrows` runs on every status update, so keep it cheap. |
 | `new_game` | New Game button, Ctrl+N | Return True if handled. Game modes call `ctx.set_mode(self.key)`, which shows the dialog again. |
 | `after_move` | After the model accepted a move, before the views update | No `ctx.update_status()` needed here. Do not call `ctx.play_move` directly from it; use `play_computer_move`, which goes through a timer. |
 | `position_changed` | Whenever the position or tree changed | |

@@ -241,3 +241,5 @@ END_WRONG_TRY = "Missed – a known wrong try"
 END_MISTAKE = "Missed – the engine says the goal is gone"
 END_NO_JUDGE = "No engine to judge moves off the solution"
 LIGHT_TEXTS = {"pending": "In progress", "success": "Solved", "fail": "Missed – keep playing"}
+LIGHT_ENDED_TEXTS = {"pending": "Stopped", "success": "Solved", "fail": "Missed"}
+LIGHT_RESULT = "{light} · {result}"

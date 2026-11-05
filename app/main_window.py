@@ -454,9 +454,10 @@ class MainWindow:
         if state is None:
             self.light.pack_forget()
             return
-        self.light.set_state(state)
+        self.light.set_state(state, self.mode.light_text())
         if not self.light.winfo_manager():
-            self.light.pack(side="right", padx=(12, 0))
+            # Before the title: in a narrow window the title is cut, not the result of the game
+            self.light.pack(side="right", padx=(12, 0), before=self.mode_title)
 
     def _update_names(self):
         h = self.model.headers

@@ -85,6 +85,15 @@ class EndgameGame(ComputerGame):
             return "success" if self._goal_reached() else "fail"
         return "success" if self.solved_ply is not None else "pending"
 
+    @property
+    def light_text(self):
+        """The words next to the light. Once the game has ended they say how, because nothing
+        else on the board changes. An engine error is left to the status line: it can be long."""
+        if not self.over:
+            return S.LIGHT_TEXTS[self.light]
+        text = S.LIGHT_ENDED_TEXTS[self.light]
+        return text if self.result == "*" else S.LIGHT_RESULT.format(light=text, result=self.end_text)
+
     def _goal_reached(self):
         if self.result == "1/2-1/2":
             return self.goal == "draw"

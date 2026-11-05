@@ -456,6 +456,24 @@ def test_open_in_board_mode_is_enabled_when_the_attempt_is_over(win):
     assert button["state"] == "normal"
 
 
+def test_threefold_repetition_in_endgame_practice_is_shown_as_the_end(win):
+    """A real game: the position after Kc7 came a third time and the window still said
+    "keep playing", on a board that no longer took moves."""
+    win.set_mode("end_practice", {**ENDGAME, "sample": "ladder_black"})
+    win.mode.computer_turn = lambda: None   # the test plays the computer's moves itself
+    play(win, "Rh7", "Kf8", "Rh6", "Kg7", "Rha6", "Kf7", "Rc6", "Ke7", "Rca6", "Kd7", "Rh6",
+         "Kc7", "Rg6", "Kb7", "Rh6", "Kc7", "Rg6", "Kb7", "Rh6")
+    assert win.light.text["text"] == "In progress"
+
+    play(win, "Kc7")
+    assert win.light.text["text"] == "Missed · Draw – threefold repetition"
+    assert win.status["text"] == "Draw – threefold repetition"
+    assert win.model.headers["Result"] == "1/2-1/2"
+
+    win.mode.take_back()
+    assert win.light.text["text"] == "In progress" and not win.mode.game.over
+
+
 def test_new_game_draws_another_position_of_the_chosen_level(win, answers, monkeypatch):
     win.set_mode("end_practice", ENDGAME)
     first = win.mode.game.sample
