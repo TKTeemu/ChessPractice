@@ -1,7 +1,8 @@
 @echo off
 rem Sets up Chessboard after unpacking. Safe to run again: it only does what is still missing.
-rem   1. checks that Python 3.15 is installed; if not, downloads its installer, opens it and
-rem      explains what to do (the browser is the fallback if the download does not work)
+rem   1. checks that Python 3.15 is installed; if not, downloads its installer, opens it,
+rem      explains what to do and continues when it has finished (the browser is the fallback
+rem      if the download does not work)
 rem   2. installs Pillow into Python, from the wheels folder if there is one, otherwise from PyPI
 rem   3. installs python-chess into the vendor folder, unless it is already there
 rem   4. puts Stockfish at engines\stockfish\stockfish.exe: fixes a wrong name or subfolder,
@@ -27,11 +28,8 @@ echo.
 
 rem --- 1. Python 3.15 ---------------------------------------------------------
 echo [1/4] Looking for Python 3.15...
-set "PY=py -3.15"
-%PY% -c "" >nul 2>nul && goto python_ok
-set "PY=python"
-python -c "import sys; sys.exit(sys.version_info[:2] != (3, 15))" >nul 2>nul && goto python_ok
-goto no_python
+call :find_python
+if errorlevel 1 goto no_python
 :python_ok
 if exist "%PY_SETUP%" del "%PY_SETUP%" >nul 2>nul
 echo       Found.
@@ -97,6 +95,20 @@ echo.
 pause
 exit /b 0
 
+rem --- Finding Python ---------------------------------------------------------
+rem Sets PY and returns 0 if Python 3.15 is found. This window keeps its old PATH after Python
+rem is installed, so the folders used by the python.org installer are checked directly too.
+:find_python
+set "PY=py -3.15"
+%PY% -c "" >nul 2>nul && exit /b 0
+set "PY=python"
+python -c "import sys; sys.exit(sys.version_info[:2] != (3, 15))" >nul 2>nul && exit /b 0
+set "PY="%LOCALAPPDATA%\Programs\Python\Python315\python.exe""
+%PY% -c "" >nul 2>nul && exit /b 0
+set "PY="%ProgramFiles%\Python315\python.exe""
+%PY% -c "" >nul 2>nul && exit /b 0
+exit /b 1
+
 rem --- Messages ---------------------------------------------------------------
 :not_unpacked
 echo The program files were not found next to this file.
@@ -111,7 +123,6 @@ exit /b 1
 :no_python
 echo.
 echo Python 3.15 is not installed. Chessboard needs it to run.
-echo If you have just installed it and still see this, restart the computer.
 echo.
 echo Downloading the Python installer (about 40 MB)...
 "%SystemRoot%\System32\curl.exe" -L --fail --retry 2 --ssl-revoke-best-effort --progress-bar -o "%PY_SETUP%" "%PY_URL%"
@@ -127,7 +138,8 @@ echo    1. Tick "Add python.exe to PATH" at the bottom of the first screen.
 echo    2. Click "Install Now". If Windows asks for permission, click "Yes".
 echo    3. When it says "Setup was successful", click "Close".
 echo.
-echo  This window stays open and tells you what to do after that.
+echo  After that, come back to this window. The setup then continues
+echo  by itself.
 echo ================================================================
 echo.
 echo Press any key to open the Python installer.
@@ -135,16 +147,30 @@ pause >nul
 echo.
 echo Waiting for the Python installer to close...
 start "" /wait "%PY_SETUP%"
+:recheck_python
+call :find_python
+if not errorlevel 1 goto python_installed
 echo.
 echo ================================================================
-echo  The Python installer has closed. One more step:
+echo  Python 3.15 was not found yet.
 echo.
-echo    1. Press any key. This window closes.
-echo    2. Double-click Install.bat again to finish the setup.
+echo  If the Python installer is still open, finish it first.
+echo  If you closed it too early, close this window and double-click
+echo  Install.bat again.
+echo  If you changed the installation folder, restart the computer
+echo  and double-click Install.bat again.
 echo ================================================================
 echo.
+echo Press any key to check again.
 pause >nul
-exit /b 1
+goto recheck_python
+
+:python_installed
+echo.
+echo Python is installed. Continuing the setup...
+echo.
+echo [1/4] Looking for Python 3.15...
+goto python_ok
 
 :python_browser
 if exist "%PY_SETUP%" del "%PY_SETUP%" >nul 2>nul
