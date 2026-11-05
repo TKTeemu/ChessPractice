@@ -1,6 +1,4 @@
-﻿# Libraries and programs downloaded from the net (installed from the requirements files / downloaded separately)
-vendor/
-# Only the engine exes and endgame tablebases; the licence and readme files are under version control
+﻿# Only the engine exes and endgame tablebases; the licence and readme files are under version control
 engines/**/*.exe
 engines/syzygy/
 

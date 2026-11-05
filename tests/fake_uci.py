@@ -5,11 +5,8 @@ Run as: python fake_uci.py   (reads UCI commands from stdin)
 """
 
 import sys
-from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "vendor"))
-
-import chess  # noqa: E402
+import chess
 
 
 def _mates(board, move):

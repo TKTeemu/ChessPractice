@@ -1,8 +1,8 @@
 """Check the endgame positions in assets/endgames/ with Stockfish.
 
-    python tools\\check_endgames.py                 every position, 3 s per position looked at
-    python tools\\check_endgames.py --level 5 --time 10
-    python tools\\check_endgames.py --key saavedra
+    python -m tools.check_endgames                 every position, 3 s per position looked at
+    python -m tools.check_endgames --level 5 --time 10
+    python -m tools.check_endgames --key saavedra
 
 Run it whenever positions are added or changed. It is slow, so it is not part of the tests.
 For each position it checks that
@@ -23,18 +23,15 @@ import sys
 import threading
 from pathlib import Path
 
+import chess
+
+from app.endgame_game import LOSS_CP, MATE, MATE_BAND, WIN_LOST_CP, is_mistake, user_score
+from app.endgames import WRONG_NAGS, EndgameCollection
+from app.engines.base import Level
+from app.engines.stockfish import StockfishEngine
+from app.settings import Settings
+
 ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(ROOT / "vendor"))
-sys.path.insert(0, str(ROOT))
-
-import chess  # noqa: E402
-
-from app.endgame_game import LOSS_CP, MATE, MATE_BAND, WIN_LOST_CP, is_mistake, user_score  # noqa: E402
-from app.endgames import WRONG_NAGS, EndgameCollection  # noqa: E402
-from app.engines.base import Level  # noqa: E402
-from app.engines.stockfish import StockfishEngine  # noqa: E402
-from app.settings import Settings  # noqa: E402
-
 WIN_SUSPICIOUS = 300    # Goal "draw" but the user's side is better than this: is it really a draw?
 
 

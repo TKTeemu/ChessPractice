@@ -1,19 +1,17 @@
 """Write the Cburnett piece SVGs bundled with python-chess into assets/pieces/cburnett/.
 
-Works offline: the SVG data comes from the vendored python-chess package.
+Works offline: the SVG data comes from the installed python-chess package.
+
+    python -m tools.extract_pieces
 """
 
-import sys
 from pathlib import Path
 
+import chess.svg
+
+from app.pieces import SVG_SIZE, svg_file_name
+
 ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(ROOT / "vendor"))
-sys.path.insert(0, str(ROOT))
-
-import chess.svg  # noqa: E402
-
-from app.pieces import SVG_SIZE, svg_file_name  # noqa: E402
-
 OUT_DIR = ROOT / "assets" / "pieces" / "cburnett"
 
 

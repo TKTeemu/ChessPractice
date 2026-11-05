@@ -1,6 +1,6 @@
 """A small UCI client on top of subprocess.
 
-Written instead of chess.engine because the vendored python-chess uses an asyncio API
+Written instead of chess.engine because python-chess 1.11.2 uses an asyncio API
 that is removed in Python 3.16. Any UCI engine can reuse it.
 """
 

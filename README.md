@@ -13,18 +13,17 @@ The first part of this file is for **using** the program; the second part, from 
 | What | Where from | Notes |
 | --- | --- | --- |
 | **Python 3.15** (64-bit) with Tcl/Tk | python.org | Exactly 3.15: Python 3.16 does not work yet (see [docs/MAINTENANCE.md](docs/MAINTENANCE.md#moving-to-a-new-python-minor-version)). `python -m tkinter` opens a test window if Tk is installed. |
-| Pillow | `Install.bat` | image handling; the only package installed into Python |
-| python-chess 1.11.2 | `vendor/` folder, filled by `Install.bat` | rules, PGN, FEN; already included in a zip from `tools/make_dist.py` |
+| Pillow and python-chess 1.11.2 | The `.venv` folder, filled by `Install.bat` | image handling; rules, PGN, FEN. A zip from `tools/make_dist.py` includes them, so this step needs no network. |
 | Stockfish (optional) | `engines/stockfish/stockfish.exe`, downloaded by `Install.bat` | Play vs Computer, Learn Openings and Endgame Practice at real strength; see [Stockfish](#stockfish) |
 
 ## Running
 
-Double-click `Chessboard.bat`. It finds Python 3.15 in the same places as `Install.bat` (the Python launcher, PATH, the folders the python.org installer uses) and starts the program without a console window.
+Double-click `Chessboard.bat`. It starts the program with the Python environment made by `Install.bat` (the `.venv` folder), without a console window.
 
 If something the program needs is missing (Tk, Pillow, python-chess, or the right Python version), a message box says what and how to fix it. Other errors show a message and are written to `error.log` in the program folder (`chessboard-error.log` in the temp folder if the program folder is read-only). To see errors directly, run it from a console:
 
 ```
-py -3.15 chessboard.pyw
+.venv\Scripts\python.exe chessboard.pyw
 ```
 
 ## Modes
@@ -58,10 +57,10 @@ The program is free software under the **GNU GPL v3.0 or later** ([LICENSE](LICE
 
 | Part | Author | Licence |
 | --- | --- | --- |
-| python-chess (`vendor/chess`) | Niklas Fiekas | GPL-3.0 |
+| python-chess (installed into `.venv`) | Niklas Fiekas | GPL-3.0 |
 | Cburnett pieces (`assets/pieces/cburnett`) | Colin M.L. Burnett | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) |
 | Stockfish (`engines/stockfish`, downloaded separately) | the Stockfish developers | GPL-3.0 |
-| Pillow (installed into Python) | Jeffrey A. Clark and contributors | MIT-CMU |
+| Pillow (installed into `.venv`) | Jeffrey A. Clark and contributors | MIT-CMU |
 
 What this means in practice:
 
@@ -80,10 +79,8 @@ The licence costs nothing: it is just the text file; nothing is registered or bo
 To set up a development copy:
 
 ```
-py -3.15 -m pip install -r requirements-global.txt
-py -3.15 -m pip install -r requirements-dev.txt
-py -3.15 -m pip install --target vendor -r requirements-vendor.txt
-py -3.15 -m pytest
+.\Install.bat dev
+.venv\Scripts\python.exe -m pytest
 ```
 
 A healthy test run is all passed plus exactly 1 xfailed. The developer documentation is in `docs/` in the repository (the zip from `tools/make_dist.py` leaves it out):

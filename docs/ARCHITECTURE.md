@@ -17,7 +17,7 @@ Logic         model.py  fileio.py  settings.py  assets.py  commands.py  clock.py
 and services  engine_game.py  computer_game.py  learning_game.py  endgame_game.py
               openings.py  endgames.py  engines/  sounds.py  strings.py  theme.py
                    |
-Libraries     python-chess (vendor/)   Pillow   Tk   Stockfish (child process)
+Libraries     python-chess   Pillow   Tk   Stockfish (child process)
 ```
 
 - **Logic and services must not import tkinter.** That is what lets game rules be tested without a window. No test enforces this, so check the imports when you review a change.
@@ -29,7 +29,7 @@ Libraries     python-chess (vendor/)   Pillow   Tk   Stockfish (child process)
 
 | Path | Contents |
 | --- | --- |
-| [chessboard.pyw](../chessboard.pyw) | Entry point: `sys.path`, logging, the requirements check, the error reporter, DPI awareness, `MainWindow`. |
+| [chessboard.pyw](../chessboard.pyw) | Entry point: logging, the requirements check, the error reporter, DPI awareness, `MainWindow`. |
 | [Chessboard.bat](../Chessboard.bat), [Install.bat](../Install.bat), [INSTALL.txt](../INSTALL.txt) | Start the program; set it up; instructions for end users. |
 | `app/` | Application code, described below. |
 | `assets/` | Data read at run time: `openings/`, `endgames/`, `pieces/cburnett/`, `sounds/`. |
@@ -37,7 +37,7 @@ Libraries     python-chess (vendor/)   Pillow   Tk   Stockfish (child process)
 | `engines/syzygy/` | Optional tablebases (not in git). |
 | `tests/` | The pytest suite, described in [MAINTENANCE.md](MAINTENANCE.md#tests). |
 | `tools/` | Development scripts, described in [MAINTENANCE.md](MAINTENANCE.md#tools). |
-| `vendor/` | python-chess, installed by pip (not in git, do not edit). |
+| `.venv/` | The Python environment with Pillow and python-chess, created by `Install.bat` (not in git, do not edit). |
 | `settings.json`, `error.log`, `Games/`, `dist/` | Created when the program or tools run (not in git). |
 
 ### Modules in `app/`
@@ -110,7 +110,7 @@ Breaking one of these usually produces a bug far from the change. The last colum
 
 ### Startup
 
-`chessboard.pyw` puts `vendor/` and the program folder on `sys.path`, starts logging, and stops with a message box if the Python version is wrong or a requirement cannot be imported. `MainWindow.__init__` then builds `Settings` (with `mode_settings()`), repairs hand-edited values, and creates the model, `FileCommands`, `ModeContext` and the first mode in `MODES`. An unfinished game is never resumed.
+`chessboard.pyw` starts logging, and stops with a message box if the Python version is wrong or a requirement cannot be imported. `MainWindow.__init__` then builds `Settings` (with `mode_settings()`), repairs hand-edited values, and creates the model, `FileCommands`, `ModeContext` and the first mode in `MODES`. An unfinished game is never resumed.
 
 ### A move
 

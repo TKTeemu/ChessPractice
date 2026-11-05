@@ -1,4 +1,4 @@
-"""Python 3.16 removes asyncio.DefaultEventLoopPolicy. The vendored python-chess 1.11.2 uses it
+"""Python 3.16 removes asyncio.DefaultEventLoopPolicy. python-chess 1.11.2 uses it
 in chess.engine, and chess.pgn imports chess.engine, so on 3.16 the program would fail at
 "import chess.pgn". The program's own UCI client (app/engines/uci.py) does not need it.
 
@@ -10,18 +10,14 @@ the README.
 
 import subprocess
 import sys
-from pathlib import Path
 
 import pytest
-
-ROOT = Path(__file__).resolve().parent.parent
 
 
 @pytest.mark.xfail(strict=True, reason="python-chess 1.11.2: chess.pgn -> chess.engine uses "
                                         "asyncio.DefaultEventLoopPolicy, removed in Python 3.16")
 def test_chess_pgn_imports_without_deprecation_warning():
-    code = f"import sys; sys.path.insert(0, {str(ROOT / 'vendor')!r}); import chess.pgn"
-    result = subprocess.run([sys.executable, "-W", "error::DeprecationWarning", "-c", code],
+    result = subprocess.run([sys.executable, "-W", "error::DeprecationWarning", "-c", "import chess.pgn"],
                             capture_output=True, text=True, timeout=60)
     assert result.returncode == 0, result.stderr
 

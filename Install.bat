@@ -1,11 +1,13 @@
 @echo off
 rem Sets up Chessboard after unpacking. Safe to run again: it only does what is still missing.
+rem   Install.bat       installs what the program needs
+rem   Install.bat dev   also installs the test tools, for developers
 rem   1. checks that Python 3.15 is installed; if not, downloads its installer, opens it,
 rem      explains what to do and continues when it has finished (the browser is the fallback
 rem      if the download does not work)
-rem   2. installs Pillow into Python, from the wheels folder if there is one, otherwise from PyPI
-rem   3. installs python-chess into the vendor folder, unless it is already there
-rem   4. puts Stockfish at engines\stockfish\stockfish.exe: fixes a wrong name or subfolder,
+rem   2. creates the Python environment .venv (again if the old one no longer works) and installs
+rem      the libraries into it, from the wheels folder if there is one, otherwise from PyPI
+rem   3. puts Stockfish at engines\stockfish\stockfish.exe: fixes a wrong name or subfolder,
 rem      otherwise downloads the release below and checks its SHA-256
 setlocal
 cd /d "%~dp0"
@@ -18,6 +20,11 @@ set "SF_URL=https://github.com/official-stockfish/Stockfish/releases/download/sf
 set "SF_SHA256=3c8bf1f9ea66a09350a40df4f632288285ac206d99f33ab5842c408fc30b48a7"
 set "SF_EXE=engines\stockfish\stockfish.exe"
 set "SF_WORK=%TEMP%\ChessboardStockfishSetup"
+set "VENV_PY=.venv\Scripts\python.exe"
+set "REQUIREMENTS=requirements.txt"
+if /i "%~1"=="dev" set "REQUIREMENTS=requirements-dev.txt"
+set "PIP_SOURCE="
+if exist "wheels\" set "PIP_SOURCE=--no-index --find-links wheels"
 
 if not exist "chessboard.pyw" goto not_unpacked
 if not exist "app\" goto not_unpacked
@@ -27,7 +34,7 @@ echo ================
 echo.
 
 rem --- 1. Python 3.15 ---------------------------------------------------------
-echo [1/4] Looking for Python 3.15...
+echo [1/3] Looking for Python 3.15...
 call :find_python
 if errorlevel 1 goto no_python
 :python_ok
@@ -35,31 +42,26 @@ if exist "%PY_SETUP%" del "%PY_SETUP%" >nul 2>nul
 echo       Found.
 echo.
 
-rem --- 2. Pillow --------------------------------------------------------------
-echo [2/4] Installing Pillow (image handling)...
-if exist "wheels\" goto pillow_offline
-%PY% -m pip install --disable-pip-version-check --quiet -r requirements-global.txt
-goto pillow_done
-:pillow_offline
-%PY% -m pip install --disable-pip-version-check --quiet --no-index --find-links wheels -r requirements-global.txt
-:pillow_done
+rem --- 2. Python environment and libraries -------------------------------------
+echo [2/3] Installing the libraries Chessboard needs...
+if not exist "%VENV_PY%" goto venv_create
+"%VENV_PY%" -c "import tkinter, PIL, chess.pgn" >nul 2>nul
+if not errorlevel 1 goto venv_ready
+echo       The old environment no longer works, so it is built again.
+rmdir /s /q ".venv"
+:venv_create
+%PY% -m venv .venv
+if errorlevel 1 goto install_failed
+:venv_ready
+"%VENV_PY%" -m pip install --disable-pip-version-check --quiet %PIP_SOURCE% -r %REQUIREMENTS%
+if errorlevel 1 goto install_failed
+"%VENV_PY%" -c "import tkinter, PIL, chess.pgn"
 if errorlevel 1 goto install_failed
 echo       Done.
 echo.
 
-rem --- 3. python-chess --------------------------------------------------------
-echo [3/4] Installing python-chess (chess rules)...
-if exist "vendor\chess\" goto chess_present
-%PY% -m pip install --disable-pip-version-check --quiet --target vendor -r requirements-vendor.txt
-if errorlevel 1 goto install_failed
-:chess_present
-%PY% -c "import sys; sys.path.insert(0, 'vendor'); import tkinter, PIL, chess.pgn"
-if errorlevel 1 goto install_failed
-echo       Done.
-echo.
-
-rem --- 4. Stockfish -----------------------------------------------------------
-echo [4/4] Setting up Stockfish (the chess engine)...
+rem --- 3. Stockfish -----------------------------------------------------------
+echo [3/3] Setting up Stockfish (the chess engine)...
 rem A copy with the wrong name or in a subfolder is moved to the right place first
 if exist "%SF_EXE%" goto stockfish_placed
 for /r "engines\stockfish" %%F in (stockfish*.exe) do if not exist "%SF_EXE%" move /y "%%F" "%SF_EXE%" >nul
@@ -169,7 +171,7 @@ goto recheck_python
 echo.
 echo Python is installed. Continuing the setup...
 echo.
-echo [1/4] Looking for Python 3.15...
+echo [1/3] Looking for Python 3.15...
 goto python_ok
 
 :python_browser

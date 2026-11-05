@@ -15,7 +15,7 @@ How to add to the program. [ARCHITECTURE.md](ARCHITECTURE.md) explains the layer
 | A blockable command | `commands.py`, `main_window.py` | [Recipe](#add-a-command-a-mode-can-block) |
 | A way of using the board | `app/modes/`, usually a rules module | [Recipe](#add-a-mode) |
 | A chess engine | `app/engines/` | [Recipe](#add-an-engine) |
-| A library | `requirements-*.txt` | [Rules](#add-a-library) |
+| A library | `requirements.txt` or `requirements-dev.txt` | [Rules](#add-a-library) |
 
 ## Add a mode
 
@@ -189,17 +189,16 @@ Add the kind to the constants in `model.py`, in the priority order of `event_for
 
 Prefer the standard library and the packages already used. If one is unavoidable:
 
-| Kind | Install into | Listed in |
-| --- | --- | --- |
-| Pure Python, specific to this program | `vendor/` (`--target vendor`) | `requirements-vendor.txt`, pinned |
-| General compiled package the program needs | The system Python | `requirements-global.txt`, pinned; `make_dist.py` then packs its wheel and `Install.bat` installs it |
-| Development tool | The system Python | `requirements-dev.txt`, pinned |
+| Kind | Listed in |
+| --- | --- |
+| Needed to run the program | `requirements.txt`, pinned; `make_dist.py` then packs its wheel |
+| Development tool | `requirements-dev.txt`, pinned |
 
-Then add a message for it to `REQUIREMENTS` in `chessboard.pyw` and its licence to `NOTICE`. Never use a venv, and avoid packages that need their `.exe` launchers; run tools as `python -m <module>`. The reasons are in [DECISIONS.md](DECISIONS.md#platform-and-tools).
+Run `Install.bat dev` to install it into `.venv`. For a library the program needs, also add a message to `REQUIREMENTS` in `chessboard.pyw`, add it to the import checks in `Install.bat`, and add its licence to `NOTICE`. Avoid packages that need their `.exe` launchers; run tools as `python -m <module>`. The reasons are in [DECISIONS.md](DECISIONS.md#platform-and-tools).
 
 ## Before you finish
 
-- [ ] `py -3.15 -m pytest` passes, with one expected xfail.
+- [ ] `.venv\Scripts\python.exe -m pytest` passes, with one expected xfail.
 - [ ] Logic-layer changes import no tkinter.
 - [ ] New text is in `strings.py`, colours in `theme.py`, command names in `commands.py`.
 - [ ] No permanent identifier changed ([list](DATA_FORMATS.md#permanent-identifiers)).

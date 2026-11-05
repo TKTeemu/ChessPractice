@@ -78,7 +78,7 @@ correct name and puts it in the correct folder for you.
      "More info", then "Run anyway". If you see a box asking "Do you
      want to run this file?" instead, click "Run".
 
-  3. A black window opens and shows the progress in four parts.
+  3. A black window opens and shows the progress in three parts.
      The Stockfish download can take a few minutes. Just wait.
 
   4. When you see "Everything is ready", press any key on the keyboard.

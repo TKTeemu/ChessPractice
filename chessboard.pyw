@@ -8,8 +8,6 @@ import traceback
 from pathlib import Path
 
 APP_DIR = Path(__file__).resolve().parent
-sys.path.insert(0, str(APP_DIR / "vendor"))
-sys.path.insert(0, str(APP_DIR))
 
 
 def setup_logging():
@@ -33,9 +31,8 @@ REQUIRED_PYTHON = (3, 15)
 REQUIREMENTS = [
     ("tkinter", "Tcl/Tk is missing. Reinstall Python 3.15 from python.org with "
                 "\"tcl/tk and IDLE\" selected."),
-    ("PIL", "Pillow is missing. Run Install.bat, or: python -m pip install -r requirements-global.txt"),
-    ("chess.pgn", "python-chess is missing from the vendor folder. Run Install.bat, "
-                  "or: python -m pip install --target vendor -r requirements-vendor.txt"),
+    ("PIL", "Pillow is missing. Run Install.bat, then start the program with Chessboard.bat."),
+    ("chess.pgn", "python-chess is missing. Run Install.bat, then start the program with Chessboard.bat."),
 ]
 
 
