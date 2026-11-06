@@ -87,7 +87,8 @@ def test_mode_settings_are_prefixed_and_do_not_clash():
 def test_allowed_command_sets_use_known_names():
     from app.computer_game import ComputerGame
     from app.learning_game import LearningGame
-    for cls in (ComputerGame, LearningGame):
+    from app.middlegame_game import MiddlegameGame
+    for cls in (ComputerGame, LearningGame, MiddlegameGame):
         assert cls.ALLOWED_DURING_GAME <= ALL_COMMANDS and cls.ALLOWED_AFTER_GAME <= ALL_COMMANDS
 
 
@@ -294,6 +295,68 @@ def test_endgame_leave_resigns_and_the_light_turns_red(tmp_path, monkeypatch):
         mode.leave()
         assert mode.game.over and mode.light() == "fail" and ctx.model.headers["Result"] == "0-1"
         assert not mode.allows("take_back") and not mode.can_take_back()
+    finally:
+        mode.deactivate()
+
+
+# --- Middlegame Practice -----------------------------------------------------
+
+def middlegame_mode(tmp_path, monkeypatch, key="back_rank"):
+    from app.engines import RandomEngine
+    from app.modes.middlegames import MiddlegameMode
+    ctx, calls = fake_context(tmp_path)
+    mode = MiddlegameMode(ctx)
+    monkeypatch.setattr(MiddlegameMode, "_engine", lambda self: RandomEngine(seed=1))
+    monkeypatch.setattr(ctx.assets.middlegame_deck(), "draw", lambda difficulty: ctx.assets.middlegames().sample(key))
+    return mode, ctx, calls
+
+
+def test_middlegame_mode_comes_before_endgame_practice_in_the_menu(tmp_path):
+    ctx, _ = fake_context(tmp_path)
+    cls = mode_class("mid_practice")
+    assert cls.label == "Middlegame Practice…" and MODES.index(cls) + 1 == MODES.index(mode_class("end_practice"))
+    assert cls.SETTINGS["mid_minutes"] == 30 and cls.SETTINGS["mid_suggest"] is False
+    mode = cls(ctx)
+    assert mode.confirm_leave() and mode.replaces_game and mode.takes_back and mode.light() is None
+
+
+def test_middlegame_start_uses_its_own_settings_and_headers(tmp_path, monkeypatch):
+    mode, ctx, _ = middlegame_mode(tmp_path, monkeypatch)
+    before = (ctx.settings["end_difficulty"], ctx.settings["end_minutes"])
+    mode.start({"difficulty": 1, "minutes": 40})
+    try:
+        assert ctx.settings["mid_difficulty"] == 1 and ctx.settings["mid_minutes"] == 40
+        assert (ctx.settings["end_difficulty"], ctx.settings["end_minutes"]) == before
+        assert ctx.settings["mid_progress"] == {"back_rank": "played"} and ctx.settings["end_progress"] == {}
+        assert ctx.model.headers["Event"] == "Middlegame practice" and ctx.model.headers["MiddlegameKey"] == "back_rank"
+        assert "Back-Rank Mate" in mode.title() and mode.subtitle() == "Classic middlegame pattern"
+    finally:
+        mode.deactivate()
+
+
+def test_middlegame_suggestions_and_solved_progress(tmp_path, monkeypatch):
+    mode, ctx, calls = middlegame_mode(tmp_path, monkeypatch)
+    ctx.settings["mid_suggest"] = True
+    mode.start({"difficulty": 1, "minutes": 30})
+    try:
+        assert mode.hint_arrows() == [(chess.E2, chess.E8, "main")]
+        user_plays(mode, ctx, "Qe8+")
+        ctx.root.run_timers()
+        assert played_moves(calls) == [chess.Move.from_uci("d8e8")]
+    finally:
+        mode.deactivate()
+
+
+def test_a_solved_middlegame_stays_recorded_and_green_after_a_loss(tmp_path, monkeypatch):
+    mode, ctx, _ = middlegame_mode(tmp_path, monkeypatch)
+    mode.start({"difficulty": 1, "minutes": 30})
+    try:
+        mode.game.solved_ply = 1
+        mode._note_solved()
+        assert ctx.settings["mid_progress"]["back_rank"] == "solved" and mode._solved(1) == 1
+        mode.leave()
+        assert mode.game.over and mode.light() == "success" and mode.light_text().startswith("Solved · ")
+        assert ctx.settings["mid_progress"]["back_rank"] == "solved"
     finally:
         mode.deactivate()
 

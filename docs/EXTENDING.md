@@ -8,6 +8,7 @@ How to add to the program. [ARCHITECTURE.md](ARCHITECTURE.md) explains the layer
 | --- | --- | --- |
 | An opening | `assets/openings/*.pgn`, `tests/test_openings.py` | No: [format](DATA_FORMATS.md#opening-book) |
 | An endgame position | `assets/endgames/level*.pgn` | No: [format](DATA_FORMATS.md#endgame-positions) |
+| A middlegame puzzle | `assets/middlegames/level*.pgn` | No: [format](DATA_FORMATS.md#middlegame-puzzles) |
 | An engine strength level | The level table in the engine's file | One line |
 | A setting | `settings.DEFAULTS` or a mode's `SETTINGS` | [Recipe](#add-a-setting) |
 | A board theme or piece set | `theme.py`, `strings.py`, `pieces.py` | [Recipe](#add-a-board-theme-or-piece-set) |
@@ -27,7 +28,7 @@ A new mode should need no change in `main_window.py`. If it seems to, the usual 
 | --- | --- | --- | --- |
 | has no computer opponent | `Mode` | your own, if any | `BoardMode` |
 | has a computer opponent, no clock | `EngineGameMode` | `EngineGame` subclass | `LearnOpeningsMode` |
-| has a computer opponent and a clock | `TimedGameMode` | `ComputerGame` subclass | `VsComputerMode`, `EndgameMode` |
+| has a computer opponent and a clock | `TimedGameMode` | `ComputerGame` subclass | `VsComputerMode`, `EndgameMode`, `MiddlegameMode` (through `EndgameMode`) |
 
 The base classes' defaults behave like the free board, so override only what differs.
 
@@ -157,7 +158,7 @@ Steps:
 2. For a UCI engine, use `UciClient`. `StockfishEngine` currently holds the exe lookup and option clamping, and its `settings["engine_path"]` and messages are Stockfish's. Move the shared parts into a `UciEngine` base when a second UCI engine arrives, rather than copying them.
 3. Add the class to `ENGINES` in [app/engines/\_\_init\_\_.py](../app/engines/__init__.py). Order matters:
    - Dialogs list available engines in this order.
-   - Board analysis and Endgame Practice use the first one with `can_analyse`.
+   - Board analysis, Endgame Practice and Middlegame Practice use the first one with `can_analyse`.
    - `RandomEngine` stays in the list: `EndgameMode._engine` relies on at least one engine always being available.
 4. Put the exe under `engines/<name>/` and follow the [antivirus checklist](MAINTENANCE.md#antivirus-checklist-for-an-engine-exe). `.gitignore` already excludes `engines/**/*.exe`.
 5. Add the licence to `S.ABOUT_TEXT` and `NOTICE`. Check what the licence requires when the exe is given to others.

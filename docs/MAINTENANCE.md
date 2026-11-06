@@ -35,12 +35,12 @@ Run from a console to see errors directly:
 
 | Kind | Where | How |
 | --- | --- | --- |
-| Rules and services | `test_model`, `test_fileio`, `test_settings`, `test_clock`, `test_computer_game`, `test_learning_game`, `test_endgame_game`, `test_openings`, `test_endgames` | No Tk. Clocks take a fake `now`, and randomness takes a seeded `rng`. |
+| Rules and services | `test_model`, `test_fileio`, `test_settings`, `test_clock`, `test_computer_game`, `test_learning_game`, `test_endgame_game`, `test_middlegame_game`, `test_openings`, `test_endgames`, `test_middlegames` | No Tk. Clocks take a fake `now`, and randomness takes a seeded `rng`. |
 | Modes without windows | `test_modes` | `fake_context()` records calls; `FakeRoot.run_timers()` runs timers on demand. |
 | The real window | `test_main_window` | A real, hidden `MainWindow` with dialogs replaced by the `answers` fixture. `pump()` runs the event loop until a condition holds. One focus test shows the window briefly. |
 | UCI protocol | `test_engines` with `fake_uci.py` | A small UCI engine in Python. |
 | Real Stockfish | `test_engines` | Skipped when the exe is missing. |
-| Data files | `test_openings`, `test_endgames` | Every file in `assets/` loads and meets the rules. |
+| Data files | `test_openings`, `test_endgames`, `test_middlegames` | Every file in `assets/` loads and meets the rules. |
 | Python version | `test_python_version` | See below. |
 
 ### Manual checks
@@ -52,7 +52,7 @@ The tests do not cover these. Run the ones your change touches:
 - A game as White and as Black against Stockfish.
 - Resign, change mode and close the program **while the engine is thinking**. Afterwards no `stockfish.exe` remains in Task Manager.
 - The clocks stay right while the window is moved or minimised.
-- The program without `stockfish.exe`: dialogs offer only *Random moves*, and Endgame Practice says moves off the solution are not judged.
+- The program without `stockfish.exe`: dialogs offer only *Random moves*, and Middlegame and Endgame Practice say moves off the solution are not judged.
 - With the network disconnected.
 
 ## Tools
@@ -61,7 +61,7 @@ Run from the program folder.
 
 | Command | Purpose |
 | --- | --- |
-| `.venv\Scripts\python.exe -m tools.check_endgames [--key K] [--level N] [--time S]` | Check endgame positions with Stockfish. Slow, so not part of the tests. Exit status 1 if there are problems. Run it after changing positions or the Stockfish version. |
+| `.venv\Scripts\python.exe -m tools.check_endgames [--key K] [--level N] [--time S] [--folder DIR] [--first-moves]` | Check endgame positions, or with `--folder assets/middlegames` the middlegame puzzles, with Stockfish. `--first-moves` also notes where the engine prefers another first move. Slow, so not part of the tests. Exit status 1 if there are problems. Run it after changing positions or the Stockfish version. |
 | `.venv\Scripts\python.exe -m tools.make_dist [--no-wheels] [--out DIR]` | Build the zip. |
 | `.venv\Scripts\python.exe -m tools.make_sounds` | Regenerate `assets/sounds/`. |
 | `.venv\Scripts\python.exe -m tools.extract_pieces` | Write the SVG pieces from the data bundled with python-chess. |
@@ -97,7 +97,7 @@ Versions are pinned, and the same version appears in several places. Change them
 1. Update `SF_URL` and `SF_SHA256` in `Install.bat`. Compare the checksum with the release page.
 2. Update the link and exe name in `INSTALL.txt`, and the version in `README.md` and `engines/stockfish/README.txt`.
 3. Run the tests, which include real-engine tests.
-4. Run `tools.check_endgames` for all positions. New evaluations can move scores across the [judging limits](DECISIONS.md#tuned-values).
+4. Run `tools.check_endgames` for all positions, and again with `--folder assets/middlegames`. New evaluations can move scores across the [judging limits](DECISIONS.md#tuned-values).
 5. Follow the checklist below.
 
 ### python-chess or Pillow

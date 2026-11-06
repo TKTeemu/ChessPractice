@@ -2,7 +2,7 @@ HOW TO INSTALL CHESSBOARD ON WINDOWS 11
 =======================================
 
 Chessboard is a free chess program for analysing games, playing against
-the computer, and practising openings and endgames.
+the computer, and practising openings, middlegames and endgames.
 
 You do not need any programming knowledge. Everything is done by
 clicking. It takes about 15 minutes.

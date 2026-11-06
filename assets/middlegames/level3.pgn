@@ -1,0 +1,189 @@
+[Event "Lasker's Two Bishops"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "lasker_bauer"]
+[Difficulty "3"]
+[DifficultyName "Master attacks"]
+[Goal "win"]
+[Source "Emanuel Lasker vs Johann Bauer, Amsterdam"]
+[Year "1889"]
+[SetUp "1"]
+[FEN "r4rk1/1b2bppp/ppq1p3/2ppB2n/5P2/1P1BP3/P1PPQ1PP/R4RK1 w - - 0 15"]
+
+{ Both white bishops point at the castled king. Give them up to tear away its pawn cover. } 15.
+Bxh7+ Kxh7 16. Qxh5+ Kg8 17. Bxg7 Kxg7 18. Qg4+ Kh7 19. Rf3 e5 20. Rh3+ Qh6 21. Rxh6+ Kxh6 22. Qd7
+*
+
+[Event "The Game of the Century"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "game_of_the_century"]
+[Difficulty "3"]
+[Goal "win"]
+[Source "Donald Byrne vs Bobby Fischer, New York"]
+[Year "1956"]
+[SetUp "1"]
+[FEN "r3r1k1/pp3pbp/1qp3p1/2B5/2BP2b1/Q1n2N2/P4PPP/3R1K1R b - - 3 17"]
+
+{ Your queen is attacked and your knight on c3 hangs, but White's king is still on f1 with its rook shut in. }
+17... Be6 18. Qxc3 ( 18. Bxb6 Bxc4+ 19. Kg1 Ne2+ 20. Kf1 Nxd4+ 21. Kg1 Ne2+ 22. Kf1 Nc3+ 23. Kg1
+axb6 24. Qb4 Ra4 25. Qxb6 Nxd1 ) 18... Qxc5 19. dxc5 Bxc3 20. Bxe6 Rxe6 *
+
+[Event "Botvinnik – Capablanca"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "botvinnik_capablanca"]
+[Difficulty "3"]
+[Goal "win"]
+[Source "Mikhail Botvinnik vs José Raúl Capablanca, AVRO tournament, Rotterdam"]
+[Year "1938"]
+[SetUp "1"]
+[FEN "8/p3q1kp/1p2Pnp1/3pQ3/2pP4/1nP3N1/1B4PP/6K1 w - - 5 30"]
+
+{ The e-pawn would win if the black queen were not blockading it. Find the way to drive that queen off. }
+30. Ba3 Nc5 ( 30... Qxa3 31. Nh5+ gxh5 32. Qg5+ Kf8 33. Qxf6+ Kg8 34. e7 Qc1+ 35. Kf2 Qc2+ 36. Kg3
+Qd3+ 37. Kh4 Qe4+ 38. Kxh5 Qe2+ 39. Kh4 Qe4+ 40. g4 Qe1+ 41. Kh5 ) 31. dxc5 bxc5 32. Bc1 *
+
+[Event "The Windmill"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "torre_lasker"]
+[Difficulty "3"]
+[Goal "win"]
+[Source "Carlos Torre vs Emanuel Lasker, Moscow"]
+[Year "1925"]
+[SetUp "1"]
+[FEN "r3rnk1/pb3pp1/3pp2p/1q4BQ/1P1P4/4N1R1/P4PPP/4R1K1 w - - 4 25"]
+
+{ Rook on the g-file and bishop on the long diagonal can work as a machine, if you dare leave your queen hanging. }
+25. Bf6 Qxh5 26. Rxg7+ Kh8 27. Rxf7+ Kg8 28. Rg7+ Kh8 29. Rxb7+ Kg8 30. Rg7+ Kh8 31. Rg5+ Kh7 32.
+Rxh5 *
+
+[Event "Zukertort – Blackburne"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "zukertort_blackburne"]
+[Difficulty "3"]
+[Goal "win"]
+[Source "Johannes Zukertort vs Joseph Blackburne, London"]
+[Year "1883"]
+[SetUp "1"]
+[FEN "2r4k/pb2q2P/1p6/3Pp3/4p3/1P2R3/PBrQ2PP/5RK1 w - - 0 28"]
+
+{ Black has just blocked the long diagonal with e5. Your queen is attacked, but the blocker is only guarded by the black queen. }
+28. Qb4 Qg5 ( 28... R8c5 29. Rf8+ Kxh7 30. Qxe4+ Kg7 31. Bxe5+ Kxf8 32. Bg7+ Kg8 33. Qxe7 ) 29. Rg3
+Qxg3 30. hxg3 *
+
+[Event "Morphy's Queen Sacrifice"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "paulsen_morphy"]
+[Difficulty "3"]
+[Goal "win"]
+[Source "Louis Paulsen vs Paul Morphy, New York"]
+[Year "1857"]
+[SetUp "1"]
+[FEN "4r1k1/p1pb1ppp/Qbp1r3/8/1P6/2Pq1B2/R2P1PPP/2B2RK1 b - - 4 17"]
+
+{ White's queen has wandered off to a6. The bishop on f3 is all that shields the king. } 17... Qxf3
+18. gxf3 Rg6+ 19. Kh1 Bh3 20. Qd3 ( 20. Rd1 Bg2+ 21. Kg1 Bxf3+ 22. Kf1 Bg2+ ) 20... f5 21. Rd1 Bg2+
+22. Kg1 Bxf3+ 23. Kf1 Bxd1 *
+
+[Event "Kotov's Queen Sacrifice"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "averbakh_kotov"]
+[Difficulty "3"]
+[Goal "win"]
+[Source "Yuri Averbakh vs Alexander Kotov, Zurich"]
+[Year "1953"]
+[SetUp "1"]
+[FEN "1r4nk/1p1qb2p/3p1r2/p1pPp3/2P1Pp2/5P1P/PP1QNBRK/5R2 b - - 3 30"]
+
+{ White's king has few defenders near it and White's heavy pieces are far off. Pull the king into the open. }
+30... Qxh3+ 31. Kxh3 Rh6+ 32. Kg4 Nf6+ 33. Kf5 Nd7 ( 33... Nh5 34. Rg5 Rf8+ 35. Kg4 Nf6+ ) 34. Rg5
+Rf8+ 35. Kg4 Nf6+ 36. Kf5 Ng8+ 37. Kg4 Nf6+ 38. Kf5 Nxd5+ 39. Kg4 Nf6+ *
+
+[Event "Tarrasch's Two Bishops"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "nimzowitsch_tarrasch"]
+[Difficulty "3"]
+[Goal "win"]
+[Source "Aron Nimzowitsch vs Siegbert Tarrasch, St Petersburg"]
+[Year "1914"]
+[SetUp "1"]
+[FEN "3r1rk1/p3qp1p/2bb2p1/2p5/3P4/1P6/PBQN1PPP/2R2RK1 b - - 0 19"]
+
+{ White has just taken on d4, and your bishops aim at h2 and g2. Your queen is ready to join in on h4. }
+19... Bxh2+ 20. Kxh2 Qh4+ 21. Kg1 Bxg2 22. Kxg2 ( 22. f3 Rfe8 23. Ne4 Qh1+ 24. Kf2 Bxf1 ) 22...
+Qg4+ 23. Kh2 Rd5 24. Qxc5 Rh5+ 25. Qxh5 Qxh5+ *
+
+[Event "Short's King Walk"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "short_timman"]
+[Difficulty "3"]
+[Goal "win"]
+[Source "Nigel Short vs Jan Timman, Tilburg"]
+[Year "1991"]
+[SetUp "1"]
+[FEN "4rrk1/1bpR1p2/1pq1pQp1/p3P2p/P1PR3P/5N2/2P2PP1/6K1 w - - 0 31"]
+
+{ Black can do almost nothing and has no way to attack your king. So who could help mate on g7? }
+31. Kh2 Rc8 ( 31... Bc8 32. Ng5 Bxd7 33. Rf4 ) 32. Kg3 Rce8 33. Kf4 Bc8 34. Kg5 *
+
+[Event "Kasparov – Portisch"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "kasparov_portisch"]
+[Difficulty "3"]
+[Goal "win"]
+[Source "Garry Kasparov vs Lajos Portisch, Niksic"]
+[Year "1983"]
+[SetUp "1"]
+[FEN "2r2rk1/p1q1bppp/1p6/n2b4/8/P2B1N2/1B2QPPP/3R1RK1 w - - 0 19"]
+
+{ Bishops on d3 and b2 aim at the kingside. Lasker's old idea works again, with a new follow-up. }
+19. Bxh7+ Kxh7 20. Rxd5 Kg8 21. Bxg7 Kxg7 22. Ne5 Rfd8 23. Qg4+ Kf8 24. Qf5 f6 25. Nd7+ Rxd7 26.
+Rxd7 *

@@ -19,6 +19,8 @@ class Assets:
         self._book = None
         self._endgames = None
         self._deck = None
+        self._middlegames = None
+        self._middlegame_deck = None
 
     @property
     def opening_folder(self):
@@ -27,6 +29,10 @@ class Assets:
     @property
     def endgame_folder(self):
         return self.app_dir / "assets" / "endgames"
+
+    @property
+    def middlegame_folder(self):
+        return self.app_dir / "assets" / "middlegames"
 
     def opening_book(self):
         if self._book is None:
@@ -42,3 +48,14 @@ class Assets:
         if self._deck is None:
             self._deck = EndgameDeck(self.endgames(), played=self.played_endgames())
         return self._deck
+
+    def middlegames(self):
+        if self._middlegames is None:
+            self._middlegames = EndgameCollection.load(self.middlegame_folder)
+        return self._middlegames
+
+    def middlegame_deck(self, played=()):
+        """`played`: keys of the puzzles played in earlier runs; used when the deck is first made."""
+        if self._middlegame_deck is None:
+            self._middlegame_deck = EndgameDeck(self.middlegames(), played=played)
+        return self._middlegame_deck

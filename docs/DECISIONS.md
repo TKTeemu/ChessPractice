@@ -37,6 +37,9 @@ The original plans (November 2026) are in git history under `docs/plans/`, for t
 | **Play vs Computer: no take-backs, no browsing until the game ends** | It is a real game, with a clock. Browsing opens when it is over, and Open in Board Mode allows analysis. | |
 | **Learn Openings: leaving the book does not stop the game** | The engine takes over. If suggestions are on, the book moves are named and shown as arrows until the next user move. | |
 | **Learn Openings: opening phase** | Suggestions end at the move limit (default 12, range 10–15) or after two user moves outside the book. | |
+| **Middlegame Practice: a solved puzzle stays green, whatever the result** | Decided by the user. The game after the solution can be long and is against full strength, so a later loss says nothing about the puzzle. Later moves are not judged. A miss before the solution is finished still counts. | |
+| **Middlegame Practice: suggestions also after the known path** | Decided by the user. The engine's best move is shown there, as in Endgame Practice. | |
+| **Middlegame Practice: shares `EndgameMode`, `EndgameGame` and the position classes** | The two modes differ only in data, settings and the solved rule, so the classes were not renamed or copied. | The modes grow apart. |
 | **Endgame Practice: opponent always at full strength** | Perfect defence is what is being practised, even on low levels, so there is no level picker. | Full strength proves too hard for beginners. |
 | **Endgame Practice: no Resign and no question on leaving** | It is practice, not a game to give up, and Retry is pressed again and again. A running attempt is simply resigned when left. A New Game that replaces moves still offers a save. | |
 | **Endgame Practice: Take Back does not wind back the clock** | Decided by the user. | |
@@ -64,6 +67,8 @@ The original plans (November 2026) are in git history under `docs/plans/`, for t
 - **Gambits are a group of their own** while there are few openings. If other 1.e4 and 1.d4 openings arrive, they can move to *Open games* and *Closed games* by changing a header.
 - **Explanatory comments are our own words,** not copied from books. Moves and positions are facts.
 - **Where the endgame positions come from:** the textbook positions of levels 1–3 and Lasker–Reichhelm were set up by hand, and their solution lines, where not written by hand, are Stockfish's main lines. Apart from Saavedra, Réti and Lasker–Reichhelm, levels 4 and 5 were found by a search with Stockfish (realistic material, exactly one move keeps the goal; on level 5 at least twice in a row). They are not master games or published studies, so their source is empty and they show *Classic endgame position*. Never add a source that has not been verified.
+
+- **Where the middlegame puzzles come from:** level 1 positions were set up by hand to show a named pattern and tested with Stockfish. Levels 2 and 3 are positions from famous games, with players, place and year checked against published sources in November 2026. Defences not played in the game come from Stockfish. The Evergreen Game names no city, because Berlin is only assumed. Kasparov–Topalov 1999 and Beliavsky–Nunn 1985 were left out: from the position before the sacrifice, Stockfish does not give the sacrifice the clear advantage a puzzle needs.
 
 ## Ideas not built
 

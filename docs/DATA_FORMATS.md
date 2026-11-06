@@ -1,6 +1,6 @@
 # Data formats
 
-The files the program reads and writes, and what must stay compatible. Opening and endgame files need no code changes: add a game and the program finds it.
+The files the program reads and writes, and what must stay compatible. Opening, middlegame and endgame files need no code changes: add a game and the program finds it.
 
 ## Permanent identifiers
 
@@ -13,6 +13,7 @@ These are stored in users' `settings.json`. Never rename or reuse one.
 | Level `key` | `vs_level`, `learn_level` | Falls back to the engine's first level. |
 | Opening `Key` | `learn_opening` | The dialog no longer preselects it. |
 | Endgame `Key` | `end_progress`, and the `EndgameKey` header of saved games | The user's progress on that position is lost. |
+| Middlegame `Key` | `mid_progress`, and the `MiddlegameKey` header of saved games | The user's progress on that puzzle is lost. |
 | Board theme, piece set key | `board_theme`, `piece_set` | `MainWindow._repair_settings` resets to the default. |
 
 ## Opening book
@@ -110,6 +111,23 @@ Other NAGs such as `$1` have no effect.
 
 The tool checks the goal and every solution move with Stockfish, by the same `is_mistake` rule as the game. The tests require all five levels to exist, each with a name and at least 15 positions.
 
+## Middlegame puzzles
+
+`assets/middlegames/*.pgn`, by convention `level1.pgn` … `level3.pgn`, loaded by the same `EndgameCollection.load`, so [the endgame format](#endgame-positions) applies: headers, move tree and the side to move being the user's side.
+
+- A position from a real game has its players and place in `Source` and the year in `Year`, as *Paul Morphy vs Duke of Brunswick and Count Isouard, Paris*. Patterns have neither and show *Classic middlegame pattern*.
+- Keep the real move counters in the FEN, so that the move list shows the moves' real numbers.
+- The main line is normally the strongest defence and the move actually played a computer-side variation. The stored moves are what the computer plays, so a weak historical defence as the main line makes a puzzle easier.
+
+```
+.venv\Scripts\python.exe -m tools.check_endgames --folder assets/middlegames --first-moves --key <key>
+.venv\Scripts\python.exe -m pytest tests/test_middlegames.py
+```
+
+Sharp positions need a longer search: `paulsen_morphy` fails at `--time 2` (the queen sacrifice is not seen yet) and passes at `--time 15`. Try a longer time before changing a puzzle that fails. A `--first-moves` note is not a problem: the stored solution may still be sound, as with `kasparov_portisch`, where the engine prefers Nd4.
+
+The tests require levels 1–3 to exist, each with a name and at least 10 puzzles, and require a credit on levels 2 and 3.
+
 ## settings.json
 
 Created in the program folder, not in git and left out of the zip. Only keys in the defaults are loaded, and a value of the wrong type is ignored. Defaults are in `settings.DEFAULTS` and each mode's `SETTINGS`.
@@ -136,6 +154,10 @@ Created in the program folder, not in git and left out of the zip. Only keys in 
 | `learn_vary` | `true` | Vary the computer's replies. |
 | `learn_suggest` | `true` | Suggest next move. |
 | `learn_suggest_moves` | `12` | Last move of the opening phase (the dialog allows 10–15). |
+| `mid_difficulty` | `1` | Last level chosen. |
+| `mid_minutes` | `30` | Clock (the dialog allows 1–180). |
+| `mid_suggest` | `false` | Suggest next move. |
+| `mid_progress` | `{}` | Middlegame `Key` → `played` or `solved`. Solved stays solved. |
 | `end_difficulty` | `1` | Last level chosen. |
 | `end_minutes` | `15` | Clock (the dialog allows 1–180). |
 | `end_suggest` | `false` | Suggest next move. |
@@ -152,6 +174,7 @@ Headers the program writes on top of the standard seven:
 | All game modes, once over | `Result`; `Termination` when known (`normal`, `time forfeit`, `abandoned`) |
 | Play vs Computer | `Event "vs Computer"`, `TimeControl` (`1800` or `300+3`), `WhiteElo` or `BlackElo` for the engine if known |
 | Learn Openings | `Event "Opening training"`, `Opening`, `ECO` |
+| Middlegame Practice | As Endgame Practice, with `Event "Middlegame practice"` and `MiddlegameKey` |
 | Endgame Practice | `Event "Endgame practice"`, `SetUp`, `FEN`, `EndgameKey`, `Difficulty`, `Composer`, `Source`, `Year` when known, `TimeControl`, and once over `HintsUsed`, `TakeBacks` |
 
 The clock is stored per move as a `[%clk 0:29:41]` comment command. Commands in `[%…]` stay in the file but are hidden in the move list and comment field (`visible_comment`), and editing a comment keeps them (`GameModel.set_comment`).

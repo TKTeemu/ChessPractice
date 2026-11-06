@@ -54,6 +54,7 @@ def is_mistake(goal, before, after):
 
 class EndgameGame(ComputerGame):
     EVENT = S.END_EVENT
+    KEY_HEADER = "EndgameKey"     # the header of saved games that names the position
     ALLOWED_DURING_GAME = frozenset({TAKE_BACK, NAVIGATE})
     ALLOWED_AFTER_GAME = frozenset({TAKE_BACK, EDIT_COMMENT, NAVIGATE})   # no TAKE_BACK after time or resign
 
@@ -209,7 +210,7 @@ class EndgameGame(ComputerGame):
         sample = self.sample
         headers["SetUp"] = "1"
         headers["FEN"] = sample.fen
-        headers["EndgameKey"] = sample.key
+        headers[self.KEY_HEADER] = sample.key
         headers["Difficulty"] = str(sample.difficulty)
         for name, value in (("Composer", sample.composer), ("Source", sample.source), ("Year", sample.year)):
             if value:

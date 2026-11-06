@@ -1,8 +1,10 @@
-"""Check the endgame positions in assets/endgames/ with Stockfish.
+"""Check the endgame positions in assets/endgames/ with Stockfish, or another folder of the
+same format, such as the middlegame puzzles.
 
     python -m tools.check_endgames                 every position, 3 s per position looked at
     python -m tools.check_endgames --level 5 --time 10
     python -m tools.check_endgames --key saavedra
+    python -m tools.check_endgames --folder assets/middlegames --first-moves --time 5
 
 Run it whenever positions are added or changed. It is slow, so it is not part of the tests.
 For each position it checks that
@@ -14,6 +16,8 @@ For each position it checks that
    (app/endgame_game.is_mistake);
 
 and prints a summary: positions per level, missing source details and every problem found.
+With --first-moves it also notes, without counting it as a problem, a position whose stored
+first moves do not include the engine's choice: a puzzle may then have an easier solution.
 With Syzygy tablebases in engines/syzygy/ the scores of small positions are exact.
 Exit status 1 if there were problems.
 """
@@ -72,6 +76,14 @@ class Checker:
         self._walk(sample, sample.game, board, user, problems)
         return problems
 
+    def first_move_note(self, sample):
+        """A remark if the engine's first choice is not among the stored first moves, else None."""
+        board = sample.game.board()
+        best = self.engine.analyse(board, self.level, threading.Event()).move
+        if best in [child.move for child in sample.game.variations]:
+            return None
+        return f"the engine prefers {board.san(best)}"
+
     def _walk(self, sample, node, board, user, problems):
         for child in node.variations:
             before = self.score(board, user) if board.turn == user else None
@@ -104,6 +116,7 @@ def main():
     parser.add_argument("--level", type=int, help="only this difficulty")
     parser.add_argument("--key", help="only this position")
     parser.add_argument("--folder", default=str(ROOT / "assets" / "endgames"))
+    parser.add_argument("--first-moves", action="store_true", help="note where the engine prefers another first move")
     args = parser.parse_args()
 
     collection = EndgameCollection.load(args.folder)
@@ -126,10 +139,13 @@ def main():
                 if args.key not in (None, sample.key):
                     continue
                 problems = checker.check(sample)
+                note = checker.first_move_note(sample) if args.first_moves else None
                 credit = sample.credit_text() or "(no source)"
                 print(f"  {'FAIL' if problems else 'ok  '} {sample.key:24s} {sample.goal:4s} {sample.name} · {credit}")
                 for problem in problems:
                     print(f"         {problem}")
+                if note:
+                    print(f"         note: {note}")
                 failed = failed or bool(problems)
                 sys.stdout.flush()
     finally:

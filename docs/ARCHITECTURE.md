@@ -14,7 +14,7 @@ Controller    main_window.py  file_commands.py  modes/
 Views         board_view.py  movelist_view.py  dialogs.py  widgets.py  pieces.py
                    |
 Logic         model.py  fileio.py  settings.py  assets.py  commands.py  clock.py
-and services  engine_game.py  computer_game.py  learning_game.py  endgame_game.py
+and services  engine_game.py  computer_game.py  learning_game.py  endgame_game.py  middlegame_game.py
               openings.py  endgames.py  engines/  sounds.py  strings.py  theme.py
                    |
 Libraries     python-chess   Pillow   Tk   Stockfish (child process)
@@ -32,7 +32,7 @@ Libraries     python-chess   Pillow   Tk   Stockfish (child process)
 | [chessboard.pyw](../chessboard.pyw) | Entry point: logging, the requirements check, the error reporter, DPI awareness, `MainWindow`. |
 | [Chessboard.bat](../Chessboard.bat), [Install.bat](../Install.bat), [INSTALL.txt](../INSTALL.txt) | Start the program; set it up; instructions for end users. |
 | `app/` | Application code, described below. |
-| `assets/` | Data read at run time: `openings/`, `endgames/`, `pieces/cburnett/`, `sounds/`. |
+| `assets/` | Data read at run time: `openings/`, `middlegames/`, `endgames/`, `pieces/cburnett/`, `sounds/`. |
 | `engines/stockfish/` | The downloaded `stockfish.exe` (not in git), `Copying.txt`, `README.txt`. |
 | `engines/syzygy/` | Optional tablebases (not in git). |
 | `tests/` | The pytest suite, described in [MAINTENANCE.md](MAINTENANCE.md#tests). |
@@ -51,14 +51,16 @@ Libraries     python-chess   Pillow   Tk   Stockfish (child process)
 | `modes/board.py` | `BoardMode`: the free board, with optional engine analysis. |
 | `modes/engine_mode.py` | `EngineGameMode`: the base of modes where the computer plays (worker, polling, delayed moves, take-back, game over). |
 | `modes/timed_mode.py` | `TimedGameMode`: adds the clock tick, flag fall, `[%clk]` comments and resigning. |
-| `modes/vs_computer.py`, `learn_openings.py`, `endgames.py` | The three game modes: dialog, panel and how the computer chooses its move. |
+| `modes/vs_computer.py`, `learn_openings.py`, `endgames.py` | Three game modes: dialog, panel and how the computer chooses its move. |
+| `modes/middlegames.py` | `MiddlegameMode(EndgameMode)`: the same mode with its own puzzles, settings and rules class. |
 | `model.py` | `GameModel`: the game tree (a python-chess `Game`), the current node and `board`, moves, navigation, tree editing, comments, `modified`. Also `event_for`, `position_key` and `visible_comment`. |
 | `engine_game.py` | `EngineGame`: turns, allowed commands, status line, common PGN headers, result, request ids. |
 | `computer_game.py` | `ComputerGame(EngineGame)`: clock, material score, time-control headers, result by time or resignation. |
 | `learning_game.py` | `LearningGame(EngineGame)`: book or engine reply, deviations, theory count, opening phase. |
 | `endgame_game.py` | `EndgameGame(ComputerGame)`: stored defence, judging moves, success light. `is_mistake` is shared with `tools/check_endgames.py`. |
+| `middlegame_game.py` | `MiddlegameGame(EndgameGame)`: a solved puzzle stays solved, and later moves are not judged. |
 | `openings.py` | `OpeningBook`, `Opening`, `OpeningLine`, `BookMove`. |
-| `endgames.py` | `EndgameCollection`, `EndgameSample`, `SolutionTree`, `SolutionMove`, `EndgameDeck`. |
+| `endgames.py` | `EndgameCollection`, `EndgameSample`, `SolutionTree`, `SolutionMove`, `EndgameDeck`. Middlegame puzzles use the same classes. |
 | `assets.py` | `Assets`: loads the book and positions on first use and keeps them, and the deck, for the whole run. |
 | `clock.py` | `ChessClock` and `format_time`, with a replaceable time source. |
 | `commands.py` | Command names for `Mode.allows`. |
@@ -68,7 +70,7 @@ Libraries     python-chess   Pillow   Tk   Stockfish (child process)
 | `sounds.py`, `strings.py`, `theme.py` | WAV playback; all user-visible text; colours, fonts and board themes. |
 | `board_view.py` | `BoardCanvas` (geometry, squares) and `BoardView` (drag, click, promotion picker, animation, the user's arrows and marks, the suggestion-arrow layer). |
 | `movelist_view.py` | `MoveListView`: variations in a Text widget, right-click menu. |
-| `dialogs.py` | Game picker, Play vs Computer, Learn Openings, Endgame Practice and engine location dialogs. |
+| `dialogs.py` | Game picker, Play vs Computer, Learn Openings, Endgame and Middlegame Practice and engine location dialogs. |
 | `pieces.py`, `widgets.py` | Piece images (they need a Tk root, so this is a view); panel-styled `button`, `label`, `checkbox`, `scrollbar`, and `light`. |
 
 ### Mode and game classes
@@ -83,6 +85,7 @@ Mode                                       (controller, may use tkinter)
     └── TimedGameMode                      ComputerGame(EngineGame)
         ├── VsComputerMode                 ComputerGame
         └── EndgameMode                    EndgameGame(ComputerGame)
+            └── MiddlegameMode             MiddlegameGame(EndgameGame)
 ```
 
 ## Rules the structure relies on
@@ -141,7 +144,7 @@ From `play_move` on, it is the same path as a user move. Modes differ only in `c
 
 - **Play vs Computer:** always the engine.
 - **Learn Openings:** a book move through `play_computer_move(move, 400 ms)` while the position is in the book, then the engine.
-- **Endgame Practice:** the stored defence the same way; outside it, analysis requests. `EndgameMode._pending` remembers what the request was for:
+- **Endgame and Middlegame Practice:** the stored defence the same way; outside it, analysis requests. `EndgameMode._pending` remembers what the request was for:
   - `BASELINE`: the score before the user's move, when it is not known yet.
   - `REPLY`: the score after the move and the computer's answer, from one search.
   - `HINT`: the best move for a suggestion arrow.
@@ -154,7 +157,7 @@ The user may be browsing earlier moves while the computer thinks, so game logic 
 
 ### Judging an endgame move
 
-`EndgameGame.move_played` judges a move in the solution tree at once. Anything else is `pending` until `analysed` applies `is_mistake`: a move is a mistake only if the score falls below the goal's limit **and** dropped by at least `DROP_CP`. The light is computed from the judgements on request, so take-back only removes the judgements of the removed moves. [DECISIONS.md](DECISIONS.md#tuned-values) has the reason for the two-part rule.
+`EndgameGame.move_played` judges a move in the solution tree at once. Anything else is `pending` until `analysed` applies `is_mistake`: a move is a mistake only if the score falls below the goal's limit **and** dropped by at least `DROP_CP`. The light is computed from the judgements on request, so take-back only removes the judgements of the removed moves. [DECISIONS.md](DECISIONS.md#tuned-values) has the reason for the two-part rule. `MiddlegameGame` stops judging once the solution has been played out, and the light then stays green.
 
 ### Take-back
 

@@ -1,5 +1,5 @@
 """Small modal dialogs of the main window: choosing a game, starting a game against
-the computer, choosing an opening to learn, choosing an endgame level and locating Stockfish."""
+the computer, choosing an opening to learn, choosing a practice level and locating Stockfish."""
 
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
@@ -327,16 +327,17 @@ def choose_opening(root, book, engines, notes, settings):
     return result or None
 
 
-def choose_endgame(root, levels, played, solved, notes, settings):
-    """Endgame Practice: the difficulty level and the clock.
+def choose_endgame(root, levels, played, solved, notes, settings, title=S.END_TITLE, prefix="end"):
+    """Endgame and Middlegame Practice: the difficulty level and the clock.
 
     `levels` are (difficulty, name, number of positions), `played` and `solved` map a difficulty
     to how many of its positions have been played and solved, `notes` explain a missing engine.
+    `title` names the dialog and `prefix` starts the names of the mode's settings.
     Returns {"difficulty", "minutes"} or None.
     """
-    top = _dialog(root, S.END_TITLE)
+    top = _dialog(root, title)
     result = {}
-    saved = settings["end_difficulty"]
+    saved = settings[f"{prefix}_difficulty"]
     level_var = tk.IntVar(value=saved if any(d == saved for d, _, _ in levels) else levels[0][0])
 
     tk.Label(top, text=S.END_DIFFICULTY, anchor="w").grid(row=0, column=0, columnspan=3, sticky="w",
@@ -352,7 +353,7 @@ def choose_endgame(root, levels, played, solved, notes, settings):
     time_row = tk.Frame(top)
     time_row.grid(row=row, column=0, columnspan=3, sticky="w", padx=12, pady=(10, 0))
     tk.Label(time_row, text=S.END_TIME).pack(side="left")
-    minutes_box, read_minutes = _number_box(time_row, settings["end_minutes"], 1, 180)
+    minutes_box, read_minutes = _number_box(time_row, settings[f"{prefix}_minutes"], 1, 180)
     minutes_box.pack(side="left", padx=6)
     tk.Label(time_row, text=S.END_MINUTES).pack(side="left")
 

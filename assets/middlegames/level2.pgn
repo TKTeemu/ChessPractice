@@ -1,0 +1,185 @@
+[Event "Réti – Tartakower"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "reti_tartakower"]
+[Difficulty "2"]
+[DifficultyName "Famous combinations"]
+[Goal "win"]
+[Source "Richard Réti vs Savielly Tartakower, Vienna"]
+[Year "1910"]
+[SetUp "1"]
+[FEN "rnb1kb1r/pp3ppp/2p5/4q3/4n3/3Q4/PPPB1PPP/2KR1BNR w kq - 0 9"]
+
+{ Black has just grabbed a knight and is lagging in development. The d-file and the d2-bishop are all you need. }
+9. Qd8+ Kxd8 10. Bg5+ Kc7 ( 10... Ke8 11. Rd8# ) 11. Bd8# *
+
+[Event "The Opera Game"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "opera_game"]
+[Difficulty "2"]
+[Goal "win"]
+[Source "Paul Morphy vs Duke of Brunswick and Count Isouard, Paris"]
+[Year "1858"]
+[SetUp "1"]
+[FEN "4kb1r/p2r1ppp/4qn2/1B2p1B1/4P3/1Q6/PPP2PPP/2KR4 w k - 2 15"]
+
+{ All of White's pieces are in play and Black's king is still in the centre. Finish the attack. }
+15. Bxd7+ Qxd7 ( 15... Nxd7 16. Qb8+ Nxb8 17. Rd8# ) 16. Qb8+ Ke7 17. Qxe5+ *
+
+[Event "The King Hunt"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "lasker_thomas"]
+[Difficulty "2"]
+[Goal "win"]
+[Source "Edward Lasker vs George Thomas, London"]
+[Year "1912"]
+[SetUp "1"]
+[FEN "rn3rk1/pbppq1pp/1p2pb2/4N2Q/3PN3/3B4/PPP2PPP/R3K2R w KQ - 6 11"]
+
+{ Knights and bishop surround the king's position. A queen sacrifice drags the king out, all the way across the board. }
+11. Qxh7+ Kxh7 12. Nxf6+ Kh6 ( 12... Kh8 13. Ng6# ) 13. Neg4+ Kg5 14. h4+ ( 14. f4+ Kh4 15. g3+ Kh3
+16. Bf1+ Bg2 17. Nf2# ) 14... Kf4 15. g3+ Kf3 16. Be2+ Kg2 17. Rh2+ Kg1 18. Kd2# ( 18. O-O-O# ) *
+
+[Event "The Immortal Game"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "immortal_game"]
+[Difficulty "2"]
+[Goal "win"]
+[Source "Adolf Anderssen vs Lionel Kieseritzky, London"]
+[Year "1851"]
+[SetUp "1"]
+[FEN "r1bk2nr/p2p1pNp/n2B4/1p1NP2P/6P1/3P1Q2/P1P1K3/q5b1 w - - 1 22"]
+
+{ White has given up both rooks and a bishop. One more sacrifice ends the game. } 22. Qf6+ Nxf6 23.
+Be7# *
+
+[Event "The Evergreen Game"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "evergreen_game"]
+[Difficulty "2"]
+[Goal "win"]
+[Source "Adolf Anderssen vs Jean Dufresne"]
+[Year "1852"]
+[SetUp "1"]
+[FEN "1r2k1r1/pbppnp1p/1bn2P2/8/Q7/B1PB1q2/P4PPP/3RR1K1 w - - 0 20"]
+
+{ Black threatens mate on g2, so there is no time for quiet moves. The king on e8 is the target. }
+20. Rxe7+ Kd8 ( 20... Nxe7 21. Qxd7+ Kxd7 22. Bf5+ Ke8 23. Bd7+ Kf8 24. Bxe7# ) 21. Rxd7+ Kc8 22.
+Rd8+ Kxd8 23. Bf5+ Qxd1+ 24. Qxd1+ *
+
+[Event "Rubinstein's Immortal"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "rotlewi_rubinstein"]
+[Difficulty "2"]
+[Goal "win"]
+[Source "Georg Rotlewi vs Akiba Rubinstein, Lodz"]
+[Year "1907"]
+[SetUp "1"]
+[FEN "2rr2k1/1b3ppp/pb2p3/1p2P3/1P2BPnq/P1N3P1/1B2Q2P/R4R1K b - - 0 22"]
+
+{ Your queen is attacked, but the long diagonal to the white king matters more. } 22... Rxc3 23.
+Bxb7 ( 23. gxh4 Rd2 24. Qxd2 Bxe4+ 25. Qg2 Rh3 ) 23... Rxg3 *
+
+[Event "The Gold Coins Game"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "levitsky_marshall"]
+[Difficulty "2"]
+[Goal "win"]
+[Source "Stepan Levitsky vs Frank Marshall, Breslau"]
+[Year "1912"]
+[SetUp "1"]
+[FEN "5rk1/pp4pp/4p3/2R3Q1/3n4/2q4r/P1P2PPP/5RK1 b - - 1 23"]
+
+{ White's queen and rook both attack something of yours. One quiet queen move leaves every capture losing. }
+23... Qg3 24. Qxg3 ( 24. hxg3 Ne2# ) ( 24. fxg3 Ne2+ 25. Kh1 Rxf1# ) 24... Ne2+ 25. Kh1 Nxg3+ 26.
+Kg1 Ne2+ 27. Kh1 Rc3 *
+
+[Event "Fischer's Knight Sacrifice"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "byrne_fischer_1963"]
+[Difficulty "2"]
+[Goal "win"]
+[Source "Robert Byrne vs Bobby Fischer, New York"]
+[Year "1963"]
+[SetUp "1"]
+[FEN "r2qr1k1/p4pbp/bp3np1/3p4/8/BPNnP1P1/P1Q1NPBP/R2R2K1 b - - 3 15"]
+
+{ The knight on d3 looks trapped, but White's king has few defenders. } 15... Nxf2 16. Bxd5 ( 16.
+Kxf2 Ng4+ 17. Kg1 Nxe3 18. Qd2 Nxg2 19. Kxg2 d4 20. Nxd4 Bb7+ 21. Kf1 Qd7 ) 16... Nxd5 17. Rxd5
+Nh3+ *
+
+[Event "Fischer – Benko"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "fischer_benko"]
+[Difficulty "2"]
+[Goal "win"]
+[Source "Bobby Fischer vs Pal Benko, New York"]
+[Year "1963"]
+[SetUp "1"]
+[FEN "r3qr1k/pp3pbp/2pn4/7Q/3pP3/2NB3P/PPP3P1/R4RK1 w - - 0 19"]
+
+{ White wants e4-e5 to open the bishop's way to h7, but Black's bishop and knight stand in the way. }
+19. Rf6 Kg8 20. e5 h6 21. Ne2 *
+
+[Event "Steinitz – von Bardeleben"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "steinitz_bardeleben"]
+[Difficulty "2"]
+[Goal "win"]
+[Source "Wilhelm Steinitz vs Curt von Bardeleben, Hastings"]
+[Year "1895"]
+[SetUp "1"]
+[FEN "r1r1k3/pp1qn2p/5pp1/3p2N1/6Q1/8/PP3PPP/2R1R1K1 w - - 2 22"]
+
+{ Your queen and rook on c1 hang, but so does everything Black has, because the black queen is overloaded. }
+22. Rxe7+ Qxe7 ( 22... Kf8 23. Rf7+ Kg8 24. Rg7+ Kh8 25. Rxh7+ ) 23. Rxc8+ Rxc8 24. Qxc8+ Qd8 25.
+Qxd8+ Kxd8 26. Nxh7 *

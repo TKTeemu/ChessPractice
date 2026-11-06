@@ -1,0 +1,162 @@
+[Event "Back-Rank Mate"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "back_rank"]
+[Difficulty "1"]
+[DifficultyName "Classic patterns"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "3r2k1/5ppp/p7/1p6/8/P6P/1P2QPP1/4R1K1 w - - 0 1"]
+
+{ The black king is shut in by its own pawns, and only the rook guards the last rank. } 1. Qe8+
+Rxe8 2. Rxe8# *
+
+[Event "Philidor's Legacy"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "philidor_legacy"]
+[Difficulty "1"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "r3r2k/pp4pp/8/3QN3/8/8/PP3PPP/6K1 w - - 0 1"]
+
+{ Queen and knight can drive the king into the corner and let its own pieces smother it. } 1. Nf7+
+Kg8 2. Nh6+ Kh8 ( 2... Kf8 3. Qf7# ) 3. Qg8+ Rxg8 4. Nf7# *
+
+[Event "The Greek Gift"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "greek_gift"]
+[Difficulty "1"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "r1bq1rk1/pp1n1ppp/1bn1p3/2ppP3/3P4/2PB1N2/PP3PPP/RNBQK2R w KQ - 0 1"]
+
+{ No black knight guards h7 and no black piece can take on g5. A bishop sacrifice brings the queen and knight in fast. }
+1. Bxh7+ Kxh7 2. Ng5+ Kg6 ( 2... Kg8 3. Qh5 ) ( 2... Kh6 3. Nxf7+ ) ( 2... Qxg5 3. Bxg5 ) 3. Qd3+
+f5 4. Qg3 *
+
+[Event "Anastasia's Mate"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "anastasia_mate"]
+[Difficulty "1"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "r4rk1/ppp2ppp/8/3N3Q/8/4R3/PPP2PPP/6K1 w - - 0 1"]
+
+{ A knight on e7 takes away the king's escape squares. The h-file then decides. } 1. Ne7+ Kh8 2.
+Qxh7+ Kxh7 3. Rh3# *
+
+[Event "Boden's Mate"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "boden_mate"]
+[Difficulty "1"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "2kr1b1r/pp3ppp/2n5/8/5B1q/5Q2/PPP1BPPP/2KR3R w - - 0 1"]
+
+{ Two bishops on crossing diagonals can mate a king castled long. First the b-pawn must leave b7. }
+1. Qxc6+ bxc6 2. Ba6# *
+
+[Event "Discovered Attack"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "discovered_attack"]
+[Difficulty "1"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "r4rk1/ppp2ppp/8/3q4/8/3B4/PPP2PPP/R2Q1RK1 w - - 0 1"]
+
+{ Queen faces queen, with your bishop between them. Move the bishop with check. } 1. Bxh7+ Kxh7 (
+1... Kh8 2. Qxd5 ) 2. Qxd5 *
+
+[Event "Remove the Defender"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "remove_the_defender"]
+[Difficulty "1"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "r4rk1/ppp2ppp/5n2/6B1/8/3B3Q/PPP2PPP/6K1 w - - 0 1"]
+
+{ Queen and bishop aim at h7, and a single knight stops the mate. } 1. Bxf6 h6 ( 1... gxf6 2. Qxh7#
+) 2. Qg4 g6 3. Bxg6 Rfe8 4. Bd3+ Kf8 5. Qg7# *
+
+[Event "The Knight Fork"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "knight_fork"]
+[Difficulty "1"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "r1q3k1/pp3ppp/8/3N4/8/8/PP3PPP/2R3K1 w - - 0 1"]
+
+{ King, queen and rook stand on squares one knight move can reach. } 1. Ne7+ ( 1. Rxc8+ Rxc8 2.
+Ne7+ Kf8 3. Nxc8 ) 1... Kf8 2. Rxc8+ Rxc8 3. Nxc8 *
+
+[Event "Attack the Pinned Piece"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "pin_and_win"]
+[Difficulty "1"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "r3k2r/ppp2ppp/2n5/1B6/3P4/8/PP3PPP/R1B2RK1 w kq - 0 1"]
+
+{ A pinned knight cannot run away, so attack it with something cheap. } 1. d5 a6 ( 1... O-O-O 2.
+dxc6 ) 2. Re1+ ( 2. Bxc6+ bxc6 3. dxc6 ) ( 2. dxc6 axb5 3. cxb7 Rb8 ) 2... Kf8 3. dxc6 axb5 4. cxb7
+Rb8 5. Bf4 *
+
+[Event "Mate on the Open File"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "*"]
+[Key "h_file_mate"]
+[Difficulty "1"]
+[Goal "win"]
+[SetUp "1"]
+[FEN "r4rk1/ppp2pp1/8/8/2B3Q1/8/PPP2PP1/6KR w - - 0 1"]
+
+{ The h-pawn has gone, your rook owns the file, and the bishop pins the f-pawn. } 1. Qh4 ( 1. Qh3
+g6 2. Qh8# ) 1... g6 2. Qh8# *

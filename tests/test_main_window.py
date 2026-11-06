@@ -468,7 +468,8 @@ def test_program_starts_in_board_mode_with_board_last_in_the_game_menu(win):
     win._build_mode_menu()
     menu = win.mode_menu
     labels = [menu.entrycget(i, "label") for i in range(menu.index("end") + 1) if menu.type(i) == "radiobutton"]
-    assert labels == ["Play vs Computer…", "Learn Openings…", "Endgame Practice…", "Board (free analysis)"]
+    assert labels == ["Play vs Computer…", "Learn Openings…", "Middlegame Practice…", "Endgame Practice…",
+                      "Board (free analysis)"]
 
 
 def test_browsing_sounds_never_queue_up_but_played_moves_always_sound(win, monkeypatch):
@@ -608,6 +609,38 @@ def test_a_solved_position_is_recorded_and_stays_solved(win):
     win.mode._record_progress("played")
     assert win.settings["end_progress"][key] == "solved"
     assert win.mode._solved(1) == 1
+
+
+def test_middlegame_practice_retry_and_progress_survive_a_restart(tmp_path, answers):
+    win = make_window(tmp_path)
+    win.set_mode("mid_practice", ENDGAME)
+    assert win.mode.title().startswith("Middlegame Practice")
+    labels = {item.label for item in win.mode.menu_items()} | widget_texts(win.root)
+    assert "Retry" in labels and "Resign" not in labels
+    first = win.mode.game.sample
+    win.mode.retry()
+    assert win.mode.game.sample is first and answers.save_prompts == 0 and answers.resign_prompts == 0
+    win.exit()
+
+    again = make_window(tmp_path)
+    try:
+        assert again.settings["mid_progress"][first.key] == "played"
+        assert again.settings["end_progress"] == {}
+        again.set_mode("mid_practice", ENDGAME)   # the puzzle played last does not come back first
+        assert again.mode.game.sample.key != first.key
+    finally:
+        close(again)
+
+
+def test_middlegame_light_stays_green_on_the_board_after_the_game_is_lost(win):
+    win.set_mode("mid_practice", {**ENDGAME, "sample": "back_rank"})
+    win.mode.computer_turn = lambda: None   # the test plays the computer's moves itself
+    win.mode.game.solved_ply = 0
+    win.mode._note_solved()
+    win.mode.leave()
+    win.update_status()
+    assert win.light.text["text"].startswith("Solved · ")
+    assert win.settings["mid_progress"]["back_rank"] == "solved"
 
 
 def test_hints_are_counted_once_per_position(win):

@@ -4,9 +4,10 @@ from .base import MenuItem, Mode, ModeContext
 from .board import BoardMode
 from .endgames import EndgameMode
 from .learn_openings import LearnOpeningsMode
+from .middlegames import MiddlegameMode
 from .vs_computer import VsComputerMode
 
-MODES = [VsComputerMode, LearnOpeningsMode, EndgameMode, BoardMode]
+MODES = [VsComputerMode, LearnOpeningsMode, MiddlegameMode, EndgameMode, BoardMode]
 START_MODE = BoardMode
 
 

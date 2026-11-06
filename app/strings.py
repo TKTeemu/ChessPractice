@@ -35,6 +35,7 @@ BOARD_THEMES = {"green": "Green", "brown": "Brown", "blue": "Blue"}
 
 MODE_VS_COMPUTER = "Play vs Computer…"
 MODE_LEARN_OPENINGS = "Learn Openings…"
+MODE_MIDDLEGAMES = "Middlegame Practice…"
 MODE_ENDGAMES = "Endgame Practice…"
 MODE_BOARD = "Board (free analysis)"
 MODE_RESIGN = "Resign"
@@ -113,11 +114,11 @@ ERROR_SETTINGS = "Could not save the settings to\n{path}\nThe details are in err
 
 SHORTCUTS_TITLE = "Keyboard Shortcuts"
 SHORTCUTS_TEXT = """\
-← / →\tMove back / forward (Endgame Practice: ← takes back)
+← / →\tMove back / forward (Middlegame and Endgame Practice: ← takes back)
 Home / End\tGo to start / end
 ↑ / ↓\tSwitch between variations
 F\tFlip board
-Ctrl+Z\tDelete last move (Learn Openings, Endgame Practice: take back)
+Ctrl+Z\tDelete last move (Learn Openings, Middlegame and Endgame Practice: take back)
 Ctrl+Y\tRestore deleted moves
 Ctrl+N\tNew game
 Ctrl+O\tOpen
@@ -216,6 +217,12 @@ LEARN_PHASE_OVER = "(opening phase over)"
 LEARN_OUT_OF_THEORY = "Out of theory"
 LEARN_OUT_OF_THEORY_BOOK = "Out of theory. Book moves: {moves}"
 LEARN_END_OF_THEORY = "End of theory – the engine takes over."
+
+# Middlegame Practice; it shares the rest of its text with Endgame Practice
+MID_TITLE = "Middlegame Practice"
+MID_NO_POSITIONS = "No middlegame puzzles were found in\n{folder}"
+MID_EVENT = "Middlegame practice"
+MID_CLASSIC = "Classic middlegame pattern"
 
 # Endgame Practice dialog
 END_TITLE = "Endgame Practice"
