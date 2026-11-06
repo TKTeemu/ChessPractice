@@ -1,4 +1,4 @@
-"""Modes. The order of MODES is the order in the Game menu; the first one is the start mode."""
+"""Modes. The order of MODES is the order in the Game menu; START_MODE is the one the program starts in."""
 
 from .base import MenuItem, Mode, ModeContext
 from .board import BoardMode
@@ -6,7 +6,8 @@ from .endgames import EndgameMode
 from .learn_openings import LearnOpeningsMode
 from .vs_computer import VsComputerMode
 
-MODES = [BoardMode, VsComputerMode, LearnOpeningsMode, EndgameMode]
+MODES = [VsComputerMode, LearnOpeningsMode, EndgameMode, BoardMode]
+START_MODE = BoardMode
 
 
 def mode_class(key):

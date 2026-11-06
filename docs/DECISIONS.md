@@ -33,6 +33,7 @@ The original plans (November 2026) are in git history under `docs/plans/`, for t
 | **Player names are not editable** | Not needed, decided by the user. | |
 | **Exit asks nothing** | Reduces pop-ups: the unsaved game is not kept and a running game is not resigned. Tests guard this (`test_exit_*`). | Users lose work they wanted. |
 | **The program always starts in Board mode** | An unfinished game against the computer is never resumed. | |
+| **Board is last in the Game menu**, as "Board (free analysis)" | Decided by the user: it is the least interesting entry. The menu order and the start mode are therefore separate (`MODES`, `START_MODE`). | |
 | **Play vs Computer: no take-backs, no browsing until the game ends** | It is a real game, with a clock. Browsing opens when it is over, and Open in Board Mode allows analysis. | |
 | **Learn Openings: leaving the book does not stop the game** | The engine takes over. If suggestions are on, the book moves are named and shown as arrows until the next user move. | |
 | **Learn Openings: opening phase** | Suggestions end at the move limit (default 12, range 10–15) or after two user moves outside the book. | |
@@ -40,6 +41,7 @@ The original plans (November 2026) are in git history under `docs/plans/`, for t
 | **Endgame Practice: no Resign and no question on leaving** | It is practice, not a game to give up, and Retry is pressed again and again. A running attempt is simply resigned when left. A New Game that replaces moves still offers a save. | |
 | **Endgame Practice: Take Back does not wind back the clock** | Decided by the user. | |
 | **Endgame Practice: the light is above the board**, in place of the material score | Decided by the user. | |
+| **Endgame Practice: a line directly above the board says "You play Black · White to move"** | Requested by the user: the colour could not be seen without clicking a piece. It names both, so the user's colour is clear also during the computer's turn. | |
 | **Endgame Practice: hints and take-backs do not block green** | They are shown as counters and saved in the PGN instead. | |
 | **Endgame Practice: all draws by the rules end the game** | In drawing studies the game ends in exactly that way. | |
 | **Drawn positions continue across runs** | `end_progress` remembers what was played; positions not yet played come first. | |

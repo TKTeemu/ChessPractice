@@ -47,7 +47,7 @@ Libraries     python-chess   Pillow   Tk   Stockfish (child process)
 | `main_window.py` | `MainWindow`: creates the model and views; layout, menus and shortcuts; holds the active mode; brings the views up to date. |
 | `file_commands.py` | `FileCommands`: open, save, paste and the clipboard. `confirm_discard` is the only place that offers to save a game before replacing it. |
 | `modes/base.py` | The `Mode` interface, `ModeContext` and `MenuItem`. The authority on what each hook means. |
-| `modes/__init__.py` | The `MODES` registry. Its order is the Game menu's order, and the first mode is the start mode. |
+| `modes/__init__.py` | The `MODES` registry, whose order is the Game menu's order, and `START_MODE`. |
 | `modes/board.py` | `BoardMode`: the free board, with optional engine analysis. |
 | `modes/engine_mode.py` | `EngineGameMode`: the base of modes where the computer plays (worker, polling, delayed moves, take-back, game over). |
 | `modes/timed_mode.py` | `TimedGameMode`: adds the clock tick, flag fall, `[%clk]` comments and resigning. |
@@ -110,7 +110,7 @@ Breaking one of these usually produces a bug far from the change. The last colum
 
 ### Startup
 
-`chessboard.pyw` starts logging, and stops with a message box if the Python version is wrong or a requirement cannot be imported. `MainWindow.__init__` then builds `Settings` (with `mode_settings()`), repairs hand-edited values, and creates the model, `FileCommands`, `ModeContext` and the first mode in `MODES`. An unfinished game is never resumed.
+`chessboard.pyw` starts logging, and stops with a message box if the Python version is wrong or a requirement cannot be imported. `MainWindow.__init__` then builds `Settings` (with `mode_settings()`), repairs hand-edited values, and creates the model, `FileCommands`, `ModeContext` and `START_MODE`. An unfinished game is never resumed.
 
 ### A move
 
@@ -124,6 +124,8 @@ mouse -> BoardView -> on_move(from, to, promotion) = MainWindow.user_move
 ```
 
 `GameModel.play` steps into the move if it already exists at the current node, and otherwise adds a variation. Illegal moves redraw the board and play the "illegal" sound.
+
+Browsing plays the same sounds with `skip_if_busy=True`. Windows queues asynchronous `PlaySound` requests, about 160 ms each, so a held arrow key (about 30 requests a second) would keep clicking for many seconds after the last step. With `SND_NOSTOP` a request made while a sound plays is dropped instead. A played move does not use it, because its sound must not be lost.
 
 ### A computer move
 
@@ -197,7 +199,7 @@ The panel is built **before** `start`, so a panel must cope with having no game 
 
 ## The window
 
-**Left, top to bottom:** the title row (`Mode.title()`, then `score_text()` and the `light()` on the right), the optional `subtitle()`, a player row, the board, a player row. Clocks come from `ctx.set_clocks`.
+**Left, top to bottom:** the title row (`Mode.title()`, then `score_text()` and the `light()` on the right), the optional `subtitle()`, a player row, the optional `turn_text()`, the board, a player row. Clocks come from `ctx.set_clocks`.
 
 **Right, top to bottom:** the toolbar (New Game; Take Back if `takes_back`), the status line (`status_text()` or `model.status()`, and briefly why a command was blocked), the mode's panel (`build_panel`), the move list (takes spare height), the navigation buttons, and the collapsible Comment & FEN section. Whether that section is open is stored per mode in `settings["details_open"]`, falling back to `Mode.show_details`.
 

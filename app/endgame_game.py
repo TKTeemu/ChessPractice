@@ -102,6 +102,13 @@ class EndgameGame(ComputerGame):
     def goal_text(self):
         return S.END_GOALS[self.goal].format(color=S.COLOR_NAMES[self.user_color])
 
+    def turn_text(self, board, at_end):
+        """The line above the board for the position shown; no one is to move in the final one."""
+        you = S.COLOR_NAMES[self.user_color]
+        if self.over and at_end:
+            return S.END_YOU_PLAY.format(color=you)
+        return S.END_TURN.format(color=you, turn=S.COLOR_NAMES[board.turn])
+
     def allows(self, command):
         if command == TAKE_BACK and self.over and not self._board_end:
             return False

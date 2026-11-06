@@ -6,7 +6,7 @@ import chess
 from app.assets import Assets
 from app.commands import ALL_COMMANDS
 from app.model import GameModel
-from app.modes import MODES, ModeContext, mode_class, mode_settings
+from app.modes import MODES, START_MODE, ModeContext, mode_class, mode_settings
 from app.modes.board import BoardMode
 from app.settings import DEFAULTS, Settings
 
@@ -67,7 +67,12 @@ def test_every_mode_has_unique_key_and_label():
     keys = [cls.key for cls in MODES]
     assert len(keys) == len(set(keys))
     assert all(cls.key and cls.label for cls in MODES)
-    assert MODES[0] is BoardMode and mode_class("board") is BoardMode
+    assert mode_class("board") is BoardMode
+
+
+def test_board_is_last_in_the_menu_but_the_program_starts_in_it():
+    assert MODES[-1] is BoardMode and START_MODE is BoardMode
+    assert BoardMode.label == "Board (free analysis)"
 
 
 def test_mode_settings_are_prefixed_and_do_not_clash():

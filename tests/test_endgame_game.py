@@ -104,6 +104,22 @@ def test_solution_move_is_ok_and_tree_gives_the_defence():
     assert board.san(game.tree_reply(board)) == "Rd6+"
 
 
+def test_turn_text_names_the_users_colour_and_the_side_to_move():
+    game, _ = new_game()
+    board = start_board(game)
+    assert game.turn_text(board, True) == "You play White · White to move"
+    play(game, board, "c7")
+    assert game.turn_text(board, True) == "You play White · Black to move"
+
+
+def test_turn_text_names_no_side_in_the_final_position():
+    game, _ = new_game(STALEMATE_TRAP)
+    board = start_board(game)
+    play(game, board, "Qb7#")
+    assert game.over and game.turn_text(board, True) == "You play White"
+    assert game.turn_text(start_board(game), False) == "You play White · White to move"   # browsing back
+
+
 def test_known_wrong_try_turns_the_light_red_and_explains():
     game, _ = new_game()
     board = start_board(game)

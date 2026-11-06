@@ -15,7 +15,7 @@ from .dialogs import choose_engine_path
 from .engines import StockfishEngine
 from .file_commands import FileCommands
 from .model import GameModel, event_for, visible_comment
-from .modes import MODES, ModeContext, mode_class, mode_settings
+from .modes import MODES, START_MODE, ModeContext, mode_class, mode_settings
 from .movelist_view import MoveListView
 from .pieces import PieceImages
 from .settings import Settings
@@ -77,7 +77,7 @@ class MainWindow:
             play_move=self.play_move, new_game=self.files.set_position, update_status=self.update_status,
             set_flipped=self.set_flipped, set_mode=self.set_mode, set_clocks=self.set_clocks,
             play_sound=self.sounds.play, take_back=self.take_back)
-        self.mode = MODES[0](self.ctx)   # the program always starts in the first mode (Board)
+        self.mode = START_MODE(self.ctx)
 
         self.scale = root.winfo_fpixels("1i") / 96   # 1.25 on a 125 % display
         root.title(S.APP_TITLE)
@@ -137,6 +137,8 @@ class MainWindow:
                           tk.Label(row, bg=CLOCK_BG, fg=CLOCK_FG, font=FONT_CLOCK, padx=10))
             rows[side][0].pack(side="left", fill="x", expand=True)
         (self.top_name, self.top_clock), (self.bottom_name, self.bottom_clock) = rows["top"], rows["bottom"]
+        # Directly above the board (Mode.turn_text); packed only when the mode has one
+        self.turn = tk.Label(left, bg=BACKGROUND, fg=PANEL_FG, font=FONT_LARGE_BOLD, anchor="w")
         self.board = BoardView(left, self.model, self.pieces, self.user_move, self.illegal_move,
                                can_move=lambda color: self.mode.can_move(color))
         self.board.pack(side="top", fill="both", expand=True, pady=4)
@@ -407,6 +409,7 @@ class MainWindow:
         self.mode_title.configure(text=self.mode.title())
         self.score.configure(text=self.mode.score_text() or "")
         self._update_subtitle()
+        self._update_turn()
         self._update_light()
         self.fen_entry.configure(state="normal" if self.mode.allows(PASTE) else "readonly")
         self.comment.configure(state="normal" if self.mode.allows(EDIT_COMMENT) else "disabled")
@@ -441,6 +444,15 @@ class MainWindow:
         self.subtitle.configure(text=text)
         if not self.subtitle.winfo_manager():
             self.subtitle.pack(side="top", fill="x", after=self._subtitle_after)
+
+    def _update_turn(self):
+        text = self.mode.turn_text()
+        if text is None:
+            self.turn.pack_forget()
+            return
+        self.turn.configure(text=text)
+        if not self.turn.winfo_manager():
+            self.turn.pack(side="top", fill="x", after=self.top_name.master)
 
     def _update_nav(self):
         """The |◀ ◀ ▶ ▶| buttons browse the game, when the mode allows it. Take Back is separate."""
@@ -545,7 +557,7 @@ class MainWindow:
         if moved:
             self.position_changed(rebuild=changed)
             if self.model.node.move is not None:
-                self.sounds.play(event_for(self.model.node))
+                self.sounds.play(event_for(self.model.node), skip_if_busy=True)
         elif changed:
             self.movelist.rebuild()
             self.update_title()

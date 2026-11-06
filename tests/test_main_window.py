@@ -428,6 +428,44 @@ def test_delete_from_here_is_disabled_during_a_game(win):
 
 # --- Endgame Practice: buttons, retry, progress ------------------------------------
 
+def test_program_starts_in_board_mode_with_board_last_in_the_game_menu(win):
+    assert win.mode.key == "board"
+    win._build_mode_menu()
+    menu = win.mode_menu
+    labels = [menu.entrycget(i, "label") for i in range(menu.index("end") + 1) if menu.type(i) == "radiobutton"]
+    assert labels == ["Play vs Computer…", "Learn Openings…", "Endgame Practice…", "Board (free analysis)"]
+
+
+def test_browsing_sounds_never_queue_up_but_played_moves_always_sound(win, monkeypatch):
+    calls = []
+    monkeypatch.setattr(win.sounds, "play", lambda kind, skip_if_busy=False: calls.append((kind, skip_if_busy)))
+    play(win, "e4")
+    assert calls == [("move", False)]
+    win.back()     # at the start position, where there is no move to sound
+    assert calls == [("move", False)]
+    win.forward()
+    assert calls == [("move", False), ("move", True)]
+
+
+def test_endgame_shows_whose_turn_directly_above_the_board(win):
+    assert not win.turn.winfo_manager()   # Board mode has no such line
+    win.set_mode("end_practice", {**ENDGAME, "sample": "ladder_black"})
+    win.mode.computer_turn = lambda: None   # the test plays the computer's moves itself
+    you = "Black" if win.mode.game.user_color == chess.BLACK else "White"
+    other = "White" if you == "Black" else "Black"
+    assert win.turn["text"] == f"You play {you} · {you} to move"
+    assert win.turn.winfo_manager() == "pack"
+    packed = win.turn.master.pack_slaves()   # the lower player row is packed from the bottom
+    assert packed.index(win.top_name.master) + 1 == packed.index(win.turn)
+    assert packed.index(win.turn) < packed.index(win.board)
+    win.play_move(next(iter(win.model.board.legal_moves)))
+    assert win.turn["text"] == f"You play {you} · {other} to move"
+    win.back()     # the line follows the position shown
+    assert win.turn["text"] == f"You play {you} · {you} to move"
+    win.set_mode("board")
+    assert not win.turn.winfo_manager()
+
+
 def widget_texts(widget):
     """The text of this widget and of all the widgets inside it."""
     texts = {str(widget.cget("text"))} if "text" in widget.keys() else set()

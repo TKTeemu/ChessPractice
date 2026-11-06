@@ -93,6 +93,10 @@ class Mode:
         """A second, smaller line under the title, e.g. where a position comes from. None = hidden."""
         return None
 
+    def turn_text(self):
+        """A line directly above the board: who the user plays and whose turn it is. None = hidden."""
+        return None
+
     def status_text(self):
         """None = the model's normal status."""
         return None

@@ -111,6 +111,12 @@ class EndgameMode(TimedGameMode):
             return None
         return self.game.sample.credit_text() or S.END_CLASSIC
 
+    def turn_text(self):
+        if self.game is None:
+            return None
+        model = self.ctx.model
+        return self.game.turn_text(model.board, model.at_end())
+
     def light(self):
         return self.game.light if self.game else None
 
