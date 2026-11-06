@@ -159,7 +159,7 @@ The user may be browsing earlier moves while the computer thinks, so game logic 
 ### Take-back
 
 ```
-Take Back button or Ctrl+Z -> mode.take_back()    guarded by can_take_back()
+Take Back button, Ctrl+Z, or ← / ◀ with back_takes_back -> mode.take_back()    guarded by can_take_back()
     -> cancel_computer_move()
     -> ctx.take_back(user_color) = MainWindow.take_back -> GameModel.take_back, position_changed
     -> game.took_back(tip) -> model.clear_result() -> _next_turn() -> update_status()

@@ -563,7 +563,11 @@ class MainWindow:
             self.update_title()
 
     def back(self):
-        self._navigate(self.model.back)
+        """← and ◀. At the last move a mode with back_takes_back takes back, so that play can go on."""
+        if self.mode.back_takes_back and self.model.at_end() and self.mode.can_take_back():
+            self.mode.take_back()
+        else:
+            self._navigate(self.model.back)
 
     def forward(self):
         self._navigate(self.model.forward)

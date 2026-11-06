@@ -101,6 +101,7 @@ Add the class to `MODES` in `app/modes/__init__.py`. Put its text in `strings.py
 | `show_details` | Panel build | Comment & FEN open by default. |
 | `replaces_game` | `set_mode` | Set it if `start` replaces the game; the user is then offered a save. `EngineGameMode` sets it. |
 | `takes_back`, `can_take_back`, `take_back` | Button and Ctrl+Z | With `takes_back`, Ctrl+Z calls `take_back` instead of deleting the last move. |
+| `back_takes_back` | ← and ◀ | At the last move they call `take_back` whenever `can_take_back()`; otherwise they browse. |
 | `choose` | First in a switch | No side effects, since the old mode is still running. Write remembered choices in `start`. Returning `None` cancels. |
 | `start(config)` | After the old mode closed | The panel already exists. |
 | `confirm_leave` | Before leaving | Only asks. False cancels. |

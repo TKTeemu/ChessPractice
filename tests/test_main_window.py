@@ -357,6 +357,41 @@ def test_endgame_practice_can_be_browsed_during_the_game(win):
     assert win.nav_buttons["prev"]["state"] == "normal" and win.mode.allows(NAVIGATE)
 
 
+def test_left_arrow_and_back_button_take_back_in_endgame_practice(win):
+    """Going back with ← left a position in which no move could be played."""
+    win.set_mode("end_practice", {**ENDGAME, "sample": "ladder_black"})
+    win.mode.computer_turn = lambda: None   # the test plays the computer's moves itself
+    user = win.model.board.turn
+    play(win, "Rh7", "Kf8", "Rh6", "Kg7")
+    win.back()
+    assert plies(win) == 2 and win.model.at_end() and win.mode.can_move(user)
+    assert win.mode.game.take_backs == 1
+    win.nav_buttons["prev"].invoke()
+    assert plies(win) == 0 and win.mode.can_move(user)
+    assert win.mode.game.take_backs == 2
+    win.back()     # nothing left to take back
+    assert plies(win) == 0 and win.mode.game.take_backs == 2
+
+
+def test_left_arrow_browses_in_endgame_practice_away_from_the_last_move(win):
+    win.set_mode("end_practice", {**ENDGAME, "sample": "ladder_black"})
+    win.mode.computer_turn = lambda: None
+    play(win, "Rh7", "Kf8", "Rh6", "Kg7")
+    first = win.model.game.next()
+    win.select_node(first.next())   # clicked in the move list
+    win.back()
+    assert plies(win) == 4 and win.model.node is first and win.mode.game.take_backs == 0
+
+
+def test_left_arrow_browses_when_the_endgame_attempt_cannot_be_taken_back(win):
+    win.set_mode("end_practice", {**ENDGAME, "sample": "ladder_black"})
+    win.mode.computer_turn = lambda: None
+    play(win, "Rh7", "Kf8")
+    win.mode.leave()     # like a loss on time: no take-backs after it
+    win.back()
+    assert plies(win) == 2 and win.model.node is win.model.game.next() and win.mode.game.take_backs == 0
+
+
 def test_blocked_commands_say_why_and_the_status_comes_back(win, monkeypatch):
     monkeypatch.setattr("app.main_window.NOTICE_MS", 1)
     win.set_mode("vs_computer", VS)
@@ -460,7 +495,7 @@ def test_endgame_shows_whose_turn_directly_above_the_board(win):
     assert packed.index(win.turn) < packed.index(win.board)
     win.play_move(next(iter(win.model.board.legal_moves)))
     assert win.turn["text"] == f"You play {you} · {other} to move"
-    win.back()     # the line follows the position shown
+    win.go_start()     # the line follows the position shown
     assert win.turn["text"] == f"You play {you} · {you} to move"
     win.set_mode("board")
     assert not win.turn.winfo_manager()

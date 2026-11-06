@@ -35,6 +35,7 @@ class EndgameMode(TimedGameMode):
     key = "end_practice"
     label = S.MODE_ENDGAMES
     takes_back = True
+    back_takes_back = True
     SETTINGS = {
         "end_difficulty": 1,
         "end_minutes": 15,

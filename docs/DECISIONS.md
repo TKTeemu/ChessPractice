@@ -40,6 +40,7 @@ The original plans (November 2026) are in git history under `docs/plans/`, for t
 | **Endgame Practice: opponent always at full strength** | Perfect defence is what is being practised, even on low levels, so there is no level picker. | Full strength proves too hard for beginners. |
 | **Endgame Practice: no Resign and no question on leaving** | It is practice, not a game to give up, and Retry is pressed again and again. A running attempt is simply resigned when left. A New Game that replaces moves still offers a save. | |
 | **Endgame Practice: Take Back does not wind back the clock** | Decided by the user. | |
+| **Endgame Practice: ← and ◀ take back at the last move** | Requested by the user: going back only by browsing left a position where no move could be played. They browse when nothing can be taken back or when already at an earlier move. Learn Openings keeps browsing. | |
 | **Endgame Practice: the light is above the board**, in place of the material score | Decided by the user. | |
 | **Endgame Practice: a line directly above the board says "You play Black · White to move"** | Requested by the user: the colour could not be seen without clicking a piece. It names both, so the user's colour is clear also during the computer's turn. | |
 | **Endgame Practice: hints and take-backs do not block green** | They are shown as counters and saved in the PGN instead. | |
