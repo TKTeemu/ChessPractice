@@ -193,14 +193,14 @@ Prefer the standard library and the packages already used. If one is unavoidable
 
 | Kind | Listed in |
 | --- | --- |
-| Needed to run the program | `requirements.txt`, pinned; `make_dist.py` then packs its wheel |
-| Development tool | `requirements-dev.txt`, pinned |
+| Needed to run the program | `requirements.txt`, pinned with `--hash`; `make_dist.py` then packs its wheel |
+| Development tool | `requirements-dev.txt`, pinned with `--hash`, with all its dependencies |
 
-Run `Install.bat dev` to install it into `.venv`. For a library the program needs, also add a message to `REQUIREMENTS` in `chessboard.pyw`, add it to the import checks in `Install.bat`, and add its licence to `NOTICE`. Avoid packages that need their `.exe` launchers; run tools as `python -m <module>`. The reasons are in [DECISIONS.md](DECISIONS.md#platform-and-tools).
+It must have a wheel for Python 3.15 on 64-bit Windows, or be pure Python with a wheel committed to `wheels/` (see `wheels/README.txt`): source-only packages do not build in the embeddable Python. Run `Install.bat dev` to install it into `python\`. For a library the program needs, also add a message to `REQUIREMENTS` in `chessboard.pyw`, add it to the import check in `setup/check_libraries.py`, and add its licence to `NOTICE`. Avoid packages that need their `.exe` launchers; run tools as `python -m <module>`. The reasons are in [DECISIONS.md](DECISIONS.md#platform-and-tools).
 
 ## Before you finish
 
-- [ ] `.venv\Scripts\python.exe -m pytest` passes, with one expected xfail.
+- [ ] `python\python.exe -m pytest` passes, with one expected xfail.
 - [ ] Logic-layer changes import no tkinter.
 - [ ] New text is in `strings.py`, colours in `theme.py`, command names in `commands.py`.
 - [ ] No permanent identifier changed ([list](DATA_FORMATS.md#permanent-identifiers)).

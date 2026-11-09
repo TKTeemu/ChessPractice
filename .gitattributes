@@ -2,3 +2,4 @@
 # cmd.exe can misread goto labels in a bat file that has LF endings.
 *.bat       text eol=crlf
 INSTALL.txt text eol=crlf
+*.whl       binary

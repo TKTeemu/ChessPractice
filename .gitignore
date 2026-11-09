@@ -6,6 +6,9 @@ engines/syzygy/
 __pycache__/
 *.py[cod]
 .pytest_cache/
+# The private Python that Install.bat unpacks
+python/
+# The environment of older versions; kept here so that old folders do not show as untracked
 .venv/
 
 # Local settings, logs and played games

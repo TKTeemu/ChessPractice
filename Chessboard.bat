@@ -1,9 +1,10 @@
 @echo off
-rem Starts Chessboard without a console window, with the Python environment Install.bat creates.
+rem Starts Chessboard without a console window, with the Python that Install.bat puts in the
+rem folder python. It ignores any other Python on the computer (see setup\python315._pth).
 cd /d "%~dp0"
-".venv\Scripts\python.exe" -c "" >nul 2>nul
+"python\python.exe" -c "" >nul 2>nul
 if errorlevel 1 goto not_set_up
-start "" ".venv\Scripts\pythonw.exe" chessboard.pyw
+start "" "python\pythonw.exe" chessboard.pyw
 exit /b
 
 :not_set_up

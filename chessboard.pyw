@@ -29,8 +29,7 @@ ERROR_QUIET_SECONDS = 30   # a repeating error (a timer) shows its message box o
 REQUIRED_PYTHON = (3, 15)
 # (module, what to tell the user if it cannot be imported)
 REQUIREMENTS = [
-    ("tkinter", "Tcl/Tk is missing. Reinstall Python 3.15 from python.org with "
-                "\"tcl/tk and IDLE\" selected."),
+    ("tkinter", "Tcl/Tk is missing. Run Install.bat again."),
     ("PIL", "Pillow is missing. Run Install.bat, then start the program with Chessboard.bat."),
     ("chess.pgn", "python-chess is missing. Run Install.bat, then start the program with Chessboard.bat."),
 ]

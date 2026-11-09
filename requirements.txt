@@ -1,3 +1,10 @@
-# Needed to run the program. Install.bat installs these into .venv.
-pillow==12.3.0
-chess==1.11.2
+# Needed to run the program. Install.bat installs these into python\.
+# Every file is pinned by its SHA-256, like Python and Stockfish in Install.bat, so pip installs
+# exactly these files and nothing else. Only the Python 3.15 / 64-bit Windows wheel of Pillow is
+# listed: nothing is built from source code.
+# python-chess comes from wheels\ (PyPI has 1.11.2 only as source code, see wheels\README.txt).
+# Changing a version: docs/MAINTENANCE.md, "Updating a library".
+pillow==12.3.0 \
+    --hash=sha256:fa4ecea169a355be7a3ade2c783e2ed12f0e40d2c5621cda8b3297faf7fbb9f5
+chess==1.11.2 \
+    --hash=sha256:c1afd98acdc7441fc817c03e4121b7256335b67d381f187b6f47226dd18930b7

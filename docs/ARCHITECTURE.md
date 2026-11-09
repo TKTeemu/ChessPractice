@@ -37,7 +37,9 @@ Libraries     python-chess   Pillow   Tk   Stockfish (child process)
 | `engines/syzygy/` | Optional tablebases (not in git). |
 | `tests/` | The pytest suite, described in [MAINTENANCE.md](MAINTENANCE.md#tests). |
 | `tools/` | Development scripts, described in [MAINTENANCE.md](MAINTENANCE.md#tools). |
-| `.venv/` | The Python environment with Pillow and python-chess, created by `Install.bat` (not in git, do not edit). |
+| `python/` | The private Python 3.15 with Tcl/Tk, Pillow and python-chess, created by `Install.bat` (not in git, do not edit). |
+| `setup/` | `python315._pth`, which `Install.bat` copies into `python/` and which sets `sys.path`, and `check_libraries.py`, which `Install.bat` runs. |
+| `wheels/` | The python-chess wheel (PyPI has 1.11.2 only as source code), installed from here. |
 | `settings.json`, `error.log`, `Games/`, `dist/` | Created when the program or tools run (not in git). |
 
 ### Modules in `app/`
