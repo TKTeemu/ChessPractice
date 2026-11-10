@@ -59,4 +59,4 @@ def test_private_python_ignores_everything_outside_the_folder():
 @running_private_python
 def test_private_python_has_tcl_tk():
     import tkinter
-    tkinter.Tcl()
+    tkinter.Tk().destroy()

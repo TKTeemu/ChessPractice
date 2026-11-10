@@ -75,11 +75,14 @@ rem The path file can change in a new version of Chessboard, so it is always cop
 copy /y "setup\%PY_PTH%" "%PY_DIR%\" >nul
 echo       Already there.
 :python_done
+rem From a zip made with --with-python, every file in python is marked as "from the internet"
+rem by Extract All, and pythonw.exe could then show a security warning or be blocked
+powershell -NoProfile -Command "Get-ChildItem -LiteralPath '%PY_DIR%' -Recurse -File | Unblock-File" >nul 2>nul
 echo.
 
 rem --- 2. Tcl/Tk --------------------------------------------------------------
 echo [2/4] Adding Tcl/Tk, which draws the program's window...
-"%PY_EXE%" -c "import tkinter; tkinter.Tcl()" >nul 2>nul
+"%PY_EXE%" -c "import tkinter; tkinter.Tk().destroy()" >nul 2>nul
 if not errorlevel 1 goto tcltk_present
 echo       Downloading about 5 MB...
 call :download "%TCLTK_URL%" "%TCLTK_SHA256%" "tcltk.msi"
@@ -90,7 +93,7 @@ if errorlevel 1 goto tcltk_failed
 rem Not needed: the copy of the msi, IDLE, the turtle demos, tests and C import libraries
 if exist "%PY_DIR%\tcltk.msi" del "%PY_DIR%\tcltk.msi"
 for %%D in (Lib\idlelib Lib\turtledemo Lib\test libs) do if exist "%PY_DIR%\%%D\" rmdir /s /q "%PY_DIR%\%%D"
-"%PY_EXE%" -c "import tkinter; tkinter.Tcl()"
+"%PY_EXE%" -c "import tkinter; tkinter.Tk().destroy()"
 if errorlevel 1 goto tcltk_failed
 echo       Done.
 goto tcltk_done
@@ -115,7 +118,8 @@ if not exist "%PY_DIR%\Lib\site-packages\" mkdir "%PY_DIR%\Lib\site-packages"
 if errorlevel 1 goto install_failed
 :pip_ready
 rem --isolated: pip settings of another Python on this computer are not used
-"%PY_EXE%" -m pip install --isolated --disable-pip-version-check --no-warn-script-location --quiet --only-binary :all: --find-links wheels %NO_INDEX% -r %REQUIREMENTS%
+rem --no-cache-dir: no cache in %LOCALAPPDATA%\pip; the requirements pin every hash anyway
+"%PY_EXE%" -m pip install --isolated --no-cache-dir --disable-pip-version-check --no-warn-script-location --quiet --only-binary :all: --find-links wheels %NO_INDEX% -r %REQUIREMENTS%
 if errorlevel 1 goto install_failed
 "%PY_EXE%" setup\check_libraries.py %REQUIREMENTS%
 if errorlevel 1 goto install_failed

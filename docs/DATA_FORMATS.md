@@ -54,7 +54,7 @@ These are stored in users' `settings.json`. Never rename or reuse one.
 | `{Line: Reversed Sicilian}` | Names the variation from this move on (*Line:* in the panel). |
 | `{Line: From's Gambit; Black gives a pawn.}` | Both: the name, then the explanation. |
 
-**After editing,** run `.venv\Scripts\python.exe -m pytest tests/test_openings.py`. It fails on load errors. A new or removed opening must also be changed in its `EXPECTED` table, which lists every key with its group, start moves and side.
+**After editing,** run `python\python.exe -m pytest tests/test_openings.py`. It fails on load errors. A new or removed opening must also be changed in its `EXPECTED` table, which lists every key with its group, start moves and side.
 
 The book can also be edited in Board mode: open the PGN file, change it and save. Explanatory comments must be your own words, not copied from books.
 
@@ -105,8 +105,8 @@ Other NAGs such as `$1` have no effect.
 **After editing:**
 
 ```
-.venv\Scripts\python.exe -m tools.check_endgames --key <key>
-.venv\Scripts\python.exe -m pytest tests/test_endgames.py
+python\python.exe -m tools.check_endgames --key <key>
+python\python.exe -m pytest tests/test_endgames.py
 ```
 
 The tool checks the goal and every solution move with Stockfish, by the same `is_mistake` rule as the game. The tests require all five levels to exist, each with a name and at least 15 positions.
@@ -120,8 +120,8 @@ The tool checks the goal and every solution move with Stockfish, by the same `is
 - The main line is normally the strongest defence and the move actually played a computer-side variation. The stored moves are what the computer plays, so a weak historical defence as the main line makes a puzzle easier.
 
 ```
-.venv\Scripts\python.exe -m tools.check_endgames --folder assets/middlegames --first-moves --key <key>
-.venv\Scripts\python.exe -m pytest tests/test_middlegames.py
+python\python.exe -m tools.check_endgames --folder assets/middlegames --first-moves --key <key>
+python\python.exe -m pytest tests/test_middlegames.py
 ```
 
 Sharp positions need a longer search: `paulsen_morphy` fails at `--time 2` (the queen sacrifice is not seen yet) and passes at `--time 15`. Try a longer time before changing a puzzle that fails. A `--first-moves` note is not a problem: the stored solution may still be sound, as with `kasparov_portisch`, where the engine prefers Nd4.

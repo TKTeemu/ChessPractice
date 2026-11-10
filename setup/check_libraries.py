@@ -4,7 +4,8 @@
 
 Checks that every "name==version" in the requirements file (and in the files it includes with
 -r) is installed with exactly that version, and that Tcl/Tk, Pillow's ImageTk and python-chess
-load. tkinter.Tcl() loads the Tcl library itself, not only the tkinter module.
+load. tkinter.Tk() loads the Tcl and Tk libraries themselves, not only the tkinter module; the
+window is destroyed before it is ever shown.
 Prints what is wrong; Install.bat hides that when it only wants to know whether to install.
 """
 
@@ -35,7 +36,7 @@ def problems(requirements):
             yield f"{name} is {installed}, not {version}"
     try:
         import tkinter
-        tkinter.Tcl()
+        tkinter.Tk().destroy()
         import PIL.ImageTk  # noqa: F401
         import chess.pgn  # noqa: F401
     except Exception as e:
